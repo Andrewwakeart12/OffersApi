@@ -1,0 +1,15 @@
+curl -H "Content-Type: application/json" -d '{"urls":["https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825118&rnid=23565476011&ref=sr_nr_p_n_deal_type_2"],"notifyByEmail": "true","notifyByPushNotification":"true","notifyByPhone": "true"}' http://localhost:3700/config/save
+curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123"}' http://localhost:3700/config
+curl -H  -d  http://localhost:3700/
+
+
+curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123"}' http://localhost:3700/config/delete/link/1
+curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123", "notifyByEmail" : 0, "user_id" : 1,"controller":"Amazon" }' http://localhost:3700/config/save/nofications
+curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123", "usuario" : "asfo","contrasena" : "holamundo" }' http://localhost:3700/login
+
+curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123"}' http://localhost:3700/config/config
+
+curl -d '{"JWToken":"asdjasd123123","access-token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXtoken :VCJ9.eyJjaGVjayI6dHJ1ZSwiaWF0IjoxNTY2MjQ4MTYwLCJleHAiOjE1NjYyNDk2MDB9.1olkcT6F_e2y2lN9zzHgFcBYnofnD8cmOb7EEKVjSdQ"}' http://localhost:3700/config
+
+TOKEN=$(curl -s -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' --data '{"username":"asfo","password":"holamundo","rememberMe":false}' https://localhost:3700/api/login | jq -r '.id_token')
+curl -H 'Accept: application/json' -H "Authorization: Bearer ${TOKEN}" https://localhost:3700/api/config 

@@ -1,0 +1,52 @@
+<html><head>
+
+
+    <title>Ofertas</title>
+
+    <meta charset="utf-8">
+</head>
+
+<body style="background: #1e1e1e;">
+
+
+
+    <ul>
+
+    {{#each products}}
+
+
+        <ul class="product-container" style="list-style: none;display: flex;color: white;font-family: sans;">
+
+            <li class="header-img" style="border-radius: 40px;background-image: url('{{this.img_url}}')" >
+                <img src="{{this.img_url}}" width="300" alt="">
+            </li>
+            <ul class="body" style="padding: 20px;font-size: 14pt;display: flex;flex-direction: column;margin: 0;list-style: none;">
+
+                <li class="header-title" style="padding: 20px;">
+                    <h2>Name : {{this.product}} </h2>
+                </li>
+                <li class="body-url">
+                    <a href="{{this.url}}" style="text-decoration: none;color: navajowhite;/*! padding: 20px; */">enlace a {{this.product}} </a>
+                </li>
+                <li class="body-price">Precio Actual: {{this.newPrice}}$</li>
+                <li class="body-price">Precio Anterior: {{this.oldPrice}}$</li>
+                <li class="body-discount">Descuento: -87%</li>
+            </ul>
+           
+        </ul>
+
+
+        {{/each }}
+
+
+
+
+
+
+
+    </ul>
+
+
+
+
+</body></html>

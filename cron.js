@@ -9,7 +9,7 @@ const scraperController = require('./scrapper/amazon/amazonController');
 const { save } = require('node-cron/src/storage');
 const { url } = require('./scrapper/amazon/amazonScraper');
 const { product } = require('puppeteer');
-
+var cron = require('node-cron');
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
   let data = array.slice(0);
@@ -109,11 +109,15 @@ async function comprobate(){
 await  updateProductsInDD()
 }
 
-comprobate();
 //updateProductsInDD();
-// cron.schedule('*/2 * * * * *', () =>{
-// 	  console.log('running a task every minute');
-// });
+ const task = cron.schedule('* * 1 * * *', async () =>{
+	 await updateProductsInDD()
+	 var sql = `DELETE t1 FROM scraped_data t1
+			INNER JOIN scraped_data t2 
+			WHERE t1.id > t2.id AND t1.product = t2.product;`
+	 await pool.query(sql);
+ });
+task.start()
 /*
 delete duplicated data:
 

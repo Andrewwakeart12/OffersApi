@@ -28,6 +28,10 @@ async function getProxy(){
             resetGet++;
             continue;
         }
+	if(e.message === 'Request failed with status code 502'){
+	 break;
+	}
+	   
         if(res.data === undefined){
             console.log('error')
             resetGet++;
@@ -38,6 +42,9 @@ async function getProxy(){
         }
     }
 }
+if(success === false){
+	return false;
+}
         if(res.data.websites.amazon != undefined){
             if(res.data.websites.amazon == true){
                 return res.data.curl;
@@ -47,15 +54,13 @@ async function getProxy(){
         }else{
             return false;
         }
+return false;
 
 
 }
 async function startBrowser(){
  var proxy  = await getProxy();
- if(proxy === false){
-     console.log({error : 'proxy cannot be obtain, mostly because a server error , chack your api call limit'})
-        return null;
-    }
+	console.log(proxy)
     try {
        console.log('proxy:');
        console.log(proxy);
@@ -72,7 +77,7 @@ async function startBrowser(){
             '--disable-setuid-sandbox',
             '--disable-infobars',
             '--window-position=0,0',
-             proxy != null ? '--proxy-server=' + proxy : '',
+             proxy != false && proxy != null ? '--proxy-server=' + proxy : '',
             '--ignore-certifcate-errors',
             '--ignore-certifcate-errors-spki-list'
         ]

@@ -420,7 +420,7 @@ class Scraper {
                 });
                 await this.waitForRequestToFinish(page, this.url, 10000);
 
-                this.setReloadTime().catch(e => { throw e; });
+                this.setReloadTime();
                 page.on("pageerror", async function (err) {
                     console.log('Page error:');
                     console.log(err.error);
@@ -464,7 +464,7 @@ class Scraper {
 
 
                 var lastArr = [];
-                for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks && this.clickedTimes != this.maxClicks - 1 && this.result.resetState != true; i++) {
+                for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) {
 
                     console.log('bucle start')
                     var tempArr = [];
@@ -533,6 +533,9 @@ class Scraper {
 
                             console.log('before comprobate actual pge error')
 
+			if(this.maxClicks === 1){
+				break;
+			}
                             await Promise.all([this.comprobateActualPageF()])
 
                             this.result = {
@@ -567,6 +570,7 @@ class Scraper {
                         this.result.results = await this.result.results.concat(await this.getData());
                         break;
                     }
+			
                     restartFunction = 0;
                     await this.comprobateActualPageF();
                 }

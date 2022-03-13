@@ -42,7 +42,7 @@ app.get('/sendNotification', async (req, res) => {
         for (let product of products) {
           var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
             appId: 2194,
-            subID: 'obe2',
+            subID: user.jwtoken,
             appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
             title: product.product,
             message: `descuento:${product.discount}, precio: ${product.newPrice} , categoria: ${url.category}`,

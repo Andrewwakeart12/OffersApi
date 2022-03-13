@@ -101,7 +101,7 @@ class Scraper {
     }
     async setReloadTime() {
         var page = await this.page;
-        if (this.reloadTime != 1 && this.reloadTime.length < 1 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
+        if (this.reloadTime != 1 && this.reloadTime.length < 2 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
             console.log('Timeout setting...')
             var promise = new Promise((resolve, reject) => {
                 var indexForResolveTimeout = this.resolveTimeOut.length;
@@ -112,8 +112,12 @@ class Scraper {
                             await Promise.all([page.reload(),
                             page.waitForNavigation({ waitUntil: 'load' })
                             ])
+                            this.resetDueToNotChargedPage = true;
                             this.setReloadTime().then(res=>{console.log('resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{reject(e)})
+                            resolve('solved without reload ' + indexForResolveTimeout)
                         } else {
+                            this.resetDueToNotChargedPage = true;
+                            this.setReloadTime().then(res=>{console.log('resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{reject(e)})
                             resolve('solved without reload ' + indexForResolveTimeout)
                         }
                         if (this.catcha === false) {
@@ -279,100 +283,103 @@ class Scraper {
         }
     }
     async getData() {
-        var success = false;
-        var retry = 0;
-        var err = '';
-        while (!success && retry < 10) {
-        try {
-            var page = await this.page;
-            console.log('get data initialize');
-            await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                console.log('catcha ! asa')
-                this.catcha = true;
-                console.log(this.catcha);
-                throw new Catcha({ catcha: true });
+        return new Promise(async (resolve,reject)=>{
 
-            }).catch(e => {
-                if (e.message != undefined) {
-                    if (e.message.split(" ")[0] === 'TimeoutError:') {
-                        this.catcha = false;
-                    }
-                } else {
-                    throw e;
-                }
-            })
-            console.log('catcha not found');
-            await page.viewport({
-                width: 1024 + Math.floor(Math.random() * 100),
-                height: 768 + Math.floor(Math.random() * 100),
-            })
-            var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner').then(async () => {
-                return page.evaluate(() => {
-
-                    self = this;
-
-
-                    function getDiscountValue(oldPrice, newPrice) {
-                        //x = v1 - v2 | x/v1 * 100
-                        let difference = newPrice - oldPrice;
-                        let result = Math.round(difference / oldPrice * 100);
-                        return result;
-                    }
-                    let finalDataOutput = [];
-                    var amazonProducts = document.querySelectorAll('.s-result-item > .sg-col-inner')
-
-                    for (e of amazonProducts) {
-                        var finalDataObject = {
-                            product: '',
-                            discount: '',
-                            newPrice: '',
-                            oldPrice: '',
-                            url: '',
-                            prime: false
-                        };
-
-
-                        finalDataObject.product = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
-                        finalDataObject.img_url = e.querySelector('img') ? e.querySelector('img').src : null //img url
-                        finalDataObject.url = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
-                        finalDataObject.newPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
-                        finalDataObject.oldPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
-                        finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
-                        finalDataObject.prime = e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
-
-                        if (finalDataObject.oldPrice != null) {
-                            finalDataOutput.push(finalDataObject);
+            var success = false;
+            var retry = 0;
+            var err = '';
+            while (!success && retry < 10) {
+            try {
+                var page = await this.page;
+                console.log('get data initialize');
+                await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                    console.log('catcha ! asa')
+                    this.catcha = true;
+                    console.log(this.catcha);
+                    throw new Catcha({ catcha: true });
+    
+                }).catch(e => {
+                    if (e.message != undefined) {
+                        if (e.message.split(" ")[0] === 'TimeoutError:') {
+                            this.catcha = false;
                         }
+                    } else {
+                        throw e;
                     }
-                    console.log(finalDataOutput);
-
-                    return Promise.all(finalDataOutput).then(
-                        finalDataOutput => {
-                            return finalDataOutput;
-                        }).catch(e => {
-                            console.log('Error in Promise inside scraper');
-                            console.log(e);
-                        });
-
                 })
-            }).catch((e) => {
-                console.log('e from get data')
-                console.log(e)
-                throw e;
-            })
-
-            return finalDataObject;
-        } catch (error) {
-            await this.delay(3000);
-            console.log('error in while')
-            console.log(error.message)
-            err = error;
-            retry++;
+                console.log('catcha not found');
+                await page.viewport({
+                    width: 1024 + Math.floor(Math.random() * 100),
+                    height: 768 + Math.floor(Math.random() * 100),
+                })
+                var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner').then(async () => {
+                    return page.evaluate(() => {
+    
+                        self = this;
+    
+    
+                        function getDiscountValue(oldPrice, newPrice) {
+                            //x = v1 - v2 | x/v1 * 100
+                            let difference = newPrice - oldPrice;
+                            let result = Math.round(difference / oldPrice * 100);
+                            return result;
+                        }
+                        let finalDataOutput = [];
+                        var amazonProducts = document.querySelectorAll('.s-result-item > .sg-col-inner')
+    
+                        for (e of amazonProducts) {
+                            var finalDataObject = {
+                                product: '',
+                                discount: '',
+                                newPrice: '',
+                                oldPrice: '',
+                                url: '',
+                                prime: false
+                            };
+    
+    
+                            finalDataObject.product = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
+                            finalDataObject.img_url = e.querySelector('img') ? e.querySelector('img').src : null //img url
+                            finalDataObject.url = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
+                            finalDataObject.newPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
+                            finalDataObject.oldPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
+                            finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
+                            finalDataObject.prime = e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
+    
+                            if (finalDataObject.oldPrice != null) {
+                                finalDataOutput.push(finalDataObject);
+                            }
+                        }
+                        console.log(finalDataOutput);
+                        
+                        return Promise.all(finalDataOutput).then(
+                            finalDataOutput => {
+                                return finalDataOutput;
+                            }).catch(e => {
+                                console.log('Error in Promise inside scraper');
+                                console.log(e);
+                            });
+    
+                    })
+                }).catch((e) => {
+                    console.log('e from get data')
+                    console.log(e)
+                    throw e;
+                })
+    
+                resolve(finalDataObject);
+            } catch (error) {
+                await this.delay(3000);
+                console.log('error in while')
+                console.log(error.message)
+                err = error;
+                retry++;
+            }
         }
-    }
-    if(retry > 19){
-        throw err;
-    }
+        if(retry > 19){
+            reject(err);
+        }
+        })
 
 
     }
@@ -435,7 +442,7 @@ class Scraper {
                 if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                     console.log('bucle 1 step before comprobations')
     
-                    tempArr = await this.getData();
+                    tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
                     console.log('arrays comparations = ' + lastArr[0] === tempArr[0] ? true : false)
     
                     if (lastArr.length > 0) {
@@ -484,7 +491,7 @@ class Scraper {
                     } else {
                         console.log('bucle tempar empty')
     
-                        tempArr = await this.getData();
+                        tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
     
                         lastArr = tempArr;
     
@@ -528,7 +535,7 @@ class Scraper {
     
                 } else {
                     console.log('break final assign')
-                    this.result.results = await this.result.results.concat(await this.getData());
+                    this.result.results = await this.result.results.concat(await this.getData().then(res=>{return res}).catch(e=>{throw e}));
                     break;
                 }
     

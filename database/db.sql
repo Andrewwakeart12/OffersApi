@@ -1,4 +1,4 @@
-CREATE DATABASE offers_apia;
+CREATE DATABASE offers_api;
 
 CREATE TABLE users(
     id INT(11) NOT NULL ,
@@ -20,7 +20,7 @@ CREATE TABLE scraper_controller(
     controller VARCHAR(16),
     discount_trigger INT(11),
     user_id INT(11)  ,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     mailNotification BOOLEAN DEFAULT 0,
     phoneNotification BOOLEAN DEFAULT 0,
     pushNotification BOOLEAN DEFAULT 0,
@@ -40,9 +40,8 @@ CREATE TABLE scraper_urls(
     id INT(11) NOT NULL,
     controller_id INT(11),
     category VARCHAR(120),
-    FOREIGN KEY (controller_id) REFERENCES scraper_controller(id),
+    FOREIGN KEY (controller_id) REFERENCES scraper_controller(id) ON DELETE CASCADE,
     product_url TEXT
-    
 );
 
 
@@ -60,7 +59,7 @@ CREATE TABLE scraped_data(
     url_id INT(11),
     FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
     category TEXT,
-    FOREIGN KEY (controller_id) REFERENCES scraper_controller(id),
+    FOREIGN KEY (controller_id) REFERENCES scraper_controller(id) ON DELETE CASCADE,
     discount INT(11) NOT NULL,
     prime BOOLEAN NOT NULL,
     product TEXT,

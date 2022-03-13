@@ -5,9 +5,9 @@ const config = require('./config/config')
 const path = require('path')
 const app = express()
 const port = 3700
-const pool =require('./database');
+const pool = require('./database');
 const puppeteer = require('puppeteer');
-const {Expo} = require('expo-server-sdk');
+const { Expo } = require('expo-server-sdk');
 var pdf = require("pdf-creator-node");
 var fs = require("fs");
 const cors = require('cors');
@@ -16,9 +16,10 @@ const axios = require('axios')
 const browserObject = require('./scrapper/browser');
 const scraperController = require('./scrapper/amazon/amazonController');
 var bodyParser = require('body-parser')
+const { reset } = require('nodemon')
 app.use(bodyParser.json())
 app.use(cors());
-app.use(express.json()) 
+app.use(express.json())
 
 // 1
 app.set('key', config.key);
@@ -26,15 +27,67 @@ app.set('key', config.key);
 app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
-const guard = express.Router(); 
-app.get('/sendNotification',async (req,res)=>{
+const guard = express.Router();
+app.get('/sendNotification', async (req, res) => {
+  var users = await pool.query('SELECT jwtoken,id FROM users');
+  users.forEach(async user => {
+    var controllerData = await pool.query('SELECT discount_trigger,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    controllerData.forEach(async controller => {
+      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var jwtoken = controller.jwtoken
+    await urls.forEach(async url => {
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_trigger * -1]);
+        console.log('products jwtoken');
+        console.log(user.jwtoken);
+        for (let product of products) {
+          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+            appId: 2194,
+            subID: 'obe2',
+            appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
+            title: product.product,
+            message: `descuento:${product.discount}, precio: ${product.newPrice} , categoria: ${url.category}`,
+            pushData: { goeToProductsPage: false, url: product.url }
+          });
+          console.log(response.data);
+        }
+      const payload = {
+      user_id: user.id,
+      logged: true,
+      check: true
+    };
+    const token = await jwt.sign(payload, app.get('key'), {
+      expiresIn: 1440
+    });
 
-  var products = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 5')
+        var res = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+          appId: 2194,
+          subID: 'obe2',
+          appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
+          title: 'Ver Mas de esta sección ' + url.category,
+          message: `Presione para ver los productos de la seccion `,
+          pushData: {
+            goeToProductsPage:true, controller_id:
+              controller.id, category: url.category,
+              jwtoken: token
+          }
+        });
+        console.log('Notifications Message: ')
+        console.log(res.data)
+      });
+
+      console.log(res.data);
+
+
+    });
+  });
+  console.log(users);
+
+  /*
   for(let product of products){
     console.log(product)
     var response =await  axios.post("https://app.nativenotify.com/api/indie/notification", {      
       appId: 2194,
-      subID: 'obe1',
+      subID: 'obe2',
       appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
       title: product.product,     
      message: `discount:${product.discount}, price: ${product.newPrice}`,
@@ -42,41 +95,41 @@ app.get('/sendNotification',async (req,res)=>{
     });
   console.log(response.data);
   }
-
+*/
   res.send('done')
 })
 
 guard.use((req, res, next) => {
-   const token = req.headers['access-token']; 
-    if (token != '') {
-      jwt.verify(token, app.get('key'), (err, decoded) => {      
-        if (err) {
-    return res.json({error:{JWTokenErr:'Token no valido', LoginInvalid: true}})
+  const token = req.headers['access-token'];
+  if (token != '') {
+    jwt.verify(token, app.get('key'), (err, decoded) => {
+      if (err) {
+        return res.json({ error: { JWTokenErr: 'Token no valido', LoginInvalid: true } })
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
   } else {
-          req.decoded = decoded;    
-          next();
-        }
-      });
-    } else {
-      res.send({ 
-          mensaje: 'Token no proveída.' 
-      });
-    }
- });
- app.get('/api/testView', async (req,res)=>{
-  res.render('oferta',{info});
- })
-app.get('/api/getOffersDataToPdf',async (req,res)=>{
+    res.send({
+      mensaje: 'Token no proveída.'
+    });
+  }
+});
+app.get('/api/testView', async (req, res) => {
+  res.render('oferta', { info });
+})
+app.get('/api/getOffersDataToPdf', async (req, res) => {
   var products = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
 
   var html = fs.readFileSync("./views/template.html", "utf8");
 
-var optionsPDF = {
-  format: "B2",
-  orientation: "landscape",
-};
+  var optionsPDF = {
+    format: "B2",
+    orientation: "landscape",
+  };
 
-// Read HTML Template
+  // Read HTML Template
   var document = {
     html: html,
     data: {
@@ -93,127 +146,257 @@ var optionsPDF = {
     })
     .catch((error) => {
       console.error(error);
-    })]) 
-    res.send('done')
+    })])
+  res.send('done')
 });
 app.get('/', async (req, res) => {
-var JWToken = req.body.JWToken;
-var JWTDB = "asdjasd123123";
-if(JWTDB === JWToken){
-  let logged = true;
-  res.json({logged})
-}else{
-  res.json({error:{JWTokenErr:'Token no valido', LoginInvalid: true}})
-}
+  var JWToken = req.body.JWToken;
+  var JWTDB = "asdjasd123123";
+  if (JWTDB === JWToken) {
+    let logged = true;
+    res.json({ logged })
+  } else {
+    res.json({ error: { JWTokenErr: 'Token no valido', LoginInvalid: true } })
+  }
 
 })
-app.get('/proob', async (req,res)=>{
+app.get('/proob', async (req, res) => {
   var sql = "INSERT INTO proob (log,prop) VALUES ?";
- var obj= [{log:1,prop:1},{log:1,prop:1},{log:1,prop:1},{log:1,prop:1},{log:1,prop:1},{log:1,prop:1},{log:1,prop:1},{log:1,prop:1}]
-  var records= obj.map(e=>{return Object.values(e)})
-  pool.query(sql, [records], function(err, result) {
+  var obj = [{ log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }]
+  var records = obj.map(e => { return Object.values(e) })
+  pool.query(sql, [records], function (err, result) {
     console.log(result);
-});
-res.send('done!');
+  });
+  res.send('done!');
 })
-app.post('/api/login', async (req,res)=>{
-  const {username, password} = req.body;
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
   console.log(req.body)
   userExist = await pool.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
   console.log(userExist)
-  if(userExist.length > 0) {
-  var id= userExist[0].id;
+  if (userExist.length > 0) {
+    var id = userExist[0].id;
     const payload = {
-     user_id: id,
-     logged:true,
-     check:true
+      user_id: id,
+      logged: true,
+      check: true
     };
     const token = jwt.sign(payload, app.get('key'), {
-     expiresIn: 1440
+      expiresIn: 1440
     });
     res.json({
-     mensaje: 'Autenticación correcta',
-     token: token
+      mensaje: 'Autenticación correcta',
+      token: token
     });
-      } else {
-          res.json({ mensaje: "Usuario o contraseña incorrectos"})
-      }
-  
-});
-app.post('/api/config', guard , (req,res)=>{
-
-res.json(req.decoded)
-  
+  } else {
+    res.json({ mensaje: "Usuario o contraseña incorrectos" })
+  }
 
 });
-app.get('/api/testResonse' , async (req,res)=>{
+app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
+  const { controller_id } = req.params;
+  data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
+  res.send(data);
+});
+app.post('/api/getContollers', guard, async (req, res) => {
+  data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
+  res.json(data);
+});
+app.post('/api/config', guard, (req, res) => {
+
+  res.json(req.decoded)
+
+
+});
+app.get('/api/testResonse', async (req, res) => {
   data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
-console.log(data[0].product);
-  res.json({products:data})
-    
-  
-  });
-app.get('/api/logout', (req,res)=>{
-  res.json({LoginInvalid: true});
+  console.log(data[0].product);
+  res.json({ products: data })
+
+
 });
-app.post('/api/config/save', (req,res)=>{
+app.get('/api/logout', (req, res) => {
+  res.json({ LoginInvalid: true });
+});
+app.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
+  const { controller_id } = req.params;
   var config = {
-    urls : req.body.urls || null,
-    notifyByEmail : req.body.notifyByEmail || null,
-    notifyByPushNotification : req.body.notifyByPushNotification || null,
-    notifyByPhone : req.body.notifyByPhone || null,
-    controllerActive: req.body.controllerActive || null,
-    controllerId : req.body.controllerId || null
+    discount_trigger: parseInt(req.body.discount_trigger) || null,
+    controllerActive: req.body.controllerActive == true ? 1 : 0,
   };
-  
-  res.json({requestBody: config}) 
+  console.log(config)
+  console.log(controller_id)
+  var result = await pool.query('UPDATE scraper_controller set ? WHERE id = ?', [config, controller_id]);
+  console.log(result);
+
+  res.json(result.affectedRows > 0 ? { success: true, } : { error: true })
 });
-app.post('/api/config/save/nofications',guard,async (req,res)=>{
-  const {notifyByEmail,notifyByPhone,notifyByPushNotification,controller_active,controller_id} = req.body;
+app.post('/api/config/pagination', (req, res) => {
+  // limit as 20
+  var discount = 20 * -1
+  const limit = 10
+  // page number
+  const page = req.body.page
+  // calculate offset
+  const offset = (page - 1) * limit
+  // query for fetching data with page number and offset
+  const prodsQuery = "select * from scraped_data WHERE discount < " + discount + " limit  " + limit + " OFFSET " + offset
+  pool.getConnection(function (err, connection) {
+    connection.query(prodsQuery, function (error, results, fields) {
+      // When done with the connection, release it.
+      connection.release();
+      if (error) throw error;
+      // create payload
+      var jsonResult = {
+        'products_page_count': results.length,
+        'page_number': page,
+      }
+      console.log(jsonResult)
+      // create response
+      var myJsonString = JSON.parse(JSON.stringify(jsonResult));
+      res.statusMessage = "Products for page " + page;
+      res.statusCode = 200;
+      res.json(myJsonString);
+      res.end();
+    })
+  })
+})
+app.post('/api/config/save/nofications', guard, async (req, res) => {
+  const { notifyByEmail, notifyByPhone, notifyByPushNotification, controller_active, controller_id } = req.body;
   notiConfig = {
-    mailNotification : notifyByEmail || 0,
-    phoneNotification : notifyByPhone || 0,
-    pushNotification : notifyByPushNotification || 0,
+    mailNotification: notifyByEmail || 0,
+    phoneNotification: notifyByPhone || 0,
+    pushNotification: notifyByPushNotification || 0,
     controller_active: controller_active || 0
   }
-    await pool.query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig,user_id,controller]);
-    res.send('success');
- 
+  await pool.query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig, user_id, controller]);
+  res.send('success');
+
 });
-app.post('/api/config/save/link', guard ,async (req,res)=>{
-  const {product_url,controller_id,category} = req.body;
-    const newScraperUrl = {
-      product_url,
-      controller_id,
-      category
-    };
-    let result = await pool.query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
-    console.log(result);
-    res.json(result.affectedRows > 0 ? {success:true} : {error:true});
+app.post('/api/config/save/link', guard, async (req, res) => {
+  const { product_url, controller_id, category } = req.body;
+  console.log('save link')
+  const newScraperUrl = {
+    product_url,
+    controller_id,
+    category
+  };
+  let result = await pool.query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
+  console.log(newScraperUrl);
+  res.json(result.affectedRows > 0 ? { success: true, id: result.insertId } : { error: true });
 })
-app.post('/api/config/delete/link/:id', guard , async (req,res)=>{
-  const {id} = req.params;
-    let result = await pool.query('DELETE FROM scraper_urls WHERE  id=?', [id]);
-    res.json(result.affectedRows > 0 ? {success: true} : {error : true});
+app.post('/api/config/update/link/:id', guard, async (req, res) => {
+  const { url, category } = req.body;
+  const { id } = req.params;
+
+  const updateUrl = {
+    product_url: url,
+    category
+  };
+  if (url != null) {
+    var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+    console.log(products[0]['COUNT(*)']);
+    if (products[0]['COUNT(*)'] > 0) {
+      await pool.query('UPDATE scraped_data set category = ? WHERE url_id=?', [category, id]);
+    }
+    var result = await pool.query('UPDATE scraper_urls set ? WHERE id = ?', [updateUrl, id]);
+
+  }
+  console.log(result);
+  res.json(result.affectedRows > 0 ? { success: true } : updateUrl);
 })
-app.post('/api/config/getAllOffers', guard , async (req,res)=>{
-  console.log(req.decoded.user_id)
-  var user_id = req.decoded.user_id;
-    let controller_id = await pool.query('SELECT * FROM scraper_controller WHERE  user_id= ? AND controller = "Amazon"', [user_id]);
-    controller_id = await controller_id[0].id;
-    console.log(controller_id);
-    let result = await pool.query('SELECT * FROM scraped_data WHERE controller_id=?  ORDER BY discount ASC', [controller_id]);
-    res.json(result);
+app.post('/api/config/delete/link/:id', guard, async (req, res) => {
+  console.log('deleting');
+  const { id } = req.params;
+  var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+  console.log(products[0]['COUNT(*)']);
+  if (products[0]['COUNT(*)'] > 0) {
+    await pool.query('DELETE FROM scraped_data WHERE url_id=?', [id]);
+  }
+  let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
+  res.json(result.affectedRows > 0 ? { success: true } : { error: true });
+})
+app.post('/api/config/getAllOffers', async (req, res) => {
+  const { controller_id, page } = req.body;
+  console.log('page');
+  console.log(page);
+  // limit as 20
+  var discount = 40 * -1
+  const limit = 10
+  // page number
+  // calculate offset
+  const offset = (page - 1) * limit
+  // query for fetching data with page number and offset
+  //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  pool.getConnection(function (err, connection) {
+    connection.query(prodsQuery, function (error, results, fields) {
+      // When done with the connection, release it.
+      connection.release();
+      if (error) throw error;
+      // create payload
+      var jsonResult = {
+        'products_page_count': results.length,
+        'page_number': page,
+        'products': results
+      }
+      console.log(jsonResult)
+      // create response
+      if (jsonResult.products.length > 0) {
+
+        var myJsonString = JSON.parse(JSON.stringify(jsonResult));
+        res.statusMessage = "Products for page " + page;
+        res.statusCode = 200;
+        res.json(myJsonString);
+        res.end();
+      } else {
+        res.json({ scrollEnds: true, products: [] })
+        res.end()
+      }
+    })
+  })
 });
-app.post('/api/config/getAllOffers/:category', guard , async (req,res)=>{
-  console.log(req.decoded.user_id)
-  const {category} = req.params;
-  var user_id = req.decoded.user_id;
-    let controller_id = await pool.query('SELECT * FROM scraper_controller WHERE  user_id= ? AND controller = "Amazon"', [user_id,category]);
-    controller_id = await controller_id[0].id;
-    console.log(controller_id);
-    let result = await pool.query('SELECT * FROM scraped_data WHERE controller_id=? AND category=? ORDER BY discount ASC', [controller_id,category]);
-    res.json(result);
+
+app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
+  const { controller_id, page } = req.body;
+  const { category } = req.params;
+  console.log('page');
+  console.log(page);
+  // limit as 20
+  var discount = 40 * -1
+  const limit = 10
+  // page number
+  // calculate offset
+  const offset = (page - 1) * limit
+  // query for fetching data with page number and offset
+  //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND category="Games" ORDER BY discount ASC  limit 10 OFFSET 10;
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  pool.getConnection(function (err, connection) {
+    connection.query(prodsQuery, function (error, results, fields) {
+      // When done with the connection, release it.
+      connection.release();
+      if (error) throw error;
+      // create payload
+      var jsonResult = {
+        'products_page_count': results.length,
+        'page_number': page,
+        'products': results
+      }
+      console.log(jsonResult)
+      // create response
+      if (jsonResult.products.length > 0) {
+
+        var myJsonString = JSON.parse(JSON.stringify(jsonResult));
+        res.statusMessage = "Products for page " + page;
+        res.statusCode = 200;
+        res.json(myJsonString);
+        res.end();
+      } else {
+        res.json({ scrollEnds: true, products: [] })
+        res.end()
+      }
+    })
+  })
 });
 
 //curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123","category": "Electronicos y sonido", "controller_id" : 1, "product_url": "https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825118&rnid=23565476011&ref=sr_nr_p_n_deal_type_2"}' http://localhost:3700/config/save/link
@@ -221,7 +404,7 @@ app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
 /*
-enlaces de referencia : 
+enlaces de referencia :
 
 https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825118&rnid=23565476011&ref=sr_nr_p_n_deal_type_2 - equipos de sonido
 

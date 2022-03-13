@@ -35,9 +35,9 @@ async function scrapeAll(url){
             }  
         }
         if(result.results != false && result.results != undefined){
+            Scrape.destroy()
             Scrape = null;
             console.log('result from finall stage');
-            console.log(result.results.length)
             return result.results;
         }
     }

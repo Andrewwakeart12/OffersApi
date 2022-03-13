@@ -279,6 +279,10 @@ class Scraper {
         }
     }
     async getData() {
+        var success = false;
+        var retry = 0;
+        var err = '';
+        while (!success && retry < 10) {
         try {
             var page = await this.page;
             console.log('get data initialize');
@@ -354,12 +358,22 @@ class Scraper {
             }).catch((e) => {
                 console.log('e from get data')
                 console.log(e)
+                throw e;
             })
 
             return finalDataObject;
         } catch (error) {
-            throw error;
+            await this.delay(3000);
+            console.log('error in while')
+            console.log(error.message)
+            err = error;
+            retry++;
         }
+    }
+    if(retry > 19){
+        throw err;
+    }
+
 
     }
     async delay(time) {
@@ -403,7 +417,139 @@ class Scraper {
 
     }
 
+    async extractDataLoop(){
+       return new Promise(async (resolve,reject)=>{
+        try {
+            var lastArr = [];
 
+            for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) 
+            {
+    
+                console.log('bucle start')
+                var tempArr = [];
+                
+                if (this.catcha === true) {
+                    await this.unsetTime();
+                    throw new Catcha({ catcha: true });
+                }
+                if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
+                    console.log('bucle 1 step before comprobations')
+    
+                    tempArr = await this.getData();
+                    console.log('arrays comparations = ' + lastArr[0] === tempArr[0] ? true : false)
+    
+                    if (lastArr.length > 0) {
+                        console.log('bucle temparr not empty')
+    
+                        if (lastArr[0] != tempArr[0]) {
+                            lastArr = tempArr;
+                            this.result.results = await this.result.results.concat(await tempArr);
+                            await Promise.all([
+                                this.unsetTime(),
+                                this.comprobateActualPageF()
+                            ])
+                            this.result = {
+                                results: this.result.results,
+                                pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
+                                nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
+                                error: false,
+                                paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
+                            };
+                            var clicked = await this.clickNextPagination().catch(e => { throw e });
+                            this.delay(Math.ceil(Math.random() * 3) * 1000);
+                            if (clicked === false) {
+                                this.unsetTime()
+                                break;
+                            }
+                            if (clicked.error === true) {
+                                await Promise.all([
+                                    page.reload(),
+                                    page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                                ]);
+    
+                                continue;
+                            }
+                            this.setReloadTime().then(res => { console.log('solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
+                            continue;
+    
+                            page.waitForSelector('.error-code').then(async () => {
+                                await page.reload();
+                            }).catch(e => {
+                                //console.log('e from catcha')
+                                //console.log(e)
+                            });
+                        }
+    
+    
+                    } else {
+                        console.log('bucle tempar empty')
+    
+                        tempArr = await this.getData();
+    
+                        lastArr = tempArr;
+    
+                        this.result.results = await this.result.results.concat(await tempArr);
+    
+                        console.log('before comprobate actual pge error')
+    
+                        if (this.maxClicks === 1) {
+                            break;
+                        }
+                        await Promise.all([this.comprobateActualPageF()])
+    
+                        this.result = {
+                            results: this.result.results,
+                            pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
+                            nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
+                            error: false,
+                            paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
+                        };
+                        await this.unsetTime()
+                        var clicked = await this.clickNextPagination().catch(e => { throw e });
+                        this.delay(Math.ceil(Math.random() * 5) * 1000);
+                        if (clicked === false) {
+                            this.unsetTime()
+                            break;
+                        }
+                        if (clicked.error === true) {
+                            await Promise.all([
+                                page.reload(),
+                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                            ]);
+    
+                            continue;
+                        }
+                        this.resetDueToNotChargedPage = true;
+                        this.setReloadTime().then(res => { console.log('solved in bucle 1'); console.log(res); }).catch(e => { throw e; });
+                        continue;
+                    }
+    
+    
+    
+                } else {
+                    console.log('break final assign')
+                    this.result.results = await this.result.results.concat(await this.getData());
+                    break;
+                }
+    
+                    restartFunction = 0;
+                    await this.comprobateActualPageF();
+                }
+                await Promise.all([this.unsetTime(),
+                    this.closeBrowser()]);
+                    this.unsetTime();
+                    this.reloadTime = 0;
+                    this.resolveTimeOut = 0;
+
+                     resolve(this.result)
+        } catch (error) {
+            reject(error);
+        }
+      
+       })
+
+      
+    }
     async scraper() {
         var success = false;
         var retry = 0;
@@ -488,129 +634,9 @@ class Scraper {
 
 
 
-                var lastArr = [];
-                for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) {
-
-                    console.log('bucle start')
-                    var tempArr = [];
-                    
-                    if (this.catcha === true) {
-                        await this.unsetTime();
-                        throw new Catcha({ catcha: true });
-
-                    }
-                    if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-                        console.log('bucle 1 step before comprobations')
-
-                        tempArr = await this.getData();
-                        console.log('arrays comparations = ' + lastArr[0] === tempArr[0] ? true : false)
-
-                        if (lastArr.length > 0) {
-                            console.log('bucle temparr not empty')
-
-                            if (lastArr[0] != tempArr[0]) {
-                                lastArr = tempArr;
-                                this.result.results = await this.result.results.concat(await tempArr);
-                                await Promise.all([
-                                    this.unsetTime(),
-                                    this.comprobateActualPageF()
-                                ])
-                                this.result = {
-                                    results: this.result.results,
-                                    pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
-                                    nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
-                                    error: false,
-                                    paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
-                                };
-                                var clicked = await this.clickNextPagination().catch(e => { throw e });
-                                this.delay(Math.ceil(Math.random() * 3) * 1000);
-                                if (clicked === false) {
-                                    this.unsetTime()
-                                    break;
-                                }
-                                if (clicked.error === true) {
-                                    await Promise.all([
-                                        page.reload(),
-                                        page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
-                                    ]);
-
-                                    continue;
-                                }
-                                this.setReloadTime().then(res => { console.log('solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
-                                continue;
-
-                                page.waitForSelector('.error-code').then(async () => {
-                                    await page.reload();
-                                }).catch(e => {
-                                    //console.log('e from catcha')
-                                    //console.log(e)
-                                });
-                            }
-
-
-                        } else {
-                            console.log('bucle tempar empty')
-
-                            tempArr = await this.getData();
-
-                            lastArr = tempArr;
-
-                            this.result.results = await this.result.results.concat(await tempArr);
-
-                            console.log('before comprobate actual pge error')
-
-                            if (this.maxClicks === 1) {
-                                break;
-                            }
-                            await Promise.all([this.comprobateActualPageF()])
-
-                            this.result = {
-                                results: this.result.results,
-                                pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
-                                nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
-                                error: false,
-                                paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
-                            };
-                            await this.unsetTime()
-                            var clicked = await this.clickNextPagination().catch(e => { throw e });
-                            this.delay(Math.ceil(Math.random() * 5) * 1000);
-                            if (clicked === false) {
-                                this.unsetTime()
-                                break;
-                            }
-                            if (clicked.error === true) {
-                                await Promise.all([
-                                    page.reload(),
-                                    page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
-                                ]);
-
-                                continue;
-                            }
-                            this.resetDueToNotChargedPage = true;
-                            this.setReloadTime().then(res => { console.log('solved in bucle 1'); console.log(res); }).catch(e => { throw e; });
-                            continue;
-                        }
-
-
-
-                    } else {
-                        console.log('break final assign')
-                        this.result.results = await this.result.results.concat(await this.getData());
-                        break;
-                    }
-
-                    restartFunction = 0;
-                    await this.comprobateActualPageF();
-                }
-                success = true;
-                await Promise.all([this.unsetTime(),
-                this.closeBrowser()]);
-                this.unsetTime();
-                this.reloadTime = 0;
-                this.resolveTimeOut = 0;
-
-                return this.result;
-
+                    var extractedData=await this.extractDataLoop().then(res=>{console.log(res); return res}).catch(e=>{console.log(`error from promise ${e.message}`)});
+                    success = true;
+                    return extractedData;
             } catch (e) {
                 console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)');
                 console.log('Message : ');

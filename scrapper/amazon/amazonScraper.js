@@ -374,8 +374,10 @@ class Scraper {
             } catch (error) {
                 await this.delay(3000);
                 console.log('error in while')
-                if(e.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
+                if(e.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
                     console.log(e.message)
+                }else{
+                    resolve(false)
                 }
                 err = error;
                 retry++;
@@ -450,7 +452,7 @@ class Scraper {
                     tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
                     console.log('arrays comparations = ' + lastArr[0] === tempArr[0] ? true : false)
     
-                    if (lastArr.length > 0) {
+                    if (lastArr.length > 0 && tempArr != false) {
                         console.log('bucle temparr not empty')
     
                         if (lastArr[0] != tempArr[0]) {
@@ -493,7 +495,7 @@ class Scraper {
                         }
     
     
-                    } else {
+                    } else if(tempArr != false){
                         console.log('bucle tempar empty')
     
                         tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
@@ -540,7 +542,10 @@ class Scraper {
     
                 } else {
                     console.log('break final assign')
-                    this.result.results = await this.result.results.concat(await this.getData().then(res=>{return res}).catch(e=>{throw e}));
+                    var finalArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
+                    if(finalArr != false){
+                        this.result.results = await this.result.results.concat(finalArr);
+                    }
                     break;
                 }
     
@@ -549,7 +554,6 @@ class Scraper {
                 }
                 await Promise.all([this.unsetTime(),
                     this.closeBrowser()]);
-                    this.unsetTime();
                     this.reloadTime = 0;
                     this.resolveTimeOut = 0;
 

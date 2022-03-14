@@ -47,9 +47,11 @@ class Scraper {
     resolveTimeOut = [];
     proxy = '';
     resetDueToNotChargedPage = false;
+    extractDataLoopPromises = [];
     constructor(url, paginationValue) {
 
     }
+    
     async waitForRequestToFinish(page, requestUrl, timeout) {
         page.on('requestfinished', onRequestFinished);
         let fulfill, timeoutId = (typeof timeout === 'number' && timeout >= 0) ? setTimeout(done, timeout) : -1;
@@ -79,6 +81,34 @@ class Scraper {
             }
         });
         this.reloadTime = [];
+    }
+    MakeQuerablePromise(promise) {
+        // Don't modify any promise that has been already modified.
+        if (promise.isFulfilled) return promise;
+    
+        // Set initial state
+        var isPending = true;
+        var isRejected = false;
+        var isFulfilled = false;
+    
+        // Observe the promise, saving the fulfillment in a closure scope.
+        var result = promise.then(
+            function(v) {
+                isFulfilled = true;
+                isPending = false;
+                return v; 
+            }, 
+            function(e) {
+                isRejected = true;
+                isPending = false;
+                throw e; 
+            }
+        );
+    
+        result.isFulfilled = function() { return isFulfilled; };
+        result.isPending = function() { return isPending; };
+        result.isRejected = function() { return isRejected; };
+        return result;
     }
     static async create(url, paginationValue) {
         const newobject = new Scraper();
@@ -432,10 +462,11 @@ class Scraper {
     }
 
     async extractDataLoop(){
-       return new Promise(async (resolve,reject)=>{
+        var resolveVar = 0;
+      var  extData= new Promise(async (resolve,reject)=>{
         try {
             var lastArr = [];
-
+            resolveVar = resolve;
             for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) 
             {
     
@@ -552,18 +583,18 @@ class Scraper {
                     restartFunction = 0;
                     await this.comprobateActualPageF();
                 }
-                await Promise.all([this.unsetTime(),
-                    this.closeBrowser()]);
-                    this.reloadTime = 0;
-                    this.resolveTimeOut = 0;
 
-                     resolve(this.result)
+                resolve({results:this.result})
         } catch (error) {
             reject(error);
         }
       
        })
-
+       if(this.extractDataLoopPromises.length < 2){
+           extData = this.MakeQuerablePromise(extData);
+           this.extractDataLoopPromises.push({promise:extData , resolver:resolveVar});
+       }
+       return extData;
       
     }
     async scraper() {
@@ -650,8 +681,13 @@ class Scraper {
 
 
 
-                    var extractedData=await this.extractDataLoop().then(res=>{console.log(res); return res}).catch(e=>{console.log(`error from promise ${e.message}`)});
+                    var extractedData=await this.extractDataLoop().then(res=>{console.log(res); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`)});
                     success = true;
+                    await Promise.all([this.unsetTime(),
+                        this.closeBrowser(), this.unsetExtPromises()]);
+                        this.reloadTime = 0;
+                        this.resolveTimeOut = 0;
+                        this.unsetExtPromises();
                     return extractedData;
             } catch (e) {
                 console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)');
@@ -831,7 +867,13 @@ class Scraper {
             }
         }
     }
-
+    async unsetExtPromises(){
+        for(let prom of this.extractDataLoopPromises){
+            if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
+                prom.resolver({results:false});
+            }
+        }
+    }
       destroy(){
         this.url = null;
         this.unsetTime();

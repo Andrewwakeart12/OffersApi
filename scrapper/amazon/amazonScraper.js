@@ -113,7 +113,10 @@ class Scraper {
                             page.waitForNavigation({ waitUntil: 'load' })
                             ])
                             this.resetDueToNotChargedPage = true;
-                            this.setReloadTime().then(res=>{console.log('resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{reject(e)})
+                            if (this.timeOuts > 10) {
+                                throw new DERR('Timeout Exceeded');
+                            }
+                            this.setReloadTime().then(res=>{console.log('resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{reject(e)})
                             resolve('solved without reload ' + indexForResolveTimeout)
                         } else {
                             this.resetDueToNotChargedPage = true;
@@ -371,7 +374,9 @@ class Scraper {
             } catch (error) {
                 await this.delay(3000);
                 console.log('error in while')
-                console.log(error.message)
+                if(e.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
+                    console.log(e.message)
+                }
                 err = error;
                 retry++;
             }

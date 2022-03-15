@@ -217,13 +217,13 @@ class Scraper {
                         }
         
                         console.log('pagination value'.green)
-                        console.log(this.paginationValue.green);
+                        console.log(`${this.paginationValue}`.green);
                         console.log('maxClicks: '.green)
-                        console.log(this.maxClicks.green)
+                        console.log(`${this.maxClicks}`.green)
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{console.log(res.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                            var extractedData=await this.extractDataLoop().then(res=>{console.log(`${res}`.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                 await Promise.all([this.unsetTime(),
                                     this.closeBrowser(), this.unsetExtPromises()]);

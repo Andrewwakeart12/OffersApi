@@ -469,7 +469,7 @@ class Scraper {
                     }, 5000)
                 })
                 this.reloadTime.push({ promise: promise, indexArr: this.reloadTime.length });
-                console.log('Timeout setted')
+                log(Log.fg.white + Log.bg.green,'Timeout setted')
     
                 return promise;
     
@@ -486,7 +486,7 @@ class Scraper {
                 while (!success && retry < 10) {
                 try {
                     var page = await this.page;
-                    console.log('get data initialize');
+                    log(Log.fg.white + Log.bg.green,'get data initialize');
                     await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                         console.log('catcha ! asa')
                         this.catcha = true;
@@ -502,7 +502,7 @@ class Scraper {
                             throw e;
                         }
                     })
-                    console.log('catcha not found');
+                    log(Log.fg.white + Log.bg.green,'catcha not found');
                     await page.viewport({
                         width: 1024 + Math.floor(Math.random() * 100),
                         height: 768 + Math.floor(Math.random() * 100),
@@ -565,9 +565,9 @@ class Scraper {
                     resolve(finalDataObject);
                 } catch (error) {
                     await this.delay(3000);
-                    console.log('error in while')
+                    log(Log.fg.white + Log.bg.red,'error in while')
                     if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
-                        console.log(error.message)
+                        log(Log.fg.white + Log.bg.red,error.message)
                     }else{
                         resolve(false)
                     }

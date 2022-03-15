@@ -235,7 +235,7 @@ class Scraper {
                                 ]);
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
-                                    success = true;
+                                success = true;
 
                                 return extractedData.results;
                             }else{
@@ -434,7 +434,7 @@ class Scraper {
         async setReloadTime(calledFrom) {
             var page = await this.page;
             if (this.reloadTime != 1 && this.reloadTime.length < 1 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
-                console.log('Timeout setting...')
+                console.log(`Timeout setting... for : ${calledFrom}`);
                 var promise = new Promise((resolve, reject) => {
                     var indexForResolveTimeout = this.resolveTimeOut.length;
                     this.resolveTimeOut.push({ resolvePromise: resolve, indexArr: indexForResolveTimeout })
@@ -484,7 +484,7 @@ class Scraper {
                     }, 5000)
                 })
                 this.reloadTime.push({ promise: promise, indexArr: this.reloadTime.length });
-                log(Log.fg.white + Log.bg.green,'Timeout setted')
+                log(Log.fg.white + Log.bg.green,`Timeout setted... for : ${calledFrom}`
     
                 return promise;
     

@@ -159,7 +159,6 @@ class Scraper {
                         while(!navigationSuccess && navigationFails < 5 ){
                             await page.goto(this.url).then(res=>{
                                 console.log(`Navigation to ${this.url} succeded`)
-                                console.log(res)
                                 navigationSuccess = true;
                             }).catch((e) => {
                                 console.log('e.message from goto')
@@ -192,8 +191,8 @@ class Scraper {
                             console.log(err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
-                            )
+                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                            ])
         
                         });
         
@@ -565,8 +564,8 @@ class Scraper {
                 } catch (error) {
                     await this.delay(3000);
                     console.log('error in while')
-                    if(e.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
-                        console.log(e.message)
+                    if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
+                        console.log(error.message)
                     }else{
                         resolve(false)
                     }

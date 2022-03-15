@@ -462,7 +462,7 @@ class Scraper {
                         } catch (error) {
                             console.log('error in settimeout: ')
                             console.log(error.message)
-                            reject(e);
+                            reject(error);
                         }
                     }, 5000)
                 })
@@ -635,14 +635,15 @@ class Scraper {
                                         continue;
                                     }
                                     this.setReloadTime().then(res => { console.log('solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
-                                    continue;
-            
-                                    page.waitForSelector('.error-code').then(async () => {
+                                    page.waitForSelector('.error-code',{timeout:5000}).then(async () => {
                                         await page.reload();
                                     }).catch(e => {
                                         //console.log('e from catcha')
                                         //console.log(e)
                                     });
+                                    continue;
+            
+
                                 }
             
             

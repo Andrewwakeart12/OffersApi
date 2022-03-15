@@ -439,9 +439,13 @@ class Scraper {
                     setTimeout(async () => {
                         try {
                             if (this.resetDueToNotChargedPage === true) {
-                                await Promise.all([page.reload(),
+                                await Promise.all([
+                                page.reload(),
                                 page.waitForNavigation({ waitUntil: 'load' })
-                                ])
+                                ]).then(res => {log(Log.fg.white + Log.bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')}).catch(e=>{
+                                    log(Log.fg.white + Log.bg.red,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : error of reloader');
+                                    log(Log.fg.red,e);
+                                })
 
                                 if (this.timeOuts > 10) {
                                     throw new DERR('Timeout Exceeded');

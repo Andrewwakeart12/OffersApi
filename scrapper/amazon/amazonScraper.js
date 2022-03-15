@@ -234,8 +234,7 @@ class Scraper {
                             }
 
                     } catch (e) {
-                        this.resolvePromise();
-                        this.resolveTimeOut();
+
                         console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)');
                         console.log('Message : ');
                         console.log(e.message != undefined ? e.message : e);
@@ -409,10 +408,14 @@ class Scraper {
                             await this.resetBrowser();
                             retry++;
                         }
-                        if (this.comprobateActualPage.actualPage < this.maxClicks) {
-                            this.unsetTime()
-                            this.result.resetState = true;
-                            await this.resetBrowser();
+                        if (this.comprobateActualPage.actualPage < this.maxClicks)
+                        {
+                           await Promise.all([
+                                this.unsetTime(),
+                                this.unsetExtPromises(),
+                                this.resolveTimeOut(),
+                                this.resetBrowser()
+                            ]);
                             retry++;
                         }
         

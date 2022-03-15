@@ -2,6 +2,8 @@ const e = require("express");
 const res = require("express/lib/response");
 const { restart } = require("nodemon");
 const browserObject = require('../browser');
+var colors = require('colors');
+colors.enable();
 
 class Catcha {
     obj;
@@ -158,11 +160,11 @@ class Scraper {
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
                             await page.goto(this.url).then(res=>{
-                                console.log(`Navigation to ${this.url} succeded`)
+                                console.log(`Navigation to ${this.url} succeded`.green)
                                 navigationSuccess = true;
                             }).catch((e) => {
                                 console.log('e.message from goto')
-                                console.log(e.message)
+                                console.log(e.message.red)
                                 navigationFails++;
             
                             });
@@ -188,7 +190,7 @@ class Scraper {
         
                         page.on('error', async (err) => {
                             console.log('Page error:');
-                            console.log(err.error);
+                            console.log(err.error.red);
                             await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
@@ -211,14 +213,14 @@ class Scraper {
                             await this.getMaxclicks();
                         }
         
-                        console.log('pagination value')
-                        console.log(this.paginationValue);
-                        console.log('maxClicks: ')
-                        console.log(this.maxClicks)
+                        console.log('pagination value'.green)
+                        console.log(this.paginationValue.green);
+                        console.log('maxClicks: '.green)
+                        console.log(this.maxClicks.green)
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{console.log(res); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`);throw e});
+                            var extractedData=await this.extractDataLoop().then(res=>{console.log(res.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                 await Promise.all([this.unsetTime(),
                                     this.closeBrowser(), this.unsetExtPromises()]);
@@ -234,15 +236,15 @@ class Scraper {
 
                     } catch (e) {
 
-                        console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)');
-                        console.log('Message : ');
-                        console.log(e.message != undefined ? e.message : e);
+                        console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
+                        console.log('Message : '.red);
+                        console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
                         if (e.message != undefined) {
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('restarted withoud reset'.green);
                                     continue;
                                 } else {
                                     this.unsetTime()

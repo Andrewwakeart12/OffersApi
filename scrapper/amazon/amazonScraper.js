@@ -55,7 +55,6 @@ class Scraper {
 
     //4.state propertys:
     catcha = false;
-    initialized = false;
 
     //5.error counting propertys : 
         //5.1 reset browser counter:
@@ -65,10 +64,6 @@ class Scraper {
         //5.3 prevent unnesesary page resets: 
         resetDueToNotChargedPage = false;
 
- 
-    constructor(url, paginationValue) {
-
-    }
     //1.start object methods : 
         //1.1 creates and return an object method:
         static async create(url, paginationValue) {

@@ -139,8 +139,8 @@ class Scraper {
                     try {
 
                         var page = this.page;
-                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page in scraping");
-                        console.log(`_Scraper.scraper(): Navigating to ${this.url}...`);
+                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+                        console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         
         
                         await page.setDefaultNavigationTimeout(0);
@@ -180,8 +180,9 @@ class Scraper {
         
                         this.resetDueToNotChargedPage = true;
 
-                        this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): succesfull:");log(Log.fg.green,res);}).catch(e => { throw e });
-                        page.on("pageerror", async function (err) {
+                        this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,"_Scraper.scraper().setTimeout() called - succesfull:");log(Log.fg.green,res);}).catch(e => {log(Log.fg.white + Log.bg.red,"_Scraper.scraper().setTimeout() called - error:");log(Log.fg.red,e.message); throw e });
+                   
+                        page.on("pageerror",{timeout:2000}, async function (err) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
         
@@ -191,7 +192,7 @@ class Scraper {
                             )
                         });
         
-                        page.on('error', async (err) => {
+                        page.on('error',{timeout:2000}, async (err) => {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
                           await Promise.all([
@@ -202,7 +203,7 @@ class Scraper {
                         });
         
         
-                        page.waitForSelector('.error-code', { timeout: 5000 }).then(async () => {
+                        page.waitForSelector('.error-code', { timeout: 2000 }).then(async () => {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
                             await Promise.all([
@@ -430,7 +431,7 @@ class Scraper {
         //2.4 set conditions to reload page if something fails or its a captcha in page:
         async setReloadTime() {
             var page = await this.page;
-            if (this.reloadTime != 1 && this.reloadTime.length < 2 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
+            if (this.reloadTime != 1 && this.reloadTime.length < 1 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
                 console.log('Timeout setting...')
                 var promise = new Promise((resolve, reject) => {
                     var indexForResolveTimeout = this.resolveTimeOut.length;

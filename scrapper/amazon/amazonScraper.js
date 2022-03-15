@@ -442,7 +442,11 @@ class Scraper {
                                 await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation({ waitUntil: 'load' })
-                                ]).then(res => {log(Log.fg.white + Log.bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')}).catch(e=>{
+                                ]).then(res => {
+                                    log(Log.fg.white + Log.bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')
+                                    log(Log.fg.green,e);
+                                
+                                }).catch(e=>{
                                     log(Log.fg.white + Log.bg.red,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : error of reloader');
                                     log(Log.fg.red,e);
                                 })

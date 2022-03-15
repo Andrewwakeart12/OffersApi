@@ -442,15 +442,15 @@ class Scraper {
                                 await Promise.all([page.reload(),
                                 page.waitForNavigation({ waitUntil: 'load' })
                                 ])
-                                this.resetDueToNotChargedPage = true;
+
                                 if (this.timeOuts > 10) {
                                     throw new DERR('Timeout Exceeded');
                                 }
-                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); reject(e)})
-                                resolve('solved without reload ' + indexForResolveTimeout)
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); throw e;})
+
                             } else {
                                 this.resetDueToNotChargedPage = true;
-                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - false : rejected in set timeout function',e.message); reject(e)})
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - false : rejected in set timeout function',e.message); throw e;})
                                 resolve('solved without reload ' + indexForResolveTimeout)
                             }
                             if (this.catcha === false) {

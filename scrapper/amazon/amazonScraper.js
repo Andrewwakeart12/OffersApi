@@ -169,6 +169,7 @@ class Scraper {
                             if(navigationSuccess == true){
                                 break;
                             }
+                            console.log('in bucle');
                         }
                         if(navigationSuccess != true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');

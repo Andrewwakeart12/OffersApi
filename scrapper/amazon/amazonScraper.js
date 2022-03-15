@@ -484,7 +484,7 @@ class Scraper {
                     }, 5000)
                 })
                 this.reloadTime.push({ promise: promise, indexArr: this.reloadTime.length });
-                log(Log.fg.white + Log.bg.green,`Timeout setted... for : ${calledFrom}`
+                log(Log.fg.white + Log.bg.green,`Timeout setted... for : ${calledFrom}`)
     
                 return promise;
     

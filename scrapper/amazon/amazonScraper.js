@@ -166,6 +166,9 @@ class Scraper {
                                 navigationFails++;
                                 return false;
                             });
+                            if(navigationSuccess == true){
+                                break;
+                            }
                         }
                         if(navigationSuccess != true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');

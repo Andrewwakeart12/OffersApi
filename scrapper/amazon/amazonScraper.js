@@ -435,6 +435,9 @@ class Scraper {
                     this.resolveTimeOut.push({ resolvePromise: resolve, indexArr: indexForResolveTimeout })
                     setTimeout(async () => {
                         try {
+                            if (this.timeOuts > 10) {
+                                throw new DERR('Timeout Exceeded');
+                            }
                             if (this.resetDueToNotChargedPage === true) {
                                 await Promise.all([
                                 page.reload(),
@@ -447,9 +450,7 @@ class Scraper {
                                     log(Log.fg.red,e);
                                 })
 
-                                if (this.timeOuts > 10) {
-                                    throw new DERR('Timeout Exceeded');
-                                }
+
                                 this.setReloadTime('TimeOut(resetDueToNotChargedPage = true)').then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - '+ calledFrom +' - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - '+ calledFrom +' - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); 
                                 if(calledFrom === 'scraper()'){
                                     throw e;    
@@ -770,33 +771,40 @@ class Scraper {
         async clickNextPagination() {
             var page = await this.page;
             var res = 0
-            await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
-                if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-                    await Promise.all([
-                        page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
-                        , page.waitForNavigation({ waitUntil: ['domcontentloaded'] }).catch((e) => { throw e })
-                    ]);
-                    page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
-                        console.log('catcha ! a')
-                        this.catcha = true;
-                        console.log(this.catcha);
-    
-                    }).catch(e => {
-                        this.catcha = false;
-                    })
-                    res = true;
-    
-                    this.delay(Math.ceil(Math.random() * 10) * 1000);
-                    this.clickedTimes++;
-                    console.log('clicked!')
-                } else {
-                    res = false;
-                }
-            }).catch(e => {
-                console.log('message from clickNextPagination');
-                console.log(e.message);
-    
-            })
+            var extractPaginationSucceded = false
+            var extractTrys = 0;
+            while(!extractPaginationSucceded && extractTrys){
+
+                await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
+                    if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
+                        await Promise.all([
+                            page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
+                            , page.waitForNavigation({ waitUntil: ['domcontentloaded'] }).catch((e) => { throw e })
+                        ]);
+                        page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
+                            console.log('catcha ! a')
+                            this.catcha = true;
+                            console.log(this.catcha);
+        
+                        }).catch(e => {
+                            this.catcha = false;
+                        })
+                        res = true;
+        
+                        this.delay(Math.ceil(Math.random() * 10) * 1000);
+                        this.clickedTimes++;
+                        console.log('clicked!')
+                    } else {
+                        res = false;
+                    }
+                }).then(res =>{
+                    extractPaginationSucceded = true;
+                }).catch(e => {
+                    log(Log.fg.white + Log.bg.red,'message from clickNextPagination');
+                    console.log(Log.fg.red,e.message);
+        
+                })
+            }
             return res;
     
     

@@ -175,7 +175,6 @@ class Scraper {
         
                         this.resetDueToNotChargedPage = true;
 
-                        this.setReloadTime('scraper()').then(res=>{log(Log.fg.white + Log.bg.green,"_Scraper.scraper().setTimeout() called - succesfull:");log(Log.fg.green,res);}).catch(e => {log(Log.fg.white + Log.bg.red,"_Scraper.scraper().setTimeout() called - error:");log(Log.fg.red,e.message); throw e });
                    
                         page.on("pageerror",{timeout:2000}, async function (err) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');

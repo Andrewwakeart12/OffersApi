@@ -452,20 +452,19 @@ class Scraper {
                                 }
                                 this.setReloadTime('TimeOut(resetDueToNotChargedPage = true)').then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - '+ calledFrom +' - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - '+ calledFrom +' - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); 
                                 if(calledFrom === 'scraper()'){
-                                    reject(e);
-                                }else{
                                     throw e;    
+                                }else{
+                                    reject(e);
                                 }
                                 })
 
                             } else {
                                 this.resetDueToNotChargedPage = true;
                                 this.setReloadTime('TimeOut(resetDueToNotChargedPage = false)').then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - '+ calledFrom +' - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - '+ calledFrom +' - false : rejected in set timeout function',e.message); 
-                                    reject(e);
-                                if(calledFrom === 'scraper()'){
-                                    reject(e);
-                                }else{
+                                if(calledFrom === 'scraper()' || calledFrom === 'ExtracData'){
                                     throw e;    
+                                }else{
+                                    reject(e);
                                 }
                             })
                                 resolve('solved without reload ' + indexForResolveTimeout)

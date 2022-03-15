@@ -228,12 +228,14 @@ class Scraper {
         
                             var extractedData=await this.extractDataLoop().then(res=>{console.log(`${res}`.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
-                                await Promise.all([this.unsetTime(),
-                                    this.closeBrowser(), this.unsetExtPromises()]);
+                                await Promise.all([
+                                    this.unsetTime(),
+                                    this.unsetExtPromises(),
+                                    this.closeBrowser(), this.unsetExtPromises()
+                                ]);
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
-                                    this.unsetExtPromises();
-                                success = true;
+                                    success = true;
 
                                 return extractedData.results;
                             }else{
@@ -567,8 +569,10 @@ class Scraper {
         
                         })
                     }).catch((e) => {
+                        if(e != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
                         log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
-                        log(Log.fg.red,e.message)
+                            log(Log.fg.red,e.message)
+                        }
                        throw e;
                     })
                     resolve(finalDataObject);

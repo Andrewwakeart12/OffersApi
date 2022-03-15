@@ -561,18 +561,19 @@ class Scraper {
                     }).catch((e) => {
                         log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
                         log(Log.fg.red,e.message)
-                        throw e;
+                       throw e;
                     })
-        
                     resolve(finalDataObject);
                 } catch (error) {
                     await this.delay(3000);
                     log(Log.fg.white + Log.bg.red,'error in while')
-                    if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
+                    if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.' && error.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
                         log(Log.fg.white + Log.bg.red,error.message)
                     }else{
                         resolve(false)
+                        break;
                     }
+                  
                     err = error;
                     retry++;
                 }

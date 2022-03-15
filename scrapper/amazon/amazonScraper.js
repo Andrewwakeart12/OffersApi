@@ -139,8 +139,8 @@ class Scraper {
                     try {
 
                         var page = this.page;
-                        console.log("page in scraping");
-                        console.log(`Navigating to ${this.url}...`);
+                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page in scraping");
+                        console.log(`_Scraper.scraper(): Navigating to ${this.url}...`);
         
         
                         await page.setDefaultNavigationTimeout(0);
@@ -166,7 +166,7 @@ class Scraper {
                                 console.log(`Navigation to ${this.url} succeded`.green)
                                 navigationSuccess = true;
                             }).catch((e) => {
-                                log(Log.fg.white + Log.bg.red, "My text is red");
+                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
                                 console.log(e.message.red)
                                 navigationFails++;
             
@@ -182,8 +182,8 @@ class Scraper {
 
                         this.setReloadTime().then(res=>{this.unsetTime()}).catch(e => { throw e });
                         page.on("pageerror", async function (err) {
-                            console.log('Page error:');
-                            console.log(err.error);
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
         
                             await Promise.all([
                                 page.reload(),
@@ -192,9 +192,9 @@ class Scraper {
                         });
         
                         page.on('error', async (err) => {
-                            console.log('Page error:');
-                            console.log(err.error.red);
-                            await Promise.all([
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
+                          await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
                             ])
@@ -203,6 +203,8 @@ class Scraper {
         
         
                         page.waitForSelector('.error-code', { timeout: 5000 }).then(async () => {
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
@@ -489,11 +491,10 @@ class Scraper {
                 try {
                     var page = await this.page;
                     log(Log.fg.white + Log.bg.green,'get data initialize');
-                    await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                        console.log('catcha ! asa')
+                    await page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
+                        log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector: catcha ! asa');
                         this.catcha = true;
-                        console.log(this.catcha);
-                        throw new Catcha({ catcha: true });
+                        reject( new Catcha({ catcha: true }));
         
                     }).catch(e => {
                         if (e.message != undefined) {
@@ -504,7 +505,7 @@ class Scraper {
                             throw e;
                         }
                     })
-                    log(Log.fg.white + Log.bg.green,'catcha not found');
+                    log(Log.fg.white + Log.bg.green,'_Scraper.getData() : catcha not found');
                     await page.viewport({
                         width: 1024 + Math.floor(Math.random() * 100),
                         height: 768 + Math.floor(Math.random() * 100),
@@ -547,20 +548,18 @@ class Scraper {
                                     finalDataOutput.push(finalDataObject);
                                 }
                             }
-                            console.log(finalDataOutput);
-                            
                             return Promise.all(finalDataOutput).then(
                                 finalDataOutput => {
                                     return finalDataOutput;
                                 }).catch(e => {
-                                    console.log('Error in Promise inside scraper');
-                                    console.log(e);
+                                    console.log(Log.fg.white + Log.bg.red,'_Scraper.getData().return promise : Error in Promise inside scraper');
+                                    console.log(Log.fg.red,e.message);
                                 });
         
                         })
                     }).catch((e) => {
-                        console.log('e from get data')
-                        console.log(e)
+                        log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
+                        log(Log.fg.red,e.message)
                         throw e;
                     })
         
@@ -875,8 +874,8 @@ class Scraper {
                     this.result.resetState = false;
                 }
             } catch (error) {
-                console.log("error message from reset browser: ");
-                console.log(error.message);
+                log(Log.fg.white + Log.bg.red,"_Scraper.resetBrowser: error message from reset browser: ");
+                log(Log.fg.red,error.message);
             }
     
         }

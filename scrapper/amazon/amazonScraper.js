@@ -4,6 +4,7 @@ const { restart } = require("nodemon");
 const browserObject = require('../browser');
 var colors = require('colors');
 colors.enable();
+const log = require('../../toolkit/colorsLog');
 
 class Catcha {
     obj;
@@ -163,7 +164,7 @@ class Scraper {
                                 console.log(`Navigation to ${this.url} succeded`.green)
                                 navigationSuccess = true;
                             }).catch((e) => {
-                                console.log('e.message from goto')
+                                log(Log.fg.white + Log.bg.red, "My text is red");
                                 console.log(e.message.red)
                                 navigationFails++;
             
@@ -414,7 +415,6 @@ class Scraper {
                            await Promise.all([
                                 this.unsetTime(),
                                 this.unsetExtPromises(),
-                                this.resolveTimeOut(),
                                 this.resetBrowser()
                             ]);
                             retry++;
@@ -850,8 +850,8 @@ class Scraper {
                     await Promise.all([this.unsetTime(),
                     this.closeBrowser()]);
                     this.resetBrowsersInstanceError++;
-                    console.log("browser restarted : " + this.resetBrowsersInstanceError)
-                    console.log(this.resetBrowsersInstanceError)
+                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
+
                     if (this.comprobateActualPage.nextPageUrl != false && this.comprobateActualPage.nextPageUrl != undefined) {
                         this.url = this.comprobateActualPage.nextPageUrl;
                     }

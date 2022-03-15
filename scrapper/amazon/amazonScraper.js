@@ -4,8 +4,10 @@ const { restart } = require("nodemon");
 const browserObject = require('../browser');
 var colors = require('colors');
 colors.enable();
-const log = require('../../toolkit/colorsLog');
-
+const Log = require('../../toolkit/colorsLog');
+const log = (color, text) => {
+    console.log(`${color}%s${Log.reset}`, text);
+    };
 class Catcha {
     obj;
 

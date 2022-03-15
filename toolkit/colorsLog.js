@@ -1,4 +1,4 @@
- const log = {
+ const Log = {
     reset: "\x1b[0m",
     bright: "\x1b[1m",
     dim: "\x1b[2m",
@@ -36,8 +36,8 @@
 const log = (color, text) => {
 console.log(`${color}%s${Log.reset}`, text);
 };
-log(Log.fg.red, "My text is red");
+log(Log.fg.white + Log.bg.red, "My text is red");
 log(Log.bg.cyan, "My background is cyan");
 
 */
-module.exports = log
+module.exports = Log

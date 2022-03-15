@@ -446,11 +446,11 @@ class Scraper {
                                 if (this.timeOuts > 10) {
                                     throw new DERR('Timeout Exceeded');
                                 }
-                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{reject(e)})
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); reject(e)})
                                 resolve('solved without reload ' + indexForResolveTimeout)
                             } else {
                                 this.resetDueToNotChargedPage = true;
-                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() : rejected in set timeout function'),reject(e)})
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - false : rejected in set timeout function',e.message); reject(e)})
                                 resolve('solved without reload ' + indexForResolveTimeout)
                             }
                             if (this.catcha === false) {

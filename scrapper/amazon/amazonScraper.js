@@ -180,7 +180,7 @@ class Scraper {
         
                         this.resetDueToNotChargedPage = true;
 
-                        this.setReloadTime().then(res=>{this.unsetTime()}).catch(e => { throw e });
+                        this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): succesfull:");log(Log.fg.green,res);}).catch(e => { throw e });
                         page.on("pageerror", async function (err) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
@@ -445,11 +445,11 @@ class Scraper {
                                 if (this.timeOuts > 10) {
                                     throw new DERR('Timeout Exceeded');
                                 }
-                                this.setReloadTime().then(res=>{console.log('resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{reject(e)})
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{reject(e)})
                                 resolve('solved without reload ' + indexForResolveTimeout)
                             } else {
                                 this.resetDueToNotChargedPage = true;
-                                this.setReloadTime().then(res=>{console.log('resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{reject(e)})
+                                this.setReloadTime().then(res=>{log(Log.fg.white + Log.bg.red,'resolved in set time out after reload'); resolve('resolve after reload')}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() : rejected in set timeout function'),reject(e)})
                                 resolve('solved without reload ' + indexForResolveTimeout)
                             }
                             if (this.catcha === false) {
@@ -466,8 +466,8 @@ class Scraper {
                             console.log('Time out')
                             resolve('solved with reload ' + indexForResolveTimeout)
                         } catch (error) {
-                            console.log('error in settimeout: ')
-                            console.log(error.message)
+                            log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut() : error in settimeout: ')
+                            log(Log.fg.red,error.message)
                             reject(error);
                         }
                     }, 5000)
@@ -637,7 +637,7 @@ class Scraper {
             
                                         continue;
                                     }
-                                    this.setReloadTime().then(res => { console.log('solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
+                                    this.setReloadTime().then(res => { log(Log.fg.white + Log.bg.green,'_Scraper.extractData() : solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
                                     page.waitForSelector('.error-code',{timeout:5000}).then(async () => {
                                         await page.reload();
                                     }).catch(e => {
@@ -689,7 +689,7 @@ class Scraper {
                                     continue;
                                 }
                                 this.resetDueToNotChargedPage = true;
-                                this.setReloadTime().then(res => { console.log('solved in bucle 1'); console.log(res); }).catch(e => { throw e; });
+                                this.setReloadTime().then(res => { log(Log.fg.white + Log.bg.green,'_Scraper.extractDataLoop(): solved in bucle 1'); console.log(res); }).catch(e => { throw e; });
                                 continue;
                             }
             

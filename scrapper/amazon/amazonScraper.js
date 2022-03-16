@@ -157,19 +157,23 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
-
-                            var prom = page.goto(this.url).then((res)=>{
-                                return true;
-                            }).catch((e) => {
-                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
-                                console.log(e.message.red)
-                                navigationFails++;
-                                return false;
+                            var cdp = await page.target().createCDPSession();
+                            await cdp.send('Network.enable');
+                            await cdp.send('Page.enable');
+                            const t0 = Date.now();
+                            cdp.on('Network.requestWillBeSent', ({ requestId, request: { url: requestUrl } }) => {
+                              netMap.set(requestId, requestUrl);
+                              console.log(`> ${Date.now() - t0}ms\t requestWillBeSent:\t${requestUrl}`);
                             });
+                            cdp.on('Network.responseReceived', ({ requestId }) => console.log(`< ${Date.now() - t0}ms\t responseReceived:\t${netMap.get(requestId)}`));
+                            cdp.on('Network.dataReceived', ({ requestId, dataLength }) => console.log(`< ${Date.now() - t0}ms\t dataReceived:\t\t${netMap.get(requestId)} ${dataLength} bytes`));
+                            cdp.on('Network.loadingFinished', ({ requestId }) => {console.log(`. ${Date.now() - t0}ms\t loadingFinished:\t${netMap.get(requestId)}`);navigationSuccess = true; });
+                            cdp.on('Network.loadingFailed', ({ requestId }) => {console.log(`E ${Date.now() - t0}ms\t loadingFailed:\t${netMap.get(requestId)}`);navigationSuccess = false;});
+                          
+                            page.goto(this.url).catch((e) => { });
                              await this.waitForRequestToFinish(page,this.url,15000)
                             log(Log.bg.yellow + Log.fg.white,prom)
 
-                            navigationSuccess =  prom;
                             
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);

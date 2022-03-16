@@ -109,7 +109,7 @@ class Scraper {
             async getMaxclicks() {
                 log(Log.bg.green + Log.fg.white, 'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:5000}).then(() => {
+                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:15000}).then(() => {
 
                 }).then(res=>{
                     return page.evaluate(async () => {
@@ -132,7 +132,13 @@ class Scraper {
                     var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    return false;
                 })
+                if(this.maxClicks != false){
+                    return true;
+                }else{
+                    return false;
+                }
             }
         //2.3 start scraping:
         async scraper() {
@@ -214,7 +220,18 @@ class Scraper {
                         log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
 
                         if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
-                            await this.getMaxclicks();
+                            var getPaginationSuccess = false;
+                            var getPagintaionFails = 0;
+                            while(!getPaginationSuccess && getPagintaionFails < 5 ){
+                            var pag = await this.getMaxclicks();
+                            if(pag != true){
+                                await Promise.all([page.reload(),
+                                        page.waitForNavigation()]);
+                                getPagintaionFails++;
+                                }else{
+                                    getPaginationSuccess = true;
+                                }
+                            }
                         }
         
                         console.log('pagination value'.green)

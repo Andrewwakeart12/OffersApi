@@ -173,7 +173,7 @@ class Scraper {
                           
                             page.goto(this.url).catch((e) => { });
                              await this.waitForRequestToFinish(page,this.url,15000)
-                            log(Log.bg.yellow + Log.fg.white,prom)
+                            log(Log.bg.yellow + Log.fg.white,`navigation status : ${navigationSuccess} attemps : ${navigationFails}`)
 
                             
                             if(navigationSuccess === true){

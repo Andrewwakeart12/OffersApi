@@ -149,9 +149,8 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
-                           navigationSuccess = await page.goto(this.url,{timeout: 20000}).then(res=>{
-                                console.log(`Navigation to ${this.url} succeded`.green)
-                                console.log(res);
+                           navigationSuccess = await page.goto(this.url,{timeout: 20000}).then((res)=>{
+                                log(Log.bg.green,`Navigation to ${this.url} succeded`)
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");

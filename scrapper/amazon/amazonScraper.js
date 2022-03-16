@@ -109,7 +109,9 @@ class Scraper {
             async getMaxclicks() {
                 log(Log.bg.green + Log.fg.white, 'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small').then(() => {
+                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:5000}).then(() => {
+
+                }).then(res=>{
                     return page.evaluate(async () => {
                         var str = document.querySelector('.a-section.a-spacing-small.a-spacing-top-small').innerText.split(" ")
                         var resultsPerPage = parseInt(str[0].split('-').pop());
@@ -123,7 +125,10 @@ class Scraper {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
                         return maxClicks;
-                    })
+                    });
+                }).catch(e =>{
+                    log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
+                    log(Log.fg.red, e.message);
                 })
             }
         //2.3 start scraping:
@@ -202,8 +207,9 @@ class Scraper {
                             // console.log('e from error-code')
                             // console.log(e)
                         });
+
                         log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
-                        
+
                         if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
                             await this.getMaxclicks();
                         }

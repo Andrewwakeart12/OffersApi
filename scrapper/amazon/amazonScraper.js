@@ -156,7 +156,7 @@ class Scraper {
 
                         var navigationSuccess = false;
                         var navigationFails = 0;
-                        while(!navigationSuccess && navigationFails < 5 ){
+                        while(!navigationSuccess && navigationFails <= 5 ){
                             var netMap = new Map();
                             var cdp = await page.target().createCDPSession();
                             await cdp.send('Network.enable');
@@ -172,7 +172,7 @@ class Scraper {
                             cdp.on('Network.loadingFailed', ({ requestId }) => {console.log(`E ${Date.now() - t0}ms\t loadingFailed:\t${netMap.get(requestId)}`);navigationSuccess = false;});
                           
                             page.goto(this.url).catch((e) => { });
-                             await this.waitForRequestToFinish(page,this.url,15000)
+                             await this.waitForRequestToFinish(page,this.url,20000)
                             log(Log.bg.yellow + Log.fg.white,`navigation status : ${navigationSuccess} attemps : ${navigationFails}`)
 
                             

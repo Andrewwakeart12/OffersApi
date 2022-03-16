@@ -163,7 +163,7 @@ class Scraper {
         
                         var navigationSuccess = false;
                         var navigationFails = 0;
-                        while(!navigationSuccess && navigationFails < 5 ){
+                        while(!navigationSuccess && navigationFails <= 5 ){
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
@@ -173,7 +173,6 @@ class Scraper {
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
                                 console.log(e.message.red)
-                                navigationFails++;
                                 return false;
                             });
                             log(Log.bg.yellow + Log.fg.white,prom)
@@ -182,6 +181,8 @@ class Scraper {
                             
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                            }else{
+                                navigationFails++;
                             }
                            
                         }

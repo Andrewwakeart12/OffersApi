@@ -529,6 +529,7 @@ class Scraper {
             //2.5.1 start extract data loop:
             async extractDataLoop(){
                 var resolveVar = 0;
+                var page = await this.page;
               var  extData= new Promise(async (resolve,reject)=>{
                 try {
                     var lastArr = [];

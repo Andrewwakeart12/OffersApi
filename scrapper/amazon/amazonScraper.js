@@ -188,7 +188,7 @@ class Scraper {
                         }
                         log(Log.bg.cyan + Log.fg.white,'after request');
 
-                        if(navigationSuccess === true && navigationFails <= 5){
+                        if(navigationSuccess === true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');
                         }
                         

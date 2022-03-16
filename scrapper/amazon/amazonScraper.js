@@ -142,14 +142,6 @@ class Scraper {
                         await page.setDefaultTimeout(0);
         
                         if (page === undefined) {
-                            result = {
-                                results: false,
-                                pagination: false,
-                                error: true,
-                                nextPageUrl: false,
-                                criticalError: true,
-                                paginationValue: false
-                            };
                             await this.resetBrowser();
                             retry++;
                         }
@@ -262,80 +254,19 @@ class Scraper {
                         }
 
                         if (e.message != undefined) {
+                             if (this.catcha === true) {
+                                if (restartFunction) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } 
+                            }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);
                                 this.result.resetState = true;
                                 await this.resetBrowser();
                                 retry++;
-                            }
-                            if (e.message.split(' ')[0] === "net::ERR_CONNECTION_RESET" || e.message.split(' ')[1] === "net::ERR_CONNECTION_RESET") {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if (e.message === "net::ERR_CERT_AUTHORITY_INVALID at " + this.url) {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if (e.message === "net::ERR_TUNNEL_CONNECTION_FAILED at " + this.url) {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if (e.message === "net::ERR_NAME_NOT_RESOLVED at " + this.url) {
-                                console.log('Err name not resolved');
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if (e.message === 'net::ERR_PROXY_CONNECTION_FAILED at ' + this.url) {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if (e.message === 'net::ERR_EMPTY_RESPONSE at ' + this.url) {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    await this.resetBrowser();
-                                    retry++;
-                                }
-                            } else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
+                            }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
                                 if (restartFunction < 10) {
                                     restartFunction++;
                                     console.log('restarted');
@@ -379,14 +310,6 @@ class Scraper {
                                 }
         
         
-                            } else if (this.catcha === true) {
-                                if (restartFunction < 10) {
-                                    restartFunction++;
-                                    console.log('restarted');
-                                    continue;
-                                } else {
-                                    throw new Catcha({ catcha: true });
-                                }
                             }
                             else if (restartFunction < 20) {
                                 await Promise.all([page.reload(),
@@ -404,12 +327,7 @@ class Scraper {
                                     retry++;
                                 }
                             }
-                        } else if(e.message === 'net::ERR_ABORTED at '+ this.url){
-                                this.unsetTime()
-                            this.result.resetState = true;
-                            await this.resetBrowser();
-                            retry++;
-                        }else if (e.obj.catcha) {
+                        } else if (e.obj.catcha) {
                             this.unsetTime()
                             this.result.resetState = true;
                             await this.resetBrowser();
@@ -882,8 +800,6 @@ class Scraper {
                     console.log('reset beggi')
                     await Promise.all([this.unsetTime(),
                     this.closeBrowser()]);
-                    this.resetBrowsersInstanceError++;
-                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
 
                     if (this.comprobateActualPage.nextPageUrl != false && this.comprobateActualPage.nextPageUrl != undefined) {
                         this.url = this.comprobateActualPage.nextPageUrl;
@@ -892,18 +808,11 @@ class Scraper {
     
                     this.browser = await browserObject.startBrowser();
                     this.page = (await this.browser.pages())[0];
-                    await this.page.setRequestInterception(true);
-                    this.page.on('request', (req) => {
-    
-                        if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                            req.abort();
-                        }
-                        else {
-                            req.continue();
-                        }
-                    });
+  
                     this.reloadTime = [];
-                    this.result.resetState = false;
+                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
+                    this.resetBrowsersInstanceError++;
+
                 }
             } catch (error) {
                 log(Log.fg.white + Log.bg.red,"_Scraper.resetBrowser: error message from reset browser: ");

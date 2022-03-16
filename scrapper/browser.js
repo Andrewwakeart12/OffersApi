@@ -67,11 +67,12 @@ async function startBrowser(){
         console.log("Opening the browser......");
         browser = await puppeteer.launch({
             pipe: true,
-            headless: false,
+            headless: true,
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: randomUA.generate(),
-            args: ['--disable-setuid-sandbox',
+            args: [
+            '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--no-sandbox',
             '--disable-setuid-sandbox',

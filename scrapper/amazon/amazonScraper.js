@@ -147,13 +147,13 @@ class Scraper {
         
                         await page.setDefaultNavigationTimeout(0);
                         await page.setDefaultTimeout(0);
+                        await page.setRequestInterception(true)
         
                         if (page === undefined) {
                             await this.resetBrowser();
                             retry++;
                         }
-                        await this.page.setRequestInterception(true)
-                        this.page.on('request', (req) => {
+                        page.on('request', (req) => {
                             if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
                                 req.abort();
                             }

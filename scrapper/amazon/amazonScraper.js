@@ -496,7 +496,13 @@ class Scraper {
                                     finalDataOutput.push(finalDataObject);
                                 }
                             }
-                            resolve(finalDataObject);
+                            return Promise.all(finalDataOutput).then(
+                                finalDataOutput => {
+                                    return finalDataOutput;
+                                }).catch(e => {
+                                    console.log('Error in Promise inside scraper');
+                                    console.log(e);
+                                });
         
                         })
                     }).catch((e) => {

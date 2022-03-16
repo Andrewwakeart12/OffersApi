@@ -149,7 +149,7 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
-                            var prom = await Promise.all([page.goto(this.url),page.waitForNavigation( { timeout: 15000 } )]).then((res)=>{
+                            var prom = await Promise.all([page.goto(this.url),page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`)
                                 return true;
                             }).catch((e) => {

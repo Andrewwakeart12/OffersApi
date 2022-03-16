@@ -167,8 +167,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { waitUntil: ['networkidle2'] } )]).then((res)=>{
-                               
+                                this.waitForRequestToFinish(page,this.url,15000)]).then((res)=>{
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");

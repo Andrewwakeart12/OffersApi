@@ -227,13 +227,16 @@ class Scraper {
                             if(pag != true){
                                 await Promise.all([page.reload(),
                                         page.waitForNavigation()]);
-                                getPagintaionFails++;
+                                    this.maxClicks = null;
+                                    getPagintaionFails++;
                                 }else{
                                     getPaginationSuccess = true;
                                 }
                             }
                         }
-        
+                        if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
+                            throw new DEER('pagination load fails');
+                        }
                         console.log('pagination value'.green)
                         console.log(`${this.paginationValue}`.green);
                         console.log('maxClicks: '.green)
@@ -285,6 +288,12 @@ class Scraper {
                                     console.log('restarted');
                                     continue;
                                 } 
+                            }
+                            if(e.message === 'pagination load fails'){
+                                log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
+                                this.result.resetState = true;
+                                await this.resetBrowser();
+                                retry++;
                             }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);

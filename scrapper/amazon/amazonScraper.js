@@ -424,7 +424,7 @@ class Scraper {
         }
         //2.5 get data from page
         async getData() {
-            return new Promise(async (resolve,reject)=>{
+            var prom = new Promise(async (resolve,reject)=>{
     
                 var success = false;
                 var retry = 0;
@@ -452,6 +452,7 @@ class Scraper {
                         width: 1024 + Math.floor(Math.random() * 100),
                         height: 768 + Math.floor(Math.random() * 100),
                     })
+                    
                     var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner').then(async () => {
                         return page.evaluate(() => {
         
@@ -526,8 +527,7 @@ class Scraper {
                 reject(err);
             }
             })
-    
-    
+            return prom;
         }
             //2.5.1 start extract data loop:
             async extractDataLoop(){
@@ -556,7 +556,7 @@ class Scraper {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             console.log('bucle 1 step before comprobations')
             
-                            tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
+                            tempArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
                             this.unsetExtPromises();
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
@@ -649,7 +649,7 @@ class Scraper {
             
                         } else {
                             console.log('break final assign')
-                            var finalArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
+                            var finalArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
                             if(finalArr != false){
                                 this.result.results = await this.result.results.concat(finalArr);
                             }

@@ -153,14 +153,7 @@ class Scraper {
                             await this.resetBrowser();
                             retry++;
                         }
-                        page.on('request', (req) => {
-                            if (req.resourceType() == 'media' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                                return req.abort();
-                            }
-                            else {
-                                req.continue();
-                            }
-                        })
+
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){

@@ -575,6 +575,7 @@ class Scraper {
                                     var clicked = await this.clickNextPagination().catch(e => { throw e });
                                     this.delay(Math.ceil(Math.random() * 3) * 1000);
                                     if (clicked === false) {
+                                        log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
                                         break;
                                     }
                                     if (clicked.error === true) {
@@ -601,7 +602,6 @@ class Scraper {
                             } else if(tempArr != false){
                                 console.log('bucle tempar empty')
             
-                                tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
             
                                 lastArr = tempArr;
             
@@ -622,11 +622,10 @@ class Scraper {
                                     paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
                                 };
                                 
-                                await this.unsetTime()
                                 var clicked = await this.clickNextPagination().catch(e => { throw e });
                                 this.delay(Math.ceil(Math.random() * 5) * 1000);
                                 if (clicked === false) {
-                                    this.unsetTime()
+                                    log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
                                     break;
                                 }
                                 if (clicked.error === true) {

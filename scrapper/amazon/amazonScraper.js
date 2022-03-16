@@ -182,6 +182,10 @@ class Scraper {
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
                             }else{
+                                var uniqueErrorNameForImage = `_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
+                                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                                log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                               
                                 navigationFails++;
                             }
                            

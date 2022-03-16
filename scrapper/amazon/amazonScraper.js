@@ -608,12 +608,12 @@ class Scraper {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             console.log('bucle 1 step before comprobations')
             
-                            tempArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
+                            tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
                                 log(Log.bg.green,'bucle temparr not empty')
-                                log(Log.bg.cyan,tempArr);
+                                log(Log.bg.cyan,tempArr[0]);
                                 
                                 if (lastArr[0] != tempArr[0]) {
                                     lastArr = tempArr;

@@ -132,8 +132,16 @@ class Scraper {
                     var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                        console.log('catcha ! a')
+                        this.catcha = true;
+                        console.log(this.catcha);
+    
+                    }).catch(e => {
+                        this.catcha = false;
+                    });
                     return false;
-                })
+                });
                 if(this.maxClicks != false){
                     return true;
                 }else{
@@ -236,7 +244,7 @@ class Scraper {
                             var getPagintaionFails = 0;
                             while(!getPaginationSuccess && getPagintaionFails < 5 ){
                             var pag = await this.getMaxclicks();
-                            if(pag != true){
+                            if(pag != true ){
                                 await Promise.all([page.reload(),
                                         page.waitForNavigation()]);
                                     this.maxClicks = null;
@@ -244,6 +252,9 @@ class Scraper {
                                 }else{
                                     getPaginationSuccess = true;
                                 }
+                            }
+                            if(this.catcha === true){
+                                throw new Catcha({ catcha: true })
                             }
                         }
                         if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){

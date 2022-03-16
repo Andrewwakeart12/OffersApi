@@ -78,15 +78,7 @@ class Scraper {
             this.paginationValue = paginationValue;
             this.browser = await browserObject.startBrowser();
             this.page = (await this.browser.pages())[0];
-            await this.page.setRequestInterception(true);
-            this.page.on('request', (req) => {
-                if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                    req.abort();
-                }
-                else {
-                    req.continue();
-                }
-            });
+
             this.reloadTime = [];
         }
     //2.Handle stages:
@@ -160,19 +152,19 @@ class Scraper {
                             await this.resetBrowser();
                             retry++;
                         }
-        
+                        await this.page.setRequestInterception(true);
+                        this.page.on('request', (req) => {
+                            if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
+                                req.abort();
+                            }
+                            else {
+                                req.continue();
+                            }
+                        });
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
-                            await this.page.setRequestInterception(true);
-                            this.page.on('request', (req) => {
-                                if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                                    req.abort();
-                                }
-                                else {
-                                    req.continue();
-                                }
-                            });
+
                             var prom = await Promise.all([
                                 page.goto(this.url),
                                 page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{

@@ -643,7 +643,6 @@ class Scraper {
                                         continue;
                                     }
                                     
-                                   continue;
             
 
                                 }

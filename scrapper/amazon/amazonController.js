@@ -6,7 +6,10 @@ preventInfiniteLoop2 = 0;
 restarted = false;
 var count = 0;
 var resultVal = {};
-
+const log = (color, text) => {
+    console.log(`${color}%s${Log.reset}`, text);
+    };
+const Log = require('../../toolkit/colorsLog');
 async function scrapeAll(url){
 
 
@@ -24,7 +27,8 @@ async function scrapeAll(url){
                     if(results.results.length > 0){
                         console.log(result.results);
                         await result.results.concat(results.results);
-                        console.log(result.results);
+                        log(Log.bg.green + Log.fg.white,'Results in Amazon Controller: ');
+                        log(result.results);
                     }
                     i++;
                     continue;

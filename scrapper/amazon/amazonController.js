@@ -1,6 +1,5 @@
 const Scraper = require("./amazonScraper.js");
 const browserObject = require('../browser');
-const log = require('../../toolkit/colorsLog');
 preventInfiniteLoop = 0;
 preventInfiniteLoop2 = 0;
 restarted = false;

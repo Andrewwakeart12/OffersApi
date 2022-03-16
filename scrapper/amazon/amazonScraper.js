@@ -526,7 +526,6 @@ class Scraper {
               var  extData= new Promise(async (resolve,reject)=>{
                 try {
                     var lastArr = [];
-                    resolveVar = resolve;
                     for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) 
                     {
             
@@ -547,7 +546,6 @@ class Scraper {
                             console.log('bucle 1 step before comprobations')
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
-                            this.unsetExtPromises();
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
@@ -601,7 +599,6 @@ class Scraper {
                                 lastArr = tempArr;
             
                                 this.result.results = await this.result.results.concat(await tempArr);
-                                this.unsetExtPromises();
             
                                 console.log('before comprobate actual pge error')
             
@@ -632,7 +629,6 @@ class Scraper {
             
                                     continue;
                                 }
-                                this.resetDueToNotChargedPage = true;
                                 continue;
                             }
             

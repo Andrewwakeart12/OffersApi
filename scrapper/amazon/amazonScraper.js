@@ -160,6 +160,8 @@ class Scraper {
                             else {
                                 req.continue();
                             }
+                        }).catch(e=>{
+                            
                         });
                         var navigationSuccess = false;
                         var navigationFails = 0;
@@ -167,7 +169,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{
+                                page.waitForNavigation( { waitUntil: ['networkidle2'] } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -197,7 +199,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
+                                page.waitForNavigation({ waitUntil: ['networkidle2'] })]
                             )
                         });
         
@@ -206,7 +208,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                           await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                                page.waitForNavigation({ waitUntil: ['networkidle2'] })
                             ])
         
                         });
@@ -217,7 +219,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
+                                page.waitForNavigation({ waitUntil: ['networkidle2'] })]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')

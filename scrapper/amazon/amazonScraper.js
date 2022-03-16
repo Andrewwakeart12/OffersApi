@@ -129,6 +129,7 @@ class Scraper {
                 }).catch(e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
                     log(Log.fg.red, e.message);
+                    await page.screenshot({path:'/opt/lampp/htdocs/_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED',fullPage:true});
                 })
             }
         //2.3 start scraping:

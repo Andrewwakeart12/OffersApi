@@ -78,7 +78,15 @@ class Scraper {
             this.paginationValue = paginationValue;
             this.browser = await browserObject.startBrowser();
             this.page = (await this.browser.pages())[0];
-
+            await this.page.setRequestInterception(true);
+            this.page.on('request', (req) => {
+                if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
+                    req.abort();
+                }
+                else {
+                    req.continue();
+                }
+            });
             this.reloadTime = [];
         }
     //2.Handle stages:
@@ -147,39 +155,33 @@ class Scraper {
         
                         await page.setDefaultNavigationTimeout(0);
                         await page.setDefaultTimeout(0);
-                        await page.setRequestInterception(true)
         
                         if (page === undefined) {
                             await this.resetBrowser();
                             retry++;
                         }
-
+        
                         var navigationSuccess = false;
                         var navigationFails = 0;
-                        while(!navigationSuccess && navigationFails <= 5 ){
-                            var netMap = new Map();
-                            var cdp = await page.target().createCDPSession();
-                            await cdp.send('Network.enable');
-                            await cdp.send('Page.enable');
-                            const t0 = Date.now();
-                            cdp.on('Network.requestWillBeSent', ({ requestId, request: { url: requestUrl } }) => {
-                              netMap.set(requestId, requestUrl);
-                              console.log(`> ${Date.now() - t0}ms\t requestWillBeSent:\t${requestUrl}`);
-                            });
-                            cdp.on('Network.responseReceived', ({ requestId }) => console.log(`< ${Date.now() - t0}ms\t responseReceived:\t${netMap.get(requestId)}`));
-                            cdp.on('Network.dataReceived', ({ requestId, dataLength }) => console.log(`< ${Date.now() - t0}ms\t dataReceived:\t\t${netMap.get(requestId)} ${dataLength} bytes`));
-                            cdp.on('Network.loadingFinished', ({ requestId }) => {console.log(`. ${Date.now() - t0}ms\t loadingFinished:\t${netMap.get(requestId)}`);navigationSuccess = true; });
-                            cdp.on('Network.loadingFailed', ({ requestId }) => {console.log(`E ${Date.now() - t0}ms\t loadingFailed:\t${netMap.get(requestId)}`);navigationSuccess = false;});
-                          
-                            page.goto(this.url).catch((e) => { });
-                             await this.waitForRequestToFinish(page,this.url,20000)
-                            log(Log.bg.yellow + Log.fg.white,`navigation status : ${navigationSuccess} attemps : ${navigationFails}`)
+                        while(!navigationSuccess && navigationFails < 5 ){
 
+                            var prom = await Promise.all([
+                                page.goto(this.url),
+                                page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{
+                               
+                                return true;
+                            }).catch((e) => {
+                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                                console.log(e.message.red)
+                                navigationFails++;
+                                return false;
+                            });
+                            log(Log.bg.yellow + Log.fg.white,prom)
+
+                            navigationSuccess =  prom;
                             
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
-                            }else{
-                                navigationFails++;
                             }
                            
                         }
@@ -195,7 +197,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['networkidle2'] })]
+                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
                             )
                         });
         
@@ -204,7 +206,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                           await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['networkidle2'] })
+                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
                             ])
         
                         });
@@ -215,7 +217,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['networkidle2'] })]
+                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')

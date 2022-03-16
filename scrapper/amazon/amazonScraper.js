@@ -152,7 +152,7 @@ class Scraper {
                             await this.resetBrowser();
                             retry++;
                         }
-                        await this.page.setRequestInterception(true).catch(e=>{});
+                        await this.page.setRequestInterception(true)
                         this.page.on('request', (req) => {
                             if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
                                 req.abort();

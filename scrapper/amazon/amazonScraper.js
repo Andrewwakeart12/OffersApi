@@ -178,6 +178,8 @@ class Scraper {
                             
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                            }else{
+                                navigationFails++;
                             }
                            
                         }

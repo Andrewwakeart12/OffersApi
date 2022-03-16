@@ -202,7 +202,8 @@ class Scraper {
                             // console.log('e from error-code')
                             // console.log(e)
                         });
-        
+                        log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
+                        
                         if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
                             await this.getMaxclicks();
                         }

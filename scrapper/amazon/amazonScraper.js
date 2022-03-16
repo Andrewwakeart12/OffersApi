@@ -628,7 +628,7 @@ class Scraper {
                                         //console.log('e from catcha')
                                         //console.log(e)
                                     });
-                                    continue;
+                                   
             
 
                                 }
@@ -671,7 +671,6 @@ class Scraper {
             
                                     continue;
                                 }
-                                continue;
                             }
             
             

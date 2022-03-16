@@ -650,7 +650,8 @@ class Scraper {
                             restartFunction = 0;
                             await this.comprobateActualPageF();
                         }
-        
+                        log(Log.bg.green,'Data extracted:');
+                        log(Log.fg.green, this.result);
                         resolve({results:this.result})
                 } catch (error) {
                     reject(error);

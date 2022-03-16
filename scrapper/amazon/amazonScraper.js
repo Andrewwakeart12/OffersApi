@@ -165,7 +165,7 @@ class Scraper {
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
                             var prom = await Promise.all([page.goto(this.url),page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{
-                                log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`)
+                               
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
@@ -176,6 +176,10 @@ class Scraper {
                             log(Log.bg.yellow + Log.fg.white,prom)
 
                             navigationSuccess =  prom;
+                            
+                            if(navigationSuccess === true){
+                                log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                            }
                            
                         }
                         log(Log.bg.cyan + Log.fg.white,'after request');

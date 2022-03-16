@@ -160,7 +160,7 @@ class Scraper {
                             else {
                                 req.continue();
                             }
-                        })
+                        }).catch(e=>{})
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){

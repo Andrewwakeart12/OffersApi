@@ -149,8 +149,8 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
-                           navigationSuccess = await page.goto(this.url,{timeout: 20000}).then((res)=>{
-                                log(Log.bg.green,`Navigation to ${this.url} succeded`)
+                           navigationSuccess = await Promise.all([page.goto(this.url),page.waitForNavigation({timeout:15000})]).then((res)=>{
+                                log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`)
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
@@ -812,8 +812,8 @@ class Scraper {
                     this.page = (await this.browser.pages())[0];
   
                     this.reloadTime = [];
-                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
                     this.resetBrowsersInstanceError++;
+                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
 
                 }
             } catch (error) {

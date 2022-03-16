@@ -154,8 +154,8 @@ class Scraper {
                             retry++;
                         }
                         page.on('request', (req) => {
-                            if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                                req.abort();
+                            if (req.resourceType() == 'media' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
+                                return req.abort();
                             }
                             else {
                                 req.continue();

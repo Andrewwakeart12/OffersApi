@@ -152,7 +152,7 @@ class Scraper {
                             await this.resetBrowser();
                             retry++;
                         }
-                        await this.page.setRequestInterception(true);
+                        await this.page.setRequestInterception(true).catch(e=>{});
                         this.page.on('request', (req) => {
                             if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
                                 req.abort();
@@ -160,9 +160,7 @@ class Scraper {
                             else {
                                 req.continue();
                             }
-                        }).catch(e=>{
-                            
-                        });
+                        })
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){

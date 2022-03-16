@@ -107,6 +107,7 @@ class Scraper {
         //2.2 gets the initial values:
             //2.2.1 gets the max number of paginations:
             async getMaxclicks() {
+                log(Log.bg.green + Log.fg.white, 'Getting clicks');
                 var page = await this.page;
                 this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small').then(() => {
                     return page.evaluate(async () => {
@@ -169,11 +170,7 @@ class Scraper {
                             throw new CAPF('Error navigation failed in first run');
                         }
                         
-        
-                        this.resetDueToNotChargedPage = true;
-
-                   
-                        page.on("pageerror",{timeout:2000}, async function (err) {
+                        page.on("pageerror",{timeout:1000}, async function (err) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
         
@@ -183,7 +180,7 @@ class Scraper {
                             )
                         });
         
-                        page.on('error',{timeout:2000}, async (err) => {
+                        page.on('error',{timeout:1000}, async (err) => {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
                           await Promise.all([
@@ -194,7 +191,7 @@ class Scraper {
                         });
         
         
-                        page.waitForSelector('.error-code', { timeout: 2000 }).then(async () => {
+                        page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
                             await Promise.all([

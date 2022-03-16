@@ -161,11 +161,7 @@ class Scraper {
                             log(Log.bg.yellow + Log.fg.white,prom)
 
                             navigationSuccess =  prom;
-
-                            if(navigationSuccess != false){
-                                break;
-                            }
-                            console.log('in bucle');
+                           
                         }
                         if(navigationSuccess != true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');

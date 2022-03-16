@@ -130,6 +130,8 @@ class Scraper {
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
                     log(Log.fg.red, e.message);
                     var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
+                    log(Log.bg.green + Log.fg.white,`unique name: ${uniqueErrorNameForImage}`);
+                    
                     await page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,fullPage:true});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                 })

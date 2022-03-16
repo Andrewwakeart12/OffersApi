@@ -157,6 +157,7 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
+                            var netMap = new Map();
                             var cdp = await page.target().createCDPSession();
                             await cdp.send('Network.enable');
                             await cdp.send('Page.enable');

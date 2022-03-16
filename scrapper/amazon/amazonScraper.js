@@ -163,6 +163,8 @@ class Scraper {
                             navigationSuccess =  prom;
                            
                         }
+                        log(Log.bg.cyan + Log.fg.white,'after request');
+
                         if(navigationSuccess != true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');
                         }
@@ -504,6 +506,7 @@ class Scraper {
                         }
                        throw e;
                     })
+                    console.log(finalDataObject);
                     resolve(finalDataObject);
                 } catch (error) {
                     log(Log.fg.white + Log.bg.red,'error in while')
@@ -554,6 +557,7 @@ class Scraper {
                             console.log('bucle 1 step before comprobations')
             
                             tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
+                            this.unsetExtPromises();
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
@@ -606,6 +610,7 @@ class Scraper {
                                 lastArr = tempArr;
             
                                 this.result.results = await this.result.results.concat(await tempArr);
+                                this.unsetExtPromises();
             
                                 console.log('before comprobate actual pge error')
             

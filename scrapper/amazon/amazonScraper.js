@@ -509,6 +509,7 @@ class Scraper {
                 } catch (error) {
                     log(Log.fg.white + Log.bg.red,'error in while')
                     if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.' && error.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
+                        log(Log.fg.red,"_Scraper.getData() fails: ")
                         log(Log.fg.white + Log.bg.red,error.message)
                     }else{
                         resolve(false)
@@ -616,6 +617,7 @@ class Scraper {
                                     error: false,
                                     paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
                                 };
+                                
                                 await this.unsetTime()
                                 var clicked = await this.clickNextPagination().catch(e => { throw e });
                                 this.delay(Math.ceil(Math.random() * 5) * 1000);

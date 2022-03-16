@@ -491,13 +491,7 @@ class Scraper {
                                     finalDataOutput.push(finalDataObject);
                                 }
                             }
-                            return Promise.all(finalDataOutput).then(
-                                finalDataOutput => {
-                                    return finalDataOutput;
-                                }).catch(e => {
-                                    console.log(Log.fg.white + Log.bg.red,'_Scraper.getData().return promise : Error in Promise inside scraper');
-                                    console.log(Log.fg.red,e.message);
-                                });
+                            resolve(finalDataObject);
         
                         })
                     }).catch((e) => {
@@ -507,7 +501,6 @@ class Scraper {
                         }
                        throw e;
                     })
-                    console.log(finalDataObject);
                     resolve(finalDataObject);
                 } catch (error) {
                     log(Log.fg.white + Log.bg.red,'error in while')

@@ -158,15 +158,15 @@ class Scraper {
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails < 5 ){
 
-                                page.goto(this.url);
-                             var prom = await this.waitForRequestToFinish(page,this.url,15000).then((res)=>{
+                            var prom = page.goto(this.url).then((res)=>{
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
                                 console.log(e.message.red)
                                 navigationFails++;
                                 return false;
-                            })
+                            });
+                             await this.waitForRequestToFinish(page,this.url,15000)
                             log(Log.bg.yellow + Log.fg.white,prom)
 
                             navigationSuccess =  prom;

@@ -536,18 +536,24 @@ class Scraper {
                     for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) 
                     {
             
-                        console.log('bucle start')
+                        log(Log.fg.white + Log.bg.green,'bucle start')
                         var tempArr = [];
-                        
+                        await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                                console.log('catcha ! a')
+                                this.catcha = true;
+                                console.log(this.catcha);
+            
+                            }).catch(e => {
+                                this.catcha = false;
+                            });
                         if (this.catcha === true) {
-                            await this.unsetTime();
                             throw new Catcha({ catcha: true });
                         }
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             console.log('bucle 1 step before comprobations')
             
                             tempArr = await this.getData().then(res=>{return res}).catch(e=>{throw e});
-                            console.log('arrays comparations = ' + lastArr[0] === tempArr[0] ? true : false)
+                            console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
                                 console.log('bucle temparr not empty')
@@ -556,7 +562,6 @@ class Scraper {
                                     lastArr = tempArr;
                                     this.result.results = await this.result.results.concat(await tempArr);
                                     await Promise.all([
-                                        this.unsetTime(),
                                         this.comprobateActualPageF()
                                     ])
                                     this.result = {
@@ -569,7 +574,6 @@ class Scraper {
                                     var clicked = await this.clickNextPagination().catch(e => { throw e });
                                     this.delay(Math.ceil(Math.random() * 3) * 1000);
                                     if (clicked === false) {
-                                        this.unsetTime()
                                         break;
                                     }
                                     if (clicked.error === true) {
@@ -580,8 +584,8 @@ class Scraper {
             
                                         continue;
                                     }
-                                    this.setReloadTime('ExtracData').then(res => { log(Log.fg.white + Log.bg.green,'_Scraper.extractData() : solved in bucle 2'); console.log(res); }).catch(e => { throw e; });
-                                    page.waitForSelector('.error-code',{timeout:5000}).then(async () => {
+                                    
+                                   await page.waitForSelector('.error-code',{timeout:2000}).then(async () => {
                                         await page.reload();
                                     }).catch(e => {
                                         //console.log('e from catcha')
@@ -633,7 +637,6 @@ class Scraper {
                                     continue;
                                 }
                                 this.resetDueToNotChargedPage = true;
-                                this.setReloadTime('ExtractData').then(res => { log(Log.fg.white + Log.bg.green,'_Scraper.extractDataLoop(): solved in bucle 1'); console.log(res); }).catch(e => { throw e; });
                                 continue;
                             }
             

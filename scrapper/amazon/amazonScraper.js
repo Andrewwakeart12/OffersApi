@@ -159,10 +159,10 @@ class Scraper {
                                 return false;
                             });
                             log(Log.bg.yellow + Log.fg.white,prom)
-                            
-                           navigationSuccess = await prom;
 
-                            if(navigationSuccess == true){
+                            navigationSuccess =  prom;
+
+                            if(navigationSuccess != false){
                                 break;
                             }
                             console.log('in bucle');

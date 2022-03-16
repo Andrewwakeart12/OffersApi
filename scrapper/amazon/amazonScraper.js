@@ -557,6 +557,7 @@ class Scraper {
                             console.log('bucle 1 step before comprobations')
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
+                            log(Log.bg.cyan,tempArr);
                             this.unsetExtPromises();
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             

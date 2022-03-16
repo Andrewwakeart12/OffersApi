@@ -255,9 +255,7 @@ class Scraper {
                             var extractedData=await this.extractDataLoop().then(res=>{console.log(`${res}`.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                 await Promise.all([
-                                    this.unsetTime(),
-                                    this.unsetExtPromises(),
-                                    this.closeBrowser(), this.unsetExtPromises()
+                                    this.closeBrowser(),
                                 ]);
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
@@ -630,13 +628,7 @@ class Scraper {
                                         continue;
                                     }
                                     
-                                   await page.waitForSelector('.error-code',{timeout:2000}).then(async () => {
-                                        await page.reload();
-                                    }).catch(e => {
-                                        //console.log('e from catcha')
-                                        //console.log(e)
-                                    });
-                                   
+                                   continue;
             
 
                                 }
@@ -692,7 +684,6 @@ class Scraper {
                             break;
                         }
             
-                            restartFunction = 0;
                             await this.comprobateActualPageF();
                         }
                         log(Log.bg.green,'Data extracted:');

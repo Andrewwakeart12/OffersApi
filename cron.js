@@ -115,16 +115,11 @@ await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
 }
 
 
-comprobate();
-/* const task = cron.schedule('* 1 * * * *', async () =>{
-	 await updateProductsInDD()
-	 var sql = `DELETE t1 FROM scraped_data t1
-			INNER JOIN scraped_data t2 
-			WHERE t1.id > t2.id AND t1.product = t2.product;`
-	 await pool.query(sql);
- });
+const task = cron.schedule('* * * * * *', async () =>{
+    console.log('hola');
+});
 task.start()
-*/
+
 
 /*
 delete duplicated data:

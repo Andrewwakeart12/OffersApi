@@ -783,6 +783,8 @@ class Scraper {
                 }
                 if(res === true){
                     resolve(res);
+                }else{
+                    resolve({error:true})
                 }
             })
     

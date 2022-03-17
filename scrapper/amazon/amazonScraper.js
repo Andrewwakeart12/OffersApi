@@ -267,7 +267,7 @@ class Scraper {
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{console.log(`${res}`.green); if(res.results != false){return res.results}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                            var extractedData=await this.extractDataLoop().then(res=>{console.log(`${res}`.green); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                 await Promise.all([
                                     this.closeBrowser(),

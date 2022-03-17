@@ -390,12 +390,7 @@ class Scraper {
                                     retry++;
                                 }
                             }
-                        } else if (e.obj.catcha) {
-                            this.unsetTime()
-                            this.result.resetState = true;
-                            await this.resetBrowser();
-                            retry++;
-                        }
+                        } 
                         if (this.comprobateActualPage.actualPage < this.maxClicks)
                         {
                            await Promise.all([
@@ -499,7 +494,7 @@ class Scraper {
                         reject( new Catcha({ catcha: true }));
         
                     }).catch(e => {
-                        log(Log.fg.white + Log.bg.red,'_Scraper.getData() : Error data not extracted cause : ' + e.message);
+                        
                     })
                     log(Log.fg.white + Log.bg.green,'_Scraper.getData() : catcha not found');
                     await page.viewport({
@@ -804,23 +799,14 @@ class Scraper {
         }
         //2.8 verify actual pagination:
         async comprobateActualPageF() {
-            try {
+            
     
                 var page = await this.page;
                 await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                     console.log('catcha ! asa')
                     this.catcha = true;
                     console.log(this.catcha);
-                    throw new Catcha({ catcha: true });
-    
                 }).catch(e => {
-                    if (e.message != undefined) {
-                        if (e.message.split(" ")[0] === 'TimeoutError:') {
-                            this.catcha = false;
-                        }
-                    } else {
-                        throw e;
-                    }
                 });
                 
                 log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
@@ -864,10 +850,7 @@ class Scraper {
                 }
                 log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
 
-            } catch (e) {
-                console.log('error from CAPF');
-                throw new CAPF('CAPF:' + e.message);
-            }
+
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method

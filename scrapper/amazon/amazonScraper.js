@@ -109,9 +109,7 @@ class Scraper {
             async getMaxclicks() {
                 log(Log.bg.green + Log.fg.white, 'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:15000}).then(() => {
-
-                }).then(res=>{
+                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:15000}).then(res=>{
                     return page.evaluate(async () => {
                         var str = document.querySelector('.a-section.a-spacing-small.a-spacing-top-small').innerText.split(" ")
                         var resultsPerPage = parseInt(str[0].split('-').pop());
@@ -258,7 +256,7 @@ class Scraper {
                             }
                         }
                         if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
-                            throw new DEER('pagination load fails');
+                            throw new DERR('pagination load fails');
                         }
                         console.log('pagination value'.green)
                         console.log(`${this.paginationValue}`.green);

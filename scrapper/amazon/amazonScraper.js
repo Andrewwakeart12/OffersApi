@@ -209,7 +209,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
+                                page.waitForNavigation()]
                             )
                         });
         
@@ -218,7 +218,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                           await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                                page.waitForNavigation()
                             ])
         
                         });
@@ -229,7 +229,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation({ waitUntil: ['domcontentloaded'] })]
+                                page.waitForNavigation()]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')
@@ -648,7 +648,7 @@ class Scraper {
                                     if (clicked != true) {
                                         await Promise.all([
                                             page.reload(),
-                                            page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                                            page.waitForNavigation()
                                         ]);
                 
                                         continue;
@@ -693,7 +693,7 @@ class Scraper {
                                 if (clicked != true) {
                                     await Promise.all([
                                         page.reload(),
-                                        page.waitForNavigation({ waitUntil: ['domcontentloaded'] })
+                                        page.waitForNavigation()
                                     ]);
             
                                     continue;
@@ -763,7 +763,7 @@ class Scraper {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             await Promise.all([
                                 page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
-                                , page.waitForNavigation({ waitUntil: ['domcontentloaded'] }).catch((e) => { throw e })
+                                , page.waitForNavigation().catch((e) => { throw e })
                             ]);
                             page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
                                 console.log('catcha ! a')

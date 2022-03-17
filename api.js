@@ -30,12 +30,15 @@ app.use(bodyParser.json());
 const guard = express.Router();
 app.get('/sendNotification', async (req, res) => {
   var users = await pool.query('SELECT jwtoken,id FROM users');
-  users.forEach(async user => {
+  for(let user of users) {
+    
     var controllerData = await pool.query('SELECT discount_trigger,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
-    controllerData.forEach(async controller => {
+    for(let controller of controllerData){
+      
       var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
-    await urls.forEach(async url => {
+      for(let url of urls) {
+      
         var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_trigger * -1]);
         console.log('products jwtoken');
         console.log(user.jwtoken);
@@ -73,13 +76,13 @@ app.get('/sendNotification', async (req, res) => {
         });
         console.log('Notifications Message: ')
         console.log(res.data)
-      });
+      };
 
       console.log(res.data);
 
 
-    });
-  });
+    }
+  }
   console.log(users);
 
   /*

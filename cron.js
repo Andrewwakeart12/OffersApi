@@ -8,6 +8,7 @@ const browserObject = require('./scrapper/browser');
 const scraperController = require('./scrapper/amazon/amazonController');
 
 var cron = require('node-cron');
+const { default: axios } = require('axios');
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
   let data = array.slice(0);
@@ -97,7 +98,12 @@ const getArrayAsChunks = (array, chunkSize) => {
 			INNER JOIN scraped_data t2 
 			WHERE t1.id > t2.id AND t1.product = t2.product
         `);
-        await pool.query(`DELETE FROM scraped_data WHERE category='videosjuegos' AND updated_at < NOW() - INTERVAL 1 DAY`);
+      await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
+      await axios.get('/sendNotification').then(res=>{
+        console.log(res.data);
+      }).catch(e=>{
+          console.log(`error while sending notifications: ${e.message}`);
+      })
 console.log('finished')
   }
 //let results = await search();

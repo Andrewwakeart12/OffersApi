@@ -113,13 +113,12 @@ await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
     console.log(`error while sending notifications: ${e.message}`);
 })
 }
-comprobate();
-/*
+
 const task = cron.schedule('* 3 * * * *', async () =>{
     console.log('hola');
 });
 task.start()
-*/
+
 
 /*
 delete duplicated data:

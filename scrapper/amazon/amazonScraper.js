@@ -865,7 +865,7 @@ class Scraper {
         //3.2 restart browser if something fails and its needed
         async resetBrowser() {
             try {
-                if (this.resetBrowsersInstanceError < 20) {
+                if (this.resetBrowsersInstanceError <= 15) {
                     console.log('reset beggi')
                     await Promise.all([this.unsetTime(),
                     this.closeBrowser()]);
@@ -877,7 +877,7 @@ class Scraper {
     
                     this.browser = await browserObject.startBrowser();
                     this.page = (await this.browser.pages())[0];
-                    await this.page.setRequestInterception(true);
+  /*                  await this.page.setRequestInterception(true);
                     this.page.on('request', (req) => {
                         if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
                             req.abort();
@@ -885,8 +885,8 @@ class Scraper {
                         else {
                             req.continue();
                         }
-                    });
-                    this.reloadTime = [];
+                    });*/
+
                     this.resetBrowsersInstanceError++;
                     log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
 
@@ -897,36 +897,8 @@ class Scraper {
             }
     
         }
-        //3.3 Make a promise querable so you can know if its finished or not:
-        MakeQuerablePromise(promise) {
-            // Don't modify any promise that has been already modified.
-            if (promise.isFulfilled) return promise;
-        
-            // Set initial state
-            var isPending = true;
-            var isRejected = false;
-            var isFulfilled = false;
-        
-            // Observe the promise, saving the fulfillment in a closure scope.
-            var result = promise.then(
-                function(v) {
-                    isFulfilled = true;
-                    isPending = false;
-                    return v; 
-                }, 
-                function(e) {
-                    isRejected = true;
-                    isPending = false;
-                    throw e; 
-                }
-            );
-        
-            result.isFulfilled = function() { return isFulfilled; };
-            result.isPending = function() { return isPending; };
-            result.isRejected = function() { return isRejected; };
-            return result;
-        }
-        //3.4 unset any promise that its not finished yet 
+
+        //3.3 unset any promise that its not finished yet 
         async unsetExtPromises(){
             for(let prom of this.extractDataLoopPromises){
                 if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
@@ -934,12 +906,12 @@ class Scraper {
                 }
             }
         }
-        //3.5 close the browser and all the remaining process:
+        //3.4 close the browser and all the remaining process:
         async closeBrowser() {
             try {
                 console.log('closing browser...')
                 var b = await this.browser;
-                await Promise.all([this.unsetTime(),
+                await Promise.all([
                 b.close().catch(e => {
                     console.log('e from callback');
                     console.log(e);

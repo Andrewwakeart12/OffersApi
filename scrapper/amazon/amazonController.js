@@ -16,27 +16,7 @@ async function scrapeAll(url){
 
         var Scrape = await Scraper.create(url);        
         var result = await Scrape.scraper();
-        if(result.resetState != undefined && result.resetState === true ){
-            parallelResults = result.results;
-            let i = 0;
-            while(i < 20){
-                await Scrape.resetBrowser();
-                var results = await Scrape.scraper();
-                if(results.resetState === true){
-                    if(results.results.length > 0){
-                        console.log(result.results);
-                        await result.results.concat(results.results);
-                        log(Log.bg.green + Log.fg.white,'Results in Amazon Controller: ');
-                        log(result.results);
-                    }
-                    i++;
-                    continue;
-                }else{
-                    await result.results.concat(results.results);
-                    break;
-                }
-            }  
-        }
+
         if(result.results != false && result.results != undefined){
             Scrape.destroy()
             Scrape = null;

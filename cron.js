@@ -36,7 +36,9 @@ const getArrayAsChunks = (array, chunkSize) => {
         for(let url of urls){
    
             let scrappedArr = await scraperController(url.product_url);
-            if(scrappedArr === undefined){
+            console.log('_CRON_LOG - SCRAPPER ARR : ');
+            console.log(scrappedArr);
+            if(scrappedArr === undefined && scrappedArr === false){
               console.log({
                 error: 'data its not extracted in category : ' + url.category
               })

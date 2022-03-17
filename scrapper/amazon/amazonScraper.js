@@ -499,13 +499,7 @@ class Scraper {
                         reject( new Catcha({ catcha: true }));
         
                     }).catch(e => {
-                        if (e.message != undefined) {
-                            if (e.message.split(" ")[0] === 'TimeoutError:') {
-                                this.catcha = false;
-                            }
-                        } else {
-                            throw e;
-                        }
+                        log(Log.fg.white + Log.bg.red,'_Scraper.getData() : Error data not extracted cause : ' + e.message);
                     })
                     log(Log.fg.white + Log.bg.green,'_Scraper.getData() : catcha not found');
                     await page.viewport({
@@ -513,7 +507,7 @@ class Scraper {
                         height: 768 + Math.floor(Math.random() * 100),
                     })
                     
-                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner').then(async () => {
+                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:15000}).then(async () => {
                         return page.evaluate(() => {
         
                             self = this;
@@ -564,11 +558,17 @@ class Scraper {
                         if(e.message.trim() != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
                         log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
                             log(Log.fg.red,e.message)
+        
                         }
-                       throw e;
+                       return false;
                     })
-                    success = true;
-                    resolve(finalDataObject);
+                    if(finalDataObject != false){
+                        success = true;
+                        resolve(finalDataObject);
+                    }else{
+                        retry++;
+                        continue;
+                    }
                 } catch (error) {
                     log(Log.fg.white + Log.bg.red,'error in while')
                     if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.' && error.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
@@ -583,7 +583,7 @@ class Scraper {
                     retry++;
                 }
             }
-            if(retry > 19){
+            if(retry >= 10){
                 reject(err);
             }
             })

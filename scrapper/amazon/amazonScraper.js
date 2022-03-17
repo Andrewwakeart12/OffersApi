@@ -824,7 +824,7 @@ class Scraper {
                 log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
 
                 var tempPaginationValue= await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
-                    getActualPageSuccess = true
+                    
                     return page.evaluate(
                         async () => {
                             if (document.querySelector('.s-pagination-selected') != null) {
@@ -855,6 +855,7 @@ class Scraper {
 
                 });
                 if(tempPaginationValue != undefined){
+                    getActualPageSuccess = true;
                     this.comprobateActualPage =tempPaginationValue;
                 }
                 if (this.comprobateActualPage.nextPageUrl != false) {
@@ -868,6 +869,11 @@ class Scraper {
                 log(Log.fg.white + Log.bg.red,'error from CAPF');
                 log(Log.fg.red,e.message);
                 getActualPageErrors++;
+                
+                var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
+                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+               
                 if(getActualPageErrors >= 5){
                     throw(e);
                 }

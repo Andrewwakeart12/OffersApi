@@ -886,7 +886,7 @@ class Scraper {
                 }
             }
         }
-        log(Log.fg.white + Log.bg.green, `actual page : ${this.paginationValue}`)
+        log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method

@@ -675,13 +675,14 @@ class Scraper {
                                 
                                 var clicked = await this.clickNextPagination().then(res =>{
                                     log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
-                                }).catch(e => { throw e });
+                                    return true;
+                                }).catch(e => { throw e;});
                                 this.delay(Math.ceil(Math.random() * 5) * 1000);
                                 if (clicked === false) {
                                     log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
                                     break;
                                 }
-                                if (clicked.error === true) {
+                                if (clicked != true) {
                                     await Promise.all([
                                         page.reload(),
                                         page.waitForNavigation({ waitUntil: ['domcontentloaded'] })

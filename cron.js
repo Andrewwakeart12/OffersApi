@@ -101,16 +101,17 @@ const getArrayAsChunks = (array, chunkSize) => {
 			WHERE t1.id > t2.id AND t1.product = t2.product
         `);
       await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
-      await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
-        console.log(res.data);
-      }).catch(e=>{
-          console.log(`error while sending notifications: ${e.message}`);
-      })
+
 console.log('finished')
   }
 //let results = await search();
 async function comprobate(){
 await  search()
+await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
+  console.log(res.data);
+}).catch(e=>{
+    console.log(`error while sending notifications: ${e.message}`);
+})
 }
 
 

@@ -140,6 +140,7 @@ class Scraper {
                     });
                     return false;
                 });
+
                 if(this.maxClicks != false){
                     return true;
                 }else{
@@ -236,7 +237,9 @@ class Scraper {
                         });
 
                         log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
-
+                        if(this.maxClicks === false){
+                            this.maxClicks = null;
+                        }
                         if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
                             var getPaginationSuccess = false;
                             var getPagintaionFails = 0;
@@ -254,8 +257,9 @@ class Scraper {
                                     getPaginationSuccess = true;
                                 }
                             }
+
                             if(this.catcha === true){
-                                throw new Catcha({ catcha: true })
+                                throw new Catcha('!catcha')
                             }
                         }
                         if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){

@@ -759,7 +759,7 @@ class Scraper {
                 var extractTrys = 0;
                 while(!extractPaginationSucceded && extractTrys <= 5){
     
-                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
+                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 15000 }).then(async () => {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             await Promise.all([
                                 page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
@@ -886,6 +886,7 @@ class Scraper {
                 }
             }
         }
+        log(Log.fg.white + Log.bg.green, `actual page : ${this.paginationValue}`)
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method

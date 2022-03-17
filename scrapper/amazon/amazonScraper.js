@@ -399,8 +399,6 @@ class Scraper {
                         if (this.comprobateActualPage.actualPage < this.maxClicks)
                         {
                            await Promise.all([
-                                this.unsetTime(),
-                                this.unsetExtPromises(),
                                 this.resetBrowser()
                             ]);
                             retry++;
@@ -826,7 +824,7 @@ class Scraper {
                 });
                 
                 log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
-                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:5000}).then(() => {
+                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
                     return page.evaluate(
                         async () => {
                             if (document.querySelector('.s-pagination-selected') != null) {
@@ -853,6 +851,11 @@ class Scraper {
                     var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    var pagination = {
+                        actualPage: 0,
+                        nextPageUrl: false
+                    }
+                    return pagination;
                 });
                 if (this.comprobateActualPage.nextPageUrl != false) {
                     this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;

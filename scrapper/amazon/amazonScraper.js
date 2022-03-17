@@ -243,6 +243,9 @@ class Scraper {
                             while(!getPaginationSuccess && getPagintaionFails < 5 ){
                             var pag = await this.getMaxclicks();
                             if(pag != true ){
+                                if(this.catcha === true){
+                                    throw new DERR('!catcha')
+                                }
                                 await Promise.all([page.reload(),
                                         page.waitForNavigation()]);
                                     this.maxClicks = null;
@@ -286,6 +289,9 @@ class Scraper {
                         console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
                         if (e.message != undefined) {
+                            if(e.message === '!catcha'){
+                                
+                            }
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
                                     restartFunction++;

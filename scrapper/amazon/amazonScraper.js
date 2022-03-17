@@ -276,7 +276,7 @@ class Scraper {
                                     this.resolveTimeOut = 0;
                                 success = true;
 
-                                return extractedData.results;
+                                return extractedData;
                             }else{
                                 break;
                             }

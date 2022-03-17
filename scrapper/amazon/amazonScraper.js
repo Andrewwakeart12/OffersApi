@@ -276,7 +276,7 @@ class Scraper {
                                     this.resolveTimeOut = 0;
                                 success = true;
 
-                                return this.result.results;
+                                return extractedData.results;
                             }else{
                                 break;
                             }
@@ -707,7 +707,7 @@ class Scraper {
                         }
                         log(Log.bg.green,'Data extracted:');
                         log(Log.fg.green, this.result);
-                        resolve({results:this.result})
+                        resolve({results:this.result.results})
                 } catch (error) {
                     reject(error);
                 }

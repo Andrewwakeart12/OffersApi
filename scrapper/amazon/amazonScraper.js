@@ -799,7 +799,8 @@ class Scraper {
                         throw e;
                     }
                 });
-                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',).then(() => {
+                log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
+                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:5000}).then(() => {
                     return page.evaluate(
                         async () => {
                             if (document.querySelector('.s-pagination-selected') != null) {
@@ -820,7 +821,13 @@ class Scraper {
                             return pagination;
                         })
     
-                })
+                }).catch(e=>{
+                    log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
+                    log(Log.fg.red,e.message)
+                    var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
+                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                });
                 if (this.comprobateActualPage.nextPageUrl != false) {
                     this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
                     this.paginationValue = this.comprobateActualPage.actualPage;

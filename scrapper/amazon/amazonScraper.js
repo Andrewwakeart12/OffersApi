@@ -628,7 +628,9 @@ class Scraper {
                                         error: false,
                                         paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
                                     };
-                                    var clicked = await this.clickNextPagination().catch(e => { throw e });
+                                    var clicked = await this.clickNextPagination().then(res =>{
+                                        log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                    }).catch(e => { throw e });
                                     this.delay(Math.ceil(Math.random() * 3) * 1000);
                                     if (clicked === false) {
                                         log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
@@ -671,7 +673,9 @@ class Scraper {
                                     paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
                                 };
                                 
-                                var clicked = await this.clickNextPagination().catch(e => { throw e });
+                                var clicked = await this.clickNextPagination().then(res =>{
+                                    log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                }).catch(e => { throw e });
                                 this.delay(Math.ceil(Math.random() * 5) * 1000);
                                 if (clicked === false) {
                                     log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
@@ -739,43 +743,49 @@ class Scraper {
         }
         //2.7 click to next pagination:
         async clickNextPagination() {
-            var page = await this.page;
-            var res = 0
-            var extractPaginationSucceded = false
-            var extractTrys = 0;
-            while(!extractPaginationSucceded && extractTrys){
-
-                await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
-                    if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-                        await Promise.all([
-                            page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
-                            , page.waitForNavigation({ waitUntil: ['domcontentloaded'] }).catch((e) => { throw e })
-                        ]);
-                        page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
-                            console.log('catcha ! a')
-                            this.catcha = true;
-                            console.log(this.catcha);
-        
-                        }).catch(e => {
-                            this.catcha = false;
-                        })
-                        res = true;
-        
-                        this.delay(Math.ceil(Math.random() * 10) * 1000);
-                        this.clickedTimes++;
-                        console.log('clicked!')
-                    } else {
-                        res = false;
-                    }
-                }).then(res =>{
-                    extractPaginationSucceded = true;
-                }).catch(e => {
-                    log(Log.fg.white + Log.bg.red,'message from clickNextPagination');
-                    console.log(Log.fg.red,e.message);
-        
-                })
-            }
-            return res;
+            return new Promise((resolve,reject)=>{
+                var page = await this.page;
+                var res = 0
+                var extractPaginationSucceded = false
+                var extractTrys = 0;
+                while(!extractPaginationSucceded && extractTrys <= 5){
+    
+                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
+                        if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
+                            await Promise.all([
+                                page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
+                                , page.waitForNavigation({ waitUntil: ['domcontentloaded'] }).catch((e) => { throw e })
+                            ]);
+                            page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
+                                console.log('catcha ! a')
+                                this.catcha = true;
+                                console.log(this.catcha);
+            
+                            }).catch(e => {
+                                this.catcha = false;
+                            })
+                            res = true;
+                            log(Log.fg.white + Log.bg.green,'_Scraper.clickNextPagination() - success in clickNextPagination');
+                            this.delay(Math.ceil(Math.random() * 10) * 1000);
+                            this.clickedTimes++;
+                            console.log('clicked!')
+                        } else {
+                            res = false;
+                        }
+                    }).then(res =>{
+                        extractPaginationSucceded = true;
+                    }).catch(e => {
+                        log(Log.fg.white + Log.bg.red,'_Scraper.clickNextPagination() - Error from clickNextPagination');
+                        console.log(Log.fg.red,e.message);
+                        extractTrys++;
+            
+                    })
+                }
+                if(res === true){
+                    resolve(res);
+                }
+            })
+    
     
     
         }

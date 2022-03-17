@@ -807,7 +807,7 @@ class Scraper {
         //2.8 verify actual pagination:
         async comprobateActualPageF() {
             var page = await this.page;
-            return new Promise((resolve,reject)=>{
+            return new Promise(async (resolve,reject)=>{
                 var getActualPageSuccess = false;
                 var getActualPageErrors = 0;
                 while(!getActualPageSuccess != true && getActualPageErrors < 5){

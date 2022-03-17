@@ -743,7 +743,7 @@ class Scraper {
         }
         //2.7 click to next pagination:
         async clickNextPagination() {
-            return new Promise((resolve,reject)=>{
+            return new Promise(async (resolve,reject)=>{
                 var page = await this.page;
                 var res = 0
                 var extractPaginationSucceded = false

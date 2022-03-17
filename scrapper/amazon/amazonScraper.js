@@ -798,9 +798,13 @@ class Scraper {
         }
         //2.8 verify actual pagination:
         async comprobateActualPageF() {
+            var page = await this.page;
+            var getActualPageSuccess = false;
+            var getActualPageErrors = 0;
+            while(!getActualPageSuccess != true && getActualPageErrors < 5){
             try {
     
-                var page = await this.page;
+    
                 await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                     console.log('catcha ! asa')
                     this.catcha = true;
@@ -816,8 +820,11 @@ class Scraper {
                         throw e;
                     }
                 });
+
                 log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
-                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:5000}).then(() => {
+
+                var tempPaginationValue= await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
+                    getActualPageSuccess = true
                     return page.evaluate(
                         async () => {
                             if (document.querySelector('.s-pagination-selected') != null) {
@@ -844,16 +851,28 @@ class Scraper {
                     var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    throw new CAPF('CAPF:' + e.message);
+
                 });
+                if(tempPaginationValue != undefined){
+                    this.comprobateActualPage =tempPaginationValue;
+                }
                 if (this.comprobateActualPage.nextPageUrl != false) {
                     this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
                     this.paginationValue = this.comprobateActualPage.actualPage;
                     this.url = this.comprobateActualPage.nextPageUrl;
                 }
+            
+
             } catch (e) {
-                console.log('error from CAPF');
-                throw new CAPF('CAPF:' + e.message);
+                log(Log.fg.white + Log.bg.red,'error from CAPF');
+                log(Log.fg.red,e.message);
+                getActualPageErrors++;
+                if(getActualPageErrors >= 5){
+                    throw(e);
+                }
             }
+        }
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method

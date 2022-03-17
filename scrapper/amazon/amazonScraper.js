@@ -561,6 +561,7 @@ class Scraper {
                         }
                        throw e;
                     })
+                    success = true;
                     resolve(finalDataObject);
                 } catch (error) {
                     log(Log.fg.white + Log.bg.red,'error in while')

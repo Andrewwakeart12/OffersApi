@@ -806,93 +806,65 @@ class Scraper {
         }
         //2.8 verify actual pagination:
         async comprobateActualPageF() {
-            var page = await this.page;
-            return new Promise(async (resolve,reject)=>{
-                var getActualPageSuccess = false;
-                var getActualPageErrors = 0;
-                while(!getActualPageSuccess != true && getActualPageErrors < 5){
-                try {
-        
-        
-                    await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                        console.log('catcha ! asa')
-                        this.catcha = true;
-                        console.log(this.catcha);
-                        throw new Catcha({ catcha: true });
-        
-                    }).catch(e => {
-                        if (e.message != undefined) {
-                            if (e.message.split(" ")[0] === 'TimeoutError:') {
-                                this.catcha = false;
-                            }
-                        } else {
-                            throw e;
+            try {
+    
+                var page = await this.page;
+                await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                    console.log('catcha ! asa')
+                    this.catcha = true;
+                    console.log(this.catcha);
+                    throw new Catcha({ catcha: true });
+    
+                }).catch(e => {
+                    if (e.message != undefined) {
+                        if (e.message.split(" ")[0] === 'TimeoutError:') {
+                            this.catcha = false;
                         }
-                    });
+                    } else {
+                        throw e;
+                    }
+                });
+                
+                log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
+                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:5000}).then(() => {
+                    return page.evaluate(
+                        async () => {
+                            if (document.querySelector('.s-pagination-selected') != null) {
     
-                    log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
-    
-                    var tempPaginationValue= await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
-                        
-                        return page.evaluate(
-                            async () => {
-                                if (document.querySelector('.s-pagination-selected') != null) {
-        
-                                    var paginationSelectedValue = await parseInt(document.querySelector('.s-pagination-selected').innerText);
-                                    var pagination = {
-                                        actualPage: paginationSelectedValue,
-                                        nextPageUrl: document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next') ? document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next').href : false
-                                    }
-                                } else {
-                                    var pagination = {
-                                        actualPage: 0,
-                                        nextPageUrl: false
-                                    }
-        
+                                var paginationSelectedValue = await parseInt(document.querySelector('.s-pagination-selected').innerText);
+                                var pagination = {
+                                    actualPage: paginationSelectedValue,
+                                    nextPageUrl: document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next') ? document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next').href : false
                                 }
-        
-                                return pagination;
-                            })
-        
-                    }).catch(e=>{
-                        log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
-                        log(Log.fg.red,e.message)
-                        var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
-                        page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
-                        log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
-                        throw new CAPF('CAPF:' + e.message);
+                            } else {
+                                var pagination = {
+                                    actualPage: 0,
+                                    nextPageUrl: false
+                                }
     
-                    });
-                    console.log(tempPaginationValue);
-                    if(tempPaginationValue != undefined){
-                        getActualPageSuccess = true;
-                        this.comprobateActualPage =tempPaginationValue;
-                        resolve(true)
-
-                    }
-                    if (this.comprobateActualPage.nextPageUrl != false) {
-                        this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
-                        this.paginationValue = this.comprobateActualPage.actualPage;
-                        this.url = this.comprobateActualPage.nextPageUrl;
-                    }
-                  
+                            }
     
-                } catch (e) {
-                    log(Log.fg.white + Log.bg.red,'error from CAPF');
-                    log(Log.fg.red,e.message);
-                    getActualPageErrors++;
-                    var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
+                            return pagination;
+                        })
+    
+                }).catch(e=>{
+                    log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
+                    log(Log.fg.red,e.message)
+                    var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
-                   
-                    if(getActualPageErrors >= 5){
-                        reject(e);
-                    }
+                });
+                if (this.comprobateActualPage.nextPageUrl != false) {
+                    this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
+                    this.paginationValue = this.comprobateActualPage.actualPage;
+                    this.url = this.comprobateActualPage.nextPageUrl;
                 }
+                log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
+
+            } catch (e) {
+                console.log('error from CAPF');
+                throw new CAPF('CAPF:' + e.message);
             }
-            log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
-            })
-            
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method

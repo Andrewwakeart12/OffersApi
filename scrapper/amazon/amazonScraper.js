@@ -782,6 +782,10 @@ class Scraper {
                     }).catch(e => {
                         log(Log.fg.white + Log.bg.red,'_Scraper.clickNextPagination() - Error from clickNextPagination');
                         console.log(Log.fg.red,e.message);
+                        var uniqueErrorNameForImage = `_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
+                        page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                        log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                       
                         extractTrys++;
             
                     })
@@ -869,7 +873,6 @@ class Scraper {
                 log(Log.fg.white + Log.bg.red,'error from CAPF');
                 log(Log.fg.red,e.message);
                 getActualPageErrors++;
-                
                 var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                 page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
                 log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);

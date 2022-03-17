@@ -209,7 +209,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation()]
+                                page.waitForNavigation( { timeout: 20000 } )]
                             )
                         });
         
@@ -229,7 +229,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation()]
+                                page.waitForNavigation( { timeout: 20000 } )]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')
@@ -250,7 +250,7 @@ class Scraper {
                                     throw new DERR('!catcha')
                                 }
                                 await Promise.all([page.reload(),
-                                        page.waitForNavigation()]);
+                                        page.waitForNavigation( { timeout: 20000 } )]);
                                     this.maxClicks = null;
                                     getPagintaionFails++;
                                 }else{
@@ -376,7 +376,7 @@ class Scraper {
                             }
                             else if (restartFunction < 20) {
                                 await Promise.all([page.reload(),
-                                page.waitForNavigation()]);
+                                page.waitForNavigation( { timeout: 20000 } )]);
                                 continue;
                             } else {
                                 if (restartFunction < 10) {

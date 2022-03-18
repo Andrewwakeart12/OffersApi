@@ -174,7 +174,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 5000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 8000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -250,7 +250,7 @@ class Scraper {
                                     throw new DERR('!catcha')
                                 }
                                 await Promise.all([page.reload(),
-                                        page.waitForNavigation( { timeout: 5000 } )]);
+                                        page.waitForNavigation( { timeout: 8000 } )]);
                                     this.maxClicks = null;
                                     getPagintaionFails++;
                                 }else{

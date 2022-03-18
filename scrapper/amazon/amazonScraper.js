@@ -152,7 +152,7 @@ class Scraper {
                 var success = false;
                 var retry = 0;
                 var restartFunction;
-                while (!success && retry < 10) {
+                while (!success && retry < 15) {
                     try {
 
                         var page = this.page;
@@ -390,13 +390,6 @@ class Scraper {
                                     retry++;
                                 }
                             }
-                        } 
-                        if (this.comprobateActualPage.actualPage < this.maxClicks)
-                        {
-                           await Promise.all([
-                                this.resetBrowser()
-                            ]);
-                            retry++;
                         }
         
                     }
@@ -867,8 +860,9 @@ class Scraper {
             try {
                 if (this.resetBrowsersInstanceError <= 15) {
                     console.log('reset beggi')
-                    await Promise.all([this.unsetTime(),
-                    this.closeBrowser()]);
+                    await Promise.all([
+                    this.closeBrowser()
+                ]);
 
                     if (this.comprobateActualPage.nextPageUrl != false && this.comprobateActualPage.nextPageUrl != undefined) {
                         this.url = this.comprobateActualPage.nextPageUrl;

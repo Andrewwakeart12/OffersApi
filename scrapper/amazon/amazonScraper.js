@@ -128,7 +128,7 @@ class Scraper {
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
                     log(Log.fg.red, e.message);
                     var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
-                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                     await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                         console.log('catcha ! a')
@@ -190,7 +190,7 @@ class Scraper {
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
                             }else{
                                 var uniqueErrorNameForImage = `_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
-                                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
                                 log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                                
                                 navigationFails++;
@@ -780,7 +780,7 @@ class Scraper {
                         log(Log.fg.white + Log.bg.red,'_Scraper.clickNextPagination() - Error from clickNextPagination');
                         console.log(Log.fg.red,e.message);
                         var uniqueErrorNameForImage = `_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
-                        page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                        page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
                         log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                        
                         extractTrys++;
@@ -835,7 +835,7 @@ class Scraper {
                     log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
                     log(Log.fg.red,e.message)
                     var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
-                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`});
+                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
                     log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                     var pagination = {
                         actualPage: 0,

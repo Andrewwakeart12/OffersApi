@@ -24,6 +24,7 @@ const getArrayAsChunks = (array, chunkSize) => {
 
     return new Promise(async(resolve,reject)=>{
       try{
+    var result = [];
      
 
         var users = await pool.query('SELECT id FROM users');
@@ -61,7 +62,6 @@ const getArrayAsChunks = (array, chunkSize) => {
         reject(e);
       }
     })
-    var result = [];
 
 
     }

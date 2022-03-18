@@ -502,7 +502,7 @@ class Scraper {
                         height: 768 + Math.floor(Math.random() * 100),
                     })
                     
-                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:15_Scraper.getData().waitforselector(results):000}).then(async () => {
+                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:15000}).then(async () => {
                         return page.evaluate(() => {
         
                             self = this;

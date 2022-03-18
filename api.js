@@ -62,7 +62,7 @@ app.get('/sendNotification', async (req, res) => {
       expiresIn: 1440
     });
 
-        var res = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,
           subID: 'obe2',
           appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -75,10 +75,10 @@ app.get('/sendNotification', async (req, res) => {
           }
         });
         console.log('Notifications Message: ')
-        console.log(res.data)
+        console.log(response.data)
       };
 
-      console.log(res.data);
+      console.log(response.data);
 
 
     }

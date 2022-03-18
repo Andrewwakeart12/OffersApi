@@ -326,7 +326,7 @@ app.post('/api/config/getAllOffers', async (req, res) => {
   console.log('page');
   console.log(page);
   // limit as 20
-  var discount = dis[0] * -1;
+  var discount = dis * -1;
   console.log(discount);
 
   const limit = 10
@@ -371,7 +371,7 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   console.log('page');
   console.log(page);
   // limit as 20
-  var discount = dis[0] * -1;
+  var discount = dis * -1;
   console.log(discount);
   const limit = 10
   // page number

@@ -109,7 +109,7 @@ class Scraper {
             async getMaxclicks() {
                 log(Log.bg.green + Log.fg.white, 'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:15000}).then(res=>{
+                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:5000}).then(res=>{
                     return page.evaluate(async () => {
                         var str = document.querySelector('.a-section.a-spacing-small.a-spacing-top-small').innerText.split(" ")
                         var resultsPerPage = parseInt(str[0].split('-').pop());

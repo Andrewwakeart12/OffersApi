@@ -578,7 +578,7 @@ class Scraper {
                     retry++;
                 }
             }
-            if(retry >= 10){
+            if(retry >= 5){
                 reject(err);
             }
             })

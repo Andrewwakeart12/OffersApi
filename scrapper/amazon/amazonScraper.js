@@ -484,7 +484,7 @@ class Scraper {
                 var success = false;
                 var retry = 0;
                 var err = '';
-                while (!success && retry < 4) {
+                while (!success && retry < 10) {
                 try {
                     var page = await this.page;
                     log(Log.fg.white + Log.bg.green,'get data initialize');
@@ -502,7 +502,7 @@ class Scraper {
                         height: 768 + Math.floor(Math.random() * 100),
                     })
                     
-                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:20000}).then(async () => {
+                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:15_Scraper.getData().waitforselector(results):000}).then(async () => {
                         return page.evaluate(() => {
         
                             self = this;
@@ -578,7 +578,7 @@ class Scraper {
                     retry++;
                 }
             }
-            if(retry >= 4){
+            if(retry >= 10){
                 reject(err);
             }
             })

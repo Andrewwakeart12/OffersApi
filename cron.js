@@ -100,7 +100,9 @@ const getArrayAsChunks = (array, chunkSize) => {
 			INNER JOIN scraped_data t2 
 			WHERE t1.id > t2.id AND t1.product = t2.product
         `);
-      await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
+        //DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00
+        await pool.query(`DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00`);
+        await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
 
 console.log('finished')
   }
@@ -113,9 +115,8 @@ await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
     console.log(`error while sending notifications: ${e.message}`);
 })
 }
-comprobate();
-const task = cron.schedule('* 3 * * * *', async () =>{
-    console.log('hola');
+const task = cron.schedule('* * 3 * * *', async () =>{
+    comprobate();
 });
 task.start()
 

@@ -116,7 +116,7 @@ await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
 })
 }
 const task = cron.schedule('* * 3 * * *', async () =>{
-    comprobate();
+    await comprobate();
 });
 task.start()
 

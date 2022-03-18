@@ -327,6 +327,8 @@ app.post('/api/config/getAllOffers', async (req, res) => {
   console.log(page);
   // limit as 20
   var discount = dis[0] * -1;
+  console.log(discount);
+
   const limit = 10
   // page number
   // calculate offset
@@ -370,6 +372,7 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   console.log(page);
   // limit as 20
   var discount = dis[0] * -1;
+  console.log(discount);
   const limit = 10
   // page number
   // calculate offset

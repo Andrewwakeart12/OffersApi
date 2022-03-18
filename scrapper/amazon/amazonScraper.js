@@ -174,7 +174,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 15000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 5000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -209,7 +209,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 15000 } )]
+                                page.waitForNavigation( { timeout: 8000 } )]
                             )
                         });
         
@@ -229,7 +229,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 15000 } )]
+                                page.waitForNavigation( { timeout: 8000 } )]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')
@@ -250,7 +250,7 @@ class Scraper {
                                     throw new DERR('!catcha')
                                 }
                                 await Promise.all([page.reload(),
-                                        page.waitForNavigation( { timeout: 15000 } )]);
+                                        page.waitForNavigation( { timeout: 5000 } )]);
                                     this.maxClicks = null;
                                     getPagintaionFails++;
                                 }else{
@@ -376,7 +376,7 @@ class Scraper {
                             }
                             else if (restartFunction < 20) {
                                 await Promise.all([page.reload(),
-                                page.waitForNavigation( { timeout: 15000 } )]);
+                                page.waitForNavigation( { timeout: 8000 } )]);
                                 continue;
                             } else {
                                 if (restartFunction < 10) {

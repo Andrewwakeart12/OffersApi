@@ -22,45 +22,47 @@ const getArrayAsChunks = (array, chunkSize) => {
 
   async function search(){
 
-  
-    var result = [];
-    try{
+    return new Promise(async(resolve,reject)=>{
+      try{
      
 
-      var users = await pool.query('SELECT id FROM users');
-      for(let user of users){
-        var controllers = await pool.query('SELECT id FROM scraper_controller WHERE user_id=? && controllerActive=1',[user.id])
-        for(let controller of controllers){
-        var urls = await pool.query('SELECT * FROM scraper_urls WHERE controller_id= ?' ,[controller.id]);
-          
-        for(let url of urls){
-   
-            let scrappedArr = await scraperController(url.product_url);
-            console.log('_CRON_LOG - SCRAPPER ARR : ');
-            console.log(scrappedArr);
-            if(scrappedArr === undefined && scrappedArr === false){
-              console.log({
-                error: 'data its not extracted in category : ' + url.category
-              })
-            }
-              let obj = {}
-              if(scrappedArr !=  undefined){
-                obj =  {dataArr : scrappedArr, category: url.category, controller_id : url.controller_id, url_id: url.id}
-  
-                result.push(obj);
-              }else{
-                obj= false;
-                result.push(obj);
-              }
-          }
-          updateProductsInDD(result);
-        }
-      };
+        var users = await pool.query('SELECT id FROM users');
+        for(let user of users){
+          var controllers = await pool.query('SELECT id FROM scraper_controller WHERE user_id=? && controllerActive=1',[user.id])
+          for(let controller of controllers){
+          var urls = await pool.query('SELECT * FROM scraper_urls WHERE controller_id= ?' ,[controller.id]);
             
-    }catch(e){
-      console.log("Error cron : ");
-      console.log(e);
-    }
+          for(let url of urls){
+     
+              let scrappedArr = await scraperController(url.product_url);
+              console.log('_CRON_LOG - SCRAPPER ARR : ');
+              console.log(scrappedArr);
+              if(scrappedArr === undefined && scrappedArr === false){
+                console.log({
+                  error: 'data its not extracted in category : ' + url.category
+                })
+              }
+                let obj = {}
+                if(scrappedArr !=  undefined){
+                  obj =  {dataArr : scrappedArr, category: url.category, controller_id : url.controller_id, url_id: url.id}
+    
+                  result.push(obj);
+                }else{
+                  obj= false;
+                  result.push(obj);
+                }
+            }
+            updateProductsInDD(result);
+          }
+        };
+        resolve(true);      
+      }catch(e){
+        console.log("Error cron : ");
+        reject(e);
+      }
+    })
+    var result = [];
+
 
     }
   async function updateProductsInDD(categoryData){
@@ -108,13 +110,17 @@ console.log('finished')
   }
 //let results = await search();
 async function comprobate(){
-await  search()
-await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
-  console.log(res.data);
-}).catch(e=>{
-    console.log(`error while sending notifications: ${e.message}`);
-})
+var updated = await  search()
+if(updated === true){
+  await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
+    console.log(res.data);
+  }).catch(e=>{
+      console.log(`error while sending notifications: ${e.message}`);
+  })
 }
+
+}
+comprobate();
 const task = cron.schedule('* * 3 * * *', async () =>{
     await comprobate();
 });

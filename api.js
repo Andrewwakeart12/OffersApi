@@ -321,7 +321,7 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
 })
 app.post('/api/config/getAllOffers', async (req, res) => {
   const { controller_id, page } = req.body;
-  const dis =pool.query('SELECT discount_trigger FROM scraper_controller WHERE id',[controller_id]);
+  const dis =pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
   
   console.log('page');
   console.log(page);
@@ -367,7 +367,7 @@ app.post('/api/config/getAllOffers', async (req, res) => {
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;
-  const dis =pool.query('SELECT discount_trigger FROM scraper_controller WHERE id',[controller_id]);
+  const dis =pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20

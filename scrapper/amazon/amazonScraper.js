@@ -179,11 +179,19 @@ class Scraper {
                                 return true;
                             }).catch((e) => {
                                 log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                                if(e.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
+                                    return {proxy_not_connect :true};
+                                }
                                 console.log(e.message.red)
                                 return false;
                             });
                             log(Log.bg.yellow + Log.fg.white,prom)
-
+                                if(prom.proxy_not_connect != undefined)
+                                {
+                                    if(prom.proxy_not_connect === true){
+                                        throw new DERR('Proxy Not Connected');
+                                    }
+                                }
                             navigationSuccess =  prom;
                             
                             if(navigationSuccess === true){

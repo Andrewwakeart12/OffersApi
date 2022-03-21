@@ -11,7 +11,7 @@ const { Expo } = require('expo-server-sdk');
 var pdf = require("pdf-creator-node");
 var fs = require("fs");
 const cors = require('cors');
-
+const ExcelCreator = require('./ExcelGenerator');
 const axios = require('axios')
 const browserObject = require('./scrapper/browser');
 const scraperController = require('./scrapper/amazon/amazonController');
@@ -172,6 +172,23 @@ app.get('/proob', async (req, res) => {
   });
   res.send('done!');
 })
+app.get('/generateExcel', async (req,res) =>{
+  const { controller_id, page } = req.body;
+  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  
+  console.log('page');
+  console.log(page);
+  // limit as 20
+  var discount = dis[0].discount_trigger * -1;
+  console.log(discount);
+
+  // page number
+  // calculate offset
+  // query for fetching data with page number and offset
+  //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
+  const prodsQuery = `SELECT * FROM scraped_data WHERE controller_id=${controller_id} AND discount < ${discount} ORDER BY category ASC,discount; `
+  
+});
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
@@ -320,48 +337,15 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
 app.post('/api/config/getAllOffers', async (req, res) => {
-  const { controller_id, page } = req.body;
   const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const controller_id = await pool.query('SELECT id FROM scraper_controller ');
   
-  console.log('page');
-  console.log(page);
   // limit as 20
   var discount = dis[0].discount_trigger * -1;
   console.log(discount);
 
-  const limit = 10
-  // page number
-  // calculate offset
-  const offset = (page - 1) * limit
-  // query for fetching data with page number and offset
-  //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
-  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
-  pool.getConnection(function (err, connection) {
-    connection.query(prodsQuery, function (error, results, fields) {
-      // When done with the connection, release it.
-      connection.release();
-      if (error) throw error;
-      // create payload
-      var jsonResult = {
-        'products_page_count': results.length,
-        'page_number': page,
-        'products': results
-      }
-      console.log(jsonResult)
-      // create response
-      if (jsonResult.products.length > 0) {
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
-        var myJsonString = JSON.parse(JSON.stringify(jsonResult));
-        res.statusMessage = "Products for page " + page;
-        res.statusCode = 200;
-        res.json(myJsonString);
-        res.end();
-      } else {
-        res.json({ scrollEnds: true, products: [] })
-        res.end()
-      }
-    })
-  })
 });
 
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {

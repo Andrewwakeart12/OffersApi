@@ -110,20 +110,21 @@ console.log('finished')
   }
 //let results = await search();
 async function comprobate(){
-var updated = await  search()
-if(updated === true){
-  await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
-    console.log(res.data);
-  }).catch(e=>{
-      console.log(`error while sending notifications: ${e.message}`);
-  })
-}
-
-}
-comprobate();
-const task = cron.schedule('* * 3 * * *', async () =>{
-    await comprobate();
-});
+  var updated = await  search()
+  if(updated === true){
+    await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
+      console.log(res.data);
+    }).catch(e=>{
+        console.log(`error while sending notifications: ${e.message}`);
+    })
+  }
+  
+  }
+  const task = cron.schedule('0 0 */3 * * *', async () =>{
+      await comprobate();
+  });
+  task.start()
+  
 task.start()
 
 

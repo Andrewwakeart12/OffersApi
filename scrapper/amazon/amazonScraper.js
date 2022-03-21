@@ -592,7 +592,7 @@ class Scraper {
               var  extData= new Promise(async (resolve,reject)=>{
                 try {
                     var lastArr = [];
-                    for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks && this.result.resetState != true; i++) 
+                    for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks; i++) 
                     {
             
                         log(Log.fg.white + Log.bg.green,'bucle start')
@@ -646,6 +646,10 @@ class Scraper {
                                         ]);
                 
                                         continue;
+                                    }else{
+                                        if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                            resolve({results:this.result.results})
+                                        }
                                     }
                                     
             
@@ -691,7 +695,11 @@ class Scraper {
                                     ]);
             
                                     continue;
-                                }
+                                }else{
+                                        if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                            resolve({results:this.result.results})
+                                        }
+                                    }
                             }
             
             

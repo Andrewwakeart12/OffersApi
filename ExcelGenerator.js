@@ -32,7 +32,21 @@ class ExcelCreator {
     return replacer;
   }
   getProductsData(data) {
-    this.columnsData = data
+    var productsToArr = []
+    data.forEach((el)=>{
+      var destructureArrFromProduct = [
+        el.updated_at,
+        'No introducido aún',
+        el.category,
+        el.product,
+        `$${el.oldPrice}`,
+        `$${el.newPrice}`,
+        `${el.discount}%`,
+        el.url
+      ];
+      productsToArr.push(destructureArrFromProduct);
+    })
+    this.columnsData= productsToArr;
     this.columnsData.forEach((item,index)=>{
       var el = this.ws.getRow(index + 2 );
       el.values = item;
@@ -43,19 +57,22 @@ class ExcelCreator {
     worksheet.columns.forEach(column => {
       const lengths = column.values.map(v => v.toString().length);
       const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'));
-      column.width = maxLength + 5;
+      column.width = maxLength + 2;
       console.log(maxLength);
     });
   }
   Save() {
+    var created;
     this.wb.xlsx
-      .writeFile(`./RegistrosExcel/${this.filename}`)
+      .writeFile(`/opt/lampp/htdocs/RegistrosExcel/${this.filename}`)
       .then(() => {
-        console.log('file created');
+        created = true;
       })
       .catch(err => {
+        created = false;
         console.log(err.message);
       });
+      return created;
   }
 }
 module.exports = ExcelCreator;

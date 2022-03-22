@@ -173,21 +173,17 @@ app.get('/proob', async (req, res) => {
   res.send('done!');
 })
 app.get('/generateExcel', async (req,res) =>{
-  const { controller_id, page } = req.body;
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
-  
-  console.log('page');
-  console.log(page);
   // limit as 20
-  var discount = dis[0].discount_trigger * -1;
-  console.log(discount);
 
   // page number
   // calculate offset
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
-  const prodsQuery = `SELECT * FROM scraped_data WHERE controller_id=${controller_id} AND discount < ${discount} ORDER BY category ASC,discount; `
-  
+  const prodsQuery =await pool.query( `SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -30 ORDER BY category ASC,discount; `)
+  const excel = new ExcelCreator();
+  excel.getProductsData(prodsQuery);
+  var created = excel.Save();
+  res.json(created);
 });
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;

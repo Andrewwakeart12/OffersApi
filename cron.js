@@ -114,9 +114,14 @@ async function comprobate(){
   if(updated === true){
     await axios.get('http://67.205.157.187:3700/sendNotification').then(res=>{
       console.log(res.data);
+    }).catch(e=>{s
+        console.log(`error while sending notifications: ${e.message}`);
+    });
+    await axios.get('http://67.205.157.187:3700/generateExcel').then(res=>{
+      console.log(res.data);
     }).catch(e=>{
         console.log(`error while sending notifications: ${e.message}`);
-    })
+    });
   }
   
   }

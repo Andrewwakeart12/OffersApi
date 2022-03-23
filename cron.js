@@ -118,7 +118,16 @@ async function comprobate(){
         console.log(`error while sending notifications: ${e.message}`);
     });
     await axios.get('http://67.205.157.187:3700/generateExcel').then(res=>{
-      console.log(res.data);
+      if(res.data === true){
+        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+          appId: 2194,
+          subID: 'elpastrana1',
+          appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
+          title: 'se ha creado un nuevo excel con la data actual',
+          message: `Presione esta notificacion para ir a la pagina de los excels`,
+          pushData: { goeToProductsPage: false, url: 'http://67.205.157.187/RegistrosExcel/?C=M;O=A' }
+        });
+      }
     }).catch(e=>{
         console.log(`error while sending notifications: ${e.message}`);
     });

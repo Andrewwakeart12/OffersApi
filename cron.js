@@ -117,7 +117,7 @@ async function comprobate(){
     }).catch(e=>{s
         console.log(`error while sending notifications: ${e.message}`);
     });
-    await axios.get('http://67.205.157.187:3700/generateExcel').then(res=>{
+    await axios.get('http://67.205.157.187:3700/generateExcel').then(async res=>{
       if(res.data === true){
         var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,

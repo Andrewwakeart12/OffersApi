@@ -134,6 +134,7 @@ async function comprobate(){
   }
   
   }
+  comprobate();
   const task = cron.schedule('0 0 */3 * * *', async () =>{
       await comprobate();
   });

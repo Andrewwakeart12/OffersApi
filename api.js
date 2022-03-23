@@ -59,7 +59,7 @@ app.get('/sendNotification', async (req, res) => {
       check: true
     };
     const token = await jwt.sign(payload, app.get('key'), {
-      expiresIn: 1440
+      expiresIn: '24h'
     });
 
         var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {

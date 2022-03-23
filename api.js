@@ -332,17 +332,46 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
-app.post('/api/config/getAllOffers', async (req, res) => {
-  const { controller_id } = req.body;
-
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id[0].id]);
-  
+app.post('/api/config/getAllOffers',guard, async (req, res) => {
+  const { controller_id, page } = req.body;
+  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  console.log('page');
+  console.log(page);
   // limit as 20
-  var discount = dis[0].discount_trigger * -1;
+  var discount =  dis[0].discount_trigger * -1;
   console.log(discount);
+  const limit = 10
+  // page number
+  // calculate offset
+  const offset = (page - 1) * limit
 
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  pool.getConnection(function (err, connection) {
+    connection.query(prodsQuery, function (error, results, fields) {
+      // When done with the connection, release it.
+      connection.release();
+      if (error) throw error;
+      // create payload
+      var jsonResult = {
+        'products_page_count': results.length,
+        'page_number': page,
+        'products': results
+      }
+      console.log(jsonResult)
+      // create response
+      if (jsonResult.products.length > 0) {
 
+        var myJsonString = JSON.parse(JSON.stringify(jsonResult));
+        res.statusMessage = "Products for page " + page;
+        res.statusCode = 200;
+        res.json(myJsonString);
+        res.end();
+      } else {
+        res.json({ scrollEnds: true, products: [] })
+        res.end()
+      }
+    })
+  })
 });
 
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {

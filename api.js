@@ -332,7 +332,18 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
-app.post('/api/config/getAllOffers',guard, async (req, res) => {
+app.post('/api/config/getAllOffers', async (req, res) => {
+  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const controller_id = await pool.query('SELECT id FROM scraper_controller ');
+  
+  // limit as 20
+  var discount = dis[0].discount_trigger * -1;
+  console.log(discount);
+
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+
+});
+app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
@@ -373,7 +384,6 @@ app.post('/api/config/getAllOffers',guard, async (req, res) => {
     })
   })
 });
-
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;

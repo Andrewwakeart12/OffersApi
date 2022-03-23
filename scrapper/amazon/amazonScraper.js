@@ -634,7 +634,7 @@ class Scraper {
                                     var clicked = await this.clickNextPagination().then(res =>{
                                         log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
                                         return true;
-                                    }).catch(e => { throw e;});
+                                    }).catch(e => { return false;});
                                     if (clicked === false) {
                                         log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
                                         break;
@@ -683,7 +683,7 @@ class Scraper {
                                 var clicked = await this.clickNextPagination().then(res =>{
                                     log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
                                     return true;
-                                }).catch(e => { throw e;});
+                                }).catch(e => { return false;});
                                 if (clicked === false) {
                                     log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
                                     break;
@@ -799,7 +799,7 @@ class Scraper {
                 if(res === true){
                     resolve(res);
                 }else{
-                    resolve({error:true})
+                    reject({message:'error'})
                 }
             })
     

@@ -333,9 +333,9 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
 app.post('/api/config/getAllOffers', async (req, res) => {
-  const controller_id = await pool.query('SELECT id FROM scraper_controller');
+  const { controller_id } = req.body;
 
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id[0].id]);
   
   // limit as 20
   var discount = dis[0].discount_trigger * -1;

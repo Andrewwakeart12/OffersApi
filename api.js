@@ -356,7 +356,7 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   // calculate offset
   const offset = (page - 1) * limit
 
-  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
   pool.getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.

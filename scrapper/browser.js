@@ -39,6 +39,10 @@ async function getProxy(){
             resetGet++;
             continue;
         }
+        if(e.message === 'connect ECONNREFUSED 165.232.130.146:443'){
+            success = false;
+            break;
+        }
         res = {data:{websites:{amazon:undefined}}};
         console.log('error break')
         break;

@@ -77,5 +77,31 @@ ALTER TABLE scraped_data
 ALTER TABLE scraped_data
     MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE scraped_data
+
+    ADD notifyed BOOLEAN DEFAULT 0
 INSERT INTO users set username ='obe', password = '123456789' , email = 'edgarmarquinaruizobe@gmail.com' , phone = '5841236' ;
 INSERT INTO scraper_controller set controller='amazon',discount_trigger = 30, user_id = 1;
+
+CREATE TABLE scraped_reviewed(
+    id INT(11) NOT NULL,
+    controller_id INT(11),
+    url_id INT(11),
+    FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
+    category TEXT,
+    FOREIGN KEY (controller_id) REFERENCES scraper_controller(id) ON DELETE CASCADE,
+    discount INT(11) NOT NULL,
+    prime BOOLEAN NOT NULL,
+    product TEXT,
+    img_url TEXT,
+    url TEXT,
+    oldPrice VARCHAR(60),
+    newPrice VARCHAR(60),
+    interested_in BOOLEAN DEFAULT 0,
+    excluded BOOLEAN DEFAULT 0    
+);
+ALTER TABLE scraped_reviewed
+    ADD PRIMARY KEY (id) ;
+
+ALTER TABLE scraped_reviewed
+    MODIFY id INT(11) NOT NULL AUTO_INCREMENT;

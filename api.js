@@ -20,7 +20,10 @@ const { reset } = require('nodemon')
 app.use(bodyParser.json())
 app.use(cors());
 app.use(express.json())
-
+const Log = require('./toolkit/colorsLog');
+const log = (color, text) => {
+    console.log(`${color}%s${Log.reset}`, text);
+    };
 // 1
 app.set('key', config.key);
 // 2
@@ -28,7 +31,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // 3
 app.use(bodyParser.json());
 const guard = express.Router();
-app.get('/sendNotification', async (req, res) => {
+app.get('/s ', async (req, res) => {
   var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
@@ -332,6 +335,67 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
+app.get('/sendNotification', async (req,res)=>{
+  var users = await pool.query('SELECT jwtoken,id FROM users');
+  for(let user of users) {
+    
+    var controllerData = await pool.query('SELECT discount_trigger,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    for(let controller of controllerData){
+      
+      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var jwtoken = controller.jwtoken
+      for(let url of urls) {
+      
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_trigger * -1]);
+        log(Log.bg.red + Log.fg.white, `Products in session: ${products.length}`)
+        for (let product of products) {
+          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+            appId: 2194,
+            subID: user.jwtoken,
+            appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
+            title: product.product,
+            message: `descuento:${product.discount}, precio: ${product.newPrice} , categoria: ${url.category}`,
+            pushData: { goeToProductsPage: false, url: product.url }
+          });
+          console.log(response.data);
+
+          await pool.query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
+          
+          log(Log.bg.red + Log.fg.white,`Section ${url.category}`)
+          log(Log.bg.green + Log.fg.white,`Nofiyed about product`)
+          log(Log.fg.green,product.product);
+        }
+        const payload = {
+          user_id: user.id,
+          logged: true,
+          check: true
+        };
+        const token = await jwt.sign(payload, app.get('key'), {
+          expiresIn: '24h'
+        });
+        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+          appId: 2194,
+          subID: user.jwtoken,
+          appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
+          title: 'Ver Mas de esta sección ' + url.category,
+          message: `Presione para ver los productos de la seccion `,
+          pushData: {
+            goeToProductsPage:true, controller_id:
+              controller.id, category: url.category,
+              jwtoken: token
+          }
+        });
+        console.log('Notifications Message: ')
+        console.log(response.data)
+      };
+
+
+
+    }
+  }
+
+  res.send('done')
+})
 app.post('/api/config/getAllOffers', async (req, res) => {
   const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
   const controller_id = await pool.query('SELECT id FROM scraper_controller ');
@@ -440,6 +504,12 @@ https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n
 https://www.amazon.com.mx/s?i=videogames&bbn=9482640011&rh=n%3A9482640011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825276&rnid=23565476011&ref=sr_nr_p_n_deal_type_2 - videojuegos (advertencia : estructura html distinta)
 
 https://www.amazon.com.mx/s?i=toys&bbn=11260442011&rh=n%3A11260442011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825271&rnid=23565476011&ref=sr_nr_p_n_deal_type_2 - juguetes
+esta consulta devuelve la fila que coincide en la tabla scraped_reviewed
+el plan es que una vez obtenida se obtenga la inversa (alterando los parametros cambiando de posicion los nombres y luego comparando los dos arreglos)
+una vez tenga los dos arreglos se comparan usando como referencia los parametros unicos de scraped_reviewed y en base a eso se borra o no el registro existente;
 
+SELECT DISTINCT *
+FROM scraped_reviewed
+WHERE product IN (SELECT product FROM scraped_data);
 */
 //Ape Case AC12459 24 CD DVD BLU-Ray y Caja

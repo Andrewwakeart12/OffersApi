@@ -23,6 +23,7 @@ async function getProxy(){
             success = true;
         }
     }catch(e){
+        console.log('e.message in get proxy part')
         console.log(e.message)
         if(e.message.trim() === 'getaddrinfo EAI_AGAIN api.proxyorbit.com'){
             resetGet++;

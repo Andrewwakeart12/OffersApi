@@ -365,6 +365,7 @@ app.get('/sendNotification', async (req,res)=>{
           log(Log.bg.green + Log.fg.white,`Nofiyed about product`)
           log(Log.fg.green,product.product);
         }
+        /*
         const payload = {
           user_id: user.id,
           logged: true,
@@ -386,7 +387,7 @@ app.get('/sendNotification', async (req,res)=>{
           }
         });
         console.log('Notifications Message: ')
-        console.log(response.data)
+        console.log(response.data)*/
       };
 
 

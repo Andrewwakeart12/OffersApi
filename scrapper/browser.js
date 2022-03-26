@@ -23,13 +23,11 @@ async function getProxy(){
             success = true;
         }
     }catch(e){
-        console.log('e.message in get proxy part')
         console.log(e.message)
         if(e.message.trim() === 'getaddrinfo EAI_AGAIN api.proxyorbit.com'){
             resetGet++;
             continue;
         }
-
 	if(e.message === 'Request failed with status code 502'){
 	 break;
 	}
@@ -37,15 +35,11 @@ async function getProxy(){
         if(res.data === undefined){
             console.log('error')
             resetGet++;
-            continue;
-        }
-        if(e.message === 'connect ECONNREFUSED 165.232.130.146:443'){
-            success = false;
+        }else{
+            res = {data:{websites:{amazon:undefined}}};
+            console.log('error break')
             break;
         }
-        res = {data:{websites:{amazon:undefined}}};
-        console.log('error break')
-        break;
     }
 }
 if(success === false){
@@ -70,24 +64,28 @@ async function startBrowser(){
     try {
        console.log('proxy:');
        console.log(proxy);
-        console.log("Opening the browser......");
-        browser = await puppeteer.launch({
-            pipe: true,
-            headless: true,
-            ignoreHTTPSErrors: true,
-            slowMo: 0,
-            userAgent: randomUA.generate(),
-            args: [
+        var argumentsForBrowser= [
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-infobars',
             '--window-position=0,0',
-             proxy != false && proxy != null ? '--proxy-server=' + proxy : '',
             '--ignore-certifcate-errors',
             '--ignore-certifcate-errors-spki-list'
-        ]
+        ];
+        if(proxy != false && proxy != null){
+            (proxy != false) && '--proxy-server=',
+            argumentsForBrowser.push('--proxy-server=' + proxy)
+        }
+       console.log("Opening the browser......");
+        browser = await puppeteer.launch({
+            pipe: true,
+            headless: true,
+            ignoreHTTPSErrors: true,
+            slowMo: 0,
+            userAgent: randomUA.generate(),
+            args: argumentsForBrowser
         });
     return browser;
 

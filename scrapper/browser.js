@@ -24,7 +24,13 @@ async function getProxy(){
         }
     }catch(e){
         console.log(e.message)
+        if(e.message.trim() === 'connect ECONNREFUSED 165.232.130.146:443'){
+            res = {data:{websites:{amazon:undefined}}};
+            console.log('error break')
+            break;
+        }
         if(e.message.trim() === 'getaddrinfo EAI_AGAIN api.proxyorbit.com'){
+            console.log('error')
             resetGet++;
             continue;
         }

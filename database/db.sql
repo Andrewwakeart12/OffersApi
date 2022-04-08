@@ -105,3 +105,12 @@ ALTER TABLE scraped_reviewed
 
 ALTER TABLE scraped_reviewed
     MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE scraper_controller
+    ADD discount_ends_at INT(11) DEFAULT 100
+
+ALTER TABLE scraper_controller
+    ADD image_light TEXT,
+    ADD image_dark TEXT
+        
+    ALTER TABLE scraper_controller CHANGE COLUMN discount_trigger discount_starts_at

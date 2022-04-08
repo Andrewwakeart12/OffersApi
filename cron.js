@@ -105,7 +105,31 @@ const getArrayAsChunks = (array, chunkSize) => {
         //DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00
         await pool.query(`DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00`);
         await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
-
+        var reviewedProduct =await pool.query(`
+        SELECT DISTINCT *
+        FROM scraped_reviewed
+        WHERE product IN (SELECT product FROM scraped_data);
+        `);
+        var productsInDb =await pool.query(`
+        SELECT DISTINCT * 
+        FROM scraped_data
+        WHERE product IN (SELECT product FROM scraped_reviewed);
+        `);
+        for(let productReviewed of reviewedProduct){
+          for(let productInDb of productsInDb)
+          {
+          if(productReviewed.product === productInDb.product){  
+          if(productReviewed.interested_in)
+          {
+            if(productReviewed.discount === productInDb.discount || productReviewed.discount * -1 > productInDb.discount * -1  ){
+              await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+            }
+          }else if(productReviewed.excluded){
+            await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+          }
+        }
+        }
+        }
 console.log('finished')
   }
 //let results = await search();

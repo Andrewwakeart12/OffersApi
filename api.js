@@ -6,17 +6,12 @@ const path = require('path')
 const app = express()
 const port = 3700
 const pool = require('./database');
-const puppeteer = require('puppeteer');
-const { Expo } = require('expo-server-sdk');
 var pdf = require("pdf-creator-node");
 var fs = require("fs");
 const cors = require('cors');
 const ExcelCreator = require('./ExcelGenerator');
 const axios = require('axios')
-const browserObject = require('./scrapper/browser');
-const scraperController = require('./scrapper/amazon/amazonController');
 var bodyParser = require('body-parser')
-const { reset } = require('nodemon')
 app.use(bodyParser.json())
 app.use(cors());
 app.use(express.json())
@@ -35,14 +30,14 @@ app.get('/s ', async (req, res) => {
   var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await pool.query('SELECT discount_trigger,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
       var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_trigger * -1]);
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_starts_at * -1]);
         console.log('products jwtoken');
         console.log(user.jwtoken);
         for (let product of products) {
@@ -191,24 +186,43 @@ app.get('/generateExcel', async (req,res) =>{
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
-  userExist = await pool.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
+  userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
+
   console.log(userExist)
   if (userExist.length > 0) {
+    if(userExist[0].password != password) {
+      var error = {
+        userErr:false,
+        passwordErr: true,
+      }
+      res.json(error);
+      res.end();
+    }
     var id = userExist[0].id;
+
     const payload = {
       user_id: id,
       logged: true,
       check: true
     };
-    const token = jwt.sign(payload, app.get('key'), {
+
+    const token = await jwt.sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
     res.json({
-      mensaje: 'Autenticación correcta',
-      token: token
+      logged:true,
+      token: token,
+      userErr:false,
+      passwordErr: false,
     });
+    res.end();
   } else {
-    res.json({ mensaje: "Usuario o contraseña incorrectos" })
+      var error = {
+        userErr:true,
+        passwordErr: true,
+      }
+      res.json(error);
+      res.end();
   }
 
 });
@@ -240,7 +254,8 @@ app.get('/api/logout', (req, res) => {
 app.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
   var config = {
-    discount_trigger: parseInt(req.body.discount_trigger) || null,
+    discount_starts_at: parseInt(req.body.discount_starts_at) || null,
+    discount_ends_at:parseInt(req.body.discount_ends_at) || null,
     controllerActive: req.body.controllerActive == true ? 1 : 0,
   };
   console.log(config)
@@ -330,6 +345,7 @@ app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
   console.log(products[0]['COUNT(*)']);
   if (products[0]['COUNT(*)'] > 0) {
+    await pool.query('DELETE FROM scraped_reviewed WHERE url_id =?', [id]);
     await pool.query('DELETE FROM scraped_data WHERE url_id=?', [id]);
   }
   let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
@@ -339,14 +355,14 @@ app.get('/sendNotification', async (req,res)=>{
   var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await pool.query('SELECT discount_trigger,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
       var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_trigger * -1]);
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
         log(Log.bg.red + Log.fg.white, `Products in session: ${products.length}`)
         for (let product of products) {
           var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
@@ -398,30 +414,33 @@ app.get('/sendNotification', async (req,res)=>{
   res.send('done')
 })
 app.post('/api/config/getAllOffers', async (req, res) => {
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   const controller_id = await pool.query('SELECT id FROM scraper_controller ');
   
   // limit as 20
-  var discount = dis[0].discount_trigger * -1;
+  var discount = dis[0].discount_starts_at != null ? dis[0].discount_starts_at * -1 : -1;
+  var discountEnds = dis[0].discount_ends_at * -1
   console.log(discount);
 
-  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
 });
 app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const { controller_id, page } = req.body;
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
-  var discount =  dis[0].discount_trigger * -1;
-  console.log(discount);
+  var discount = dis[0].discount_starts_at != null ? dis[0].discount_starts_at * -1 : -1;
+  var discountEnds = dis[0].discount_ends_at * -1
+
   const limit = 10
   // page number
   // calculate offset
   const offset = (page - 1) * limit
 
-  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+
   pool.getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
@@ -452,19 +471,20 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;
-  const dis = await pool.query('SELECT discount_trigger FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
-  var discount =  dis[0].discount_trigger * -1;
-  console.log(discount);
+  var discount = dis[0].discount_starts_at != null ? dis[0].discount_starts_at * -1 : -1;
+  var discountEnds = dis[0].discount_ends_at * -1
+
   const limit = 10
   // page number
   // calculate offset
   const offset = (page - 1) * limit
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND category="Games" ORDER BY discount ASC  limit 10 OFFSET 10;
-  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount < " + discount + " AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
+  const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
   pool.getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
@@ -492,6 +512,50 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
     })
   })
 });
+app.post('/api/reviewProduct',guard,async (req,res)=>{
+  const {review, product} = req.body;
+  var productF = product;
+  if(review != undefined){
+    productF.excluded = review.excluded;
+    productF.interested_in = review.interested_in;
+    var productInReview = await pool.query('SELECT * FROM scraped_reviewed WHERE product = ?', productF.product);
+    if(productInReview.length > 0){
+      if(productInReview[0].discount != productF.discount)
+      await pool.query('UPDATE scraped_reviewed set ? WHERE id=? ',[productF,productInReview[0].id]);
+      console.log('ya esta en db')
+    } else{
+      await pool.query('INSERT INTO scraped_reviewed SET ? ', [productF]);
+    }
+  }
+
+  var reviewedProduct =await pool.query(`
+  SELECT DISTINCT *
+  FROM scraped_reviewed
+  WHERE product IN (SELECT product FROM scraped_data);
+  `);
+  var productsInDb =await pool.query(`
+  SELECT DISTINCT * 
+  FROM scraped_data
+  WHERE product IN (SELECT product FROM scraped_reviewed);
+  `);
+  for(let productReviewed of reviewedProduct){
+    for(let productInDb of productsInDb)
+    {
+    if(productReviewed.product === productInDb.product){  
+    if(productReviewed.interested_in)
+    {
+      if(productReviewed.discount === productInDb.discount || productReviewed.discount * -1 > productInDb.discount * -1  ){
+        await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+      }
+    }else if(productReviewed.excluded){
+      await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+    }
+  }
+  }
+  }
+  res.send('done!')
+
+})
 
 //curl -H "Content-Type: application/json" -d '{"JWToken":"asdjasd123123","category": "Electronicos y sonido", "controller_id" : 1, "product_url": "https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011&dc&fs=true&qid=1642825118&rnid=23565476011&ref=sr_nr_p_n_deal_type_2"}' http://localhost:3700/config/save/link
 app.listen(port, () => {
@@ -512,5 +576,7 @@ una vez tenga los dos arreglos se comparan usando como referencia los parametros
 SELECT DISTINCT *
 FROM scraped_reviewed
 WHERE product IN (SELECT product FROM scraped_data);
+En esta clase de between el valor mas alto va primero y el mas bajo segundo (normalmente es al reves )
+SELECT * FROM scraped_data WHERE discount BETWEEN  -40 AND -10;
 */
 //Ape Case AC12459 24 CD DVD BLU-Ray y Caja

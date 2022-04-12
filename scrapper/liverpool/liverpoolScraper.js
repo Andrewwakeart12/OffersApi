@@ -34,7 +34,7 @@ class Scraper {
     url;
     browser;
     paginationValue;
-
+    proxy;
     //2.browser related propertys:
     page;
     browserObject;
@@ -107,20 +107,16 @@ class Scraper {
         //2.2 gets the initial values:
             //2.2.1 gets the max number of paginations:
             async getMaxclicks() {
-                log(Log.bg.green + Log.fg.white, 'Getting clicks');
+                log(Log.bg.green + Log.fg.white,'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:5000}).then(res=>{
+                this.maxClicks = await page.waitForSelector('.col-lg-9.m-column_mainContent', {timeout:5000}).then(res=>{
                     return page.evaluate(async () => {
-                        var str = document.querySelector('.a-section.a-spacing-small.a-spacing-top-small').innerText.split(" ")
-                        var resultsPerPage = parseInt(str[0].split('-').pop());
-                        var totalResults = str.map((e) => {
-                            return parseInt(e.replace(',', ''))
-                        }).filter(Boolean).pop()
+                        var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
                         var maxClicks = 0;
-                        if (str[2] != 'más') {
-                            maxClicks = await Math.ceil(totalResults / resultsPerPage);
-                        } else if (str[2] === 'más') {
-                            maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
+                        if(lastItemElement === null){
+                             maxClicks = parseInt(lastItemElement[lastItemElement.length - 3].innerText)
+                        }else{
+                             maxClicks = 1; 
                         }
                         return maxClicks;
                     });
@@ -503,7 +499,7 @@ class Scraper {
                         height: 768 + Math.floor(Math.random() * 100),
                     })
                     
-                    var finalDataObject = await page.waitForSelector('.s-result-item > .sg-col-inner', {timeout:5000}).then(async () => {
+                    var finalDataObject = await page.waitForSelector('.m-product__listingPlp', {timeout:5000}).then(async () => {
                         return page.evaluate(() => {
         
                             self = this;
@@ -515,8 +511,8 @@ class Scraper {
                                 let result = Math.round(difference / oldPrice * 100);
                                 return result;
                             }
-                            let finalDataOutput = [];
-                            var amazonProducts = document.querySelectorAll('.s-result-item > .sg-col-inner')
+                            var finalDataOutput = [];
+                            var amazonProducts = document.querySelectorAll('.m-product__card')
         
                             for (e of amazonProducts) {
                                 var finalDataObject = {
@@ -529,11 +525,11 @@ class Scraper {
                                 };
         
         
-                                finalDataObject.product = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
+                                finalDataObject.product = e.querySelector('.card-title').innerText;
                                 finalDataObject.img_url = e.querySelector('img') ? e.querySelector('img').src : null //img url
-                                finalDataObject.url = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
-                                finalDataObject.newPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
-                                finalDataObject.oldPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
+                                finalDataObject.url = document.querySelector('.m-product__card a').href
+                                finalDataObject.newPrice =  e.querySelector('.a-card-price').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') ;
+                                finalDataObject.oldPrice = e.querySelector('.a-card-discount').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') ;
                                 finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
                                 finalDataObject.prime = e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
         
@@ -541,6 +537,7 @@ class Scraper {
                                     finalDataOutput.push(finalDataObject);
                                 }
                             }
+                            console.log(finalDataOutput)
                             return Promise.all(finalDataOutput).then(
                                 finalDataOutput => {
                                     return finalDataOutput;
@@ -760,11 +757,15 @@ class Scraper {
                 var extractPaginationSucceded = false
                 var extractTrys = 0;
                 while(!extractPaginationSucceded && extractTrys <= 5){
-    
-                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
+    /*
+                            var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
+                            var paginationToClick = paginationGroup[paginationGroup.length - 2];
+                            */ 
+                           var referenceForSelector = this.maxClicks + 3;
+                    await page.waitForSelector('.page-item > a.page-link', { timeout: 5000 }).then(async () => {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             await Promise.all([
-                                page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
+                                page.click(`ul.pagination:nth-child(1) > .page-item:nth-child(${referenceForSelector})`),
                                 , page.waitForNavigation().catch((e) => { throw e })
                             ]);
                             page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
@@ -817,17 +818,22 @@ class Scraper {
                     console.log(this.catcha);
                 }).catch(e => {
                 });
-                
+                /*
+                var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
+                        lastItemElement[lastItemElement.length - 2].click()
+                */ 
                 log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
-                this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
+                this.comprobateActualPage = await page.waitForSelector('.col-lg-9.m-column_mainContent',{timeout:10000}).then(() => {
+                    
                     return page.evaluate(
                         async () => {
-                            if (document.querySelector('.s-pagination-selected') != null) {
+                            var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
+                            if (paginationGroup) {
     
-                                var paginationSelectedValue = await parseInt(document.querySelector('.s-pagination-selected').innerText);
+                                var paginationSelectedValue = await parseInt(document.querySelector('.page-item.active').innerText);
                                 var pagination = {
                                     actualPage: paginationSelectedValue,
-                                    nextPageUrl: document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next') ? document.querySelector('.s-pagination-selected').parentNode.querySelector('.s-pagination-next').href : false
+                                    nextPageUrl: undefined
                                 }
                             } else {
                                 var pagination = {
@@ -855,7 +861,7 @@ class Scraper {
                 if (this.comprobateActualPage.nextPageUrl != false) {
                     this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
                     this.paginationValue = this.comprobateActualPage.actualPage;
-                    this.url = this.comprobateActualPage.nextPageUrl;
+                    this.url = this.url;
                 }
                 log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
 
@@ -907,16 +913,7 @@ class Scraper {
             }
     
         }
-
-        //3.3 unset any promise that its not finished yet 
-        async unsetExtPromises(){
-            for(let prom of this.extractDataLoopPromises){
-                if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
-                    prom.resolver({results:false});
-                }
-            }
-        }
-        //3.4 close the browser and all the remaining process:
+        //3.3 close the browser and all the remaining process:
         async closeBrowser() {
             try {
                 console.log('closing browser...')
@@ -931,13 +928,17 @@ class Scraper {
                 console.log(error);
             }
         }
-        //3.5 destroys the object and the internal data
+        //3.4 destroys the object and the internal data
         destroy(){
             this.url = null;
             this.unsetTime();
             this.resolveTimeOut = null;
             this.reloadTime = null;
         }
+
+    tryToSendUpAProxy(){
+
+    }
 }
 
 

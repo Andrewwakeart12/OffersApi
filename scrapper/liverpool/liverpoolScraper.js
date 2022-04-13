@@ -34,7 +34,9 @@ class Scraper {
     url;
     browser;
     paginationValue;
-    proxy;
+    constructor (page){
+        this.page = page;
+    }
     //2.browser related propertys:
     page;
     browserObject;
@@ -66,29 +68,7 @@ class Scraper {
 
     //1.start object methods : 
         //1.1 creates and return an object method:
-        static async create(url, browser , paginationValue) {
-            const newobject = new Scraper();
-            this.browser =  browser
-            await newobject.initialize(url,browser, paginationValue);
-            return newobject;
-        }
         //1.2 initialize the values for the returned object
-        async initialize(url,browser, paginationValue) {
-            console.log('Start browser in Scrape object')
-            this.url = url;
-            this.paginationValue = paginationValue;
-            this.page =await browser.newPage();
-            await this.page.setRequestInterception(true);
-            this.page.on('request', (req) => {
-                if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                    req.abort();
-                }
-                else {
-                    req.continue();
-                }
-            });
-            this.reloadTime = [];
-        }
     //2.Handle stages:
         //2.1 stage 1 - set the page wait for load method so it cancels the charge of css and js and the page charges faster
         async waitForRequestToFinish(page, requestUrl, timeout) {
@@ -110,11 +90,13 @@ class Scraper {
                 log(Log.bg.green + Log.fg.white,'Getting clicks');
                 var page = await this.page;
                 this.maxClicks = await page.waitForSelector('.col-lg-9.m-column_mainContent', {timeout:5000}).then(res=>{
+                    
                     return page.evaluate(async () => {
-                        var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
+                        var productsLength =document.querySelectorAll('.m-product__listingPlp > .m-product__card').length;
                         var maxClicks = 0;
-                        if(lastItemElement === null){
-                             maxClicks = parseInt(lastItemElement[lastItemElement.length - 3].innerText)
+
+                        if(productsLength > 56){
+                            maxClicks = Math.round(parseInt(document.querySelector('.a-plp-results-title > span').innerText) / document.querySelectorAll('.m-product__listingPlp > .m-product__card').length)
                         }else{
                              maxClicks = 1; 
                         }
@@ -125,18 +107,18 @@ class Scraper {
                     log(Log.fg.red, e.message);
                     var uniqueErrorNameForImage = `_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    log(Log.bg.green + Log.fg.white,`Liverpool_capture saved with the name ${uniqueErrorNameForImage}`);
                     await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                        console.log('catcha ! a')
+                        console.log('Liverpool: catcha ! a')
                         this.catcha = true;
                         console.log(this.catcha);
-    
+            
                     }).catch(e => {
                         this.catcha = false;
                     });
                     return false;
                 });
-
+            
                 if(this.maxClicks != false){
                     return true;
                 }else{
@@ -144,7 +126,8 @@ class Scraper {
                 }
             }
         //2.3 start scraping:
-        async scraper() {
+        async scraper(initialUrl) {
+                this.url = initialUrl;
                 var success = false;
                 var retry = 0;
                 var restartFunction;
@@ -160,7 +143,7 @@ class Scraper {
                         await page.setDefaultTimeout(0);
         
                         if (page === undefined) {
-                            await this.resetBrowser();
+                            
                             retry++;
                         }
         
@@ -195,7 +178,7 @@ class Scraper {
                             }else{
                                 var uniqueErrorNameForImage = `_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
                                 page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                                log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                                log(Log.bg.green + Log.fg.white,`Liverpool_capture saved with the name ${uniqueErrorNameForImage}`);
                                
                                 navigationFails++;
                             }
@@ -236,7 +219,7 @@ class Scraper {
                                 page.waitForNavigation( { timeout: 8000 } )]
                             )
                         }).catch(e => {
-                            // console.log('e from error-code')
+                            // console.log('Liverpool: e from error-code')
                             // console.log(e)
                         });
 
@@ -269,18 +252,15 @@ class Scraper {
                         if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
                             throw new DERR('pagination load fails');
                         }
-                        console.log('pagination value'.green)
+                        console.log('Liverpool: pagination value'.green)
                         console.log(`${this.paginationValue}`.green);
-                        console.log('maxClicks: '.green)
+                        console.log('Liverpool: maxClicks: '.green)
                         console.log(`${this.maxClicks}`.green)
         
         
         
                             var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
-                                await Promise.all([
-                                    this.closeBrowser(),
-                                ]);
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
                                 success = true;
@@ -292,10 +272,10 @@ class Scraper {
 
                     } catch (e) {
 
-                        console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
-                        console.log('Message : '.red);
+                        console.log('Liverpool: ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
+                        console.log('Liverpool: Message : '.red);
                         console.log(e.message != undefined ? e.message.red : e.red);
-                        console.log('-----------------');
+                        console.log('Liverpool: -----------------');
                         if (e.message != undefined) {
                             if(e.message === '!catcha'){
                                 
@@ -303,12 +283,12 @@ class Scraper {
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted withoud reset'.green);
+                                    console.log('Liverpool: restarted withoud reset'.green);
                                     continue;
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -318,41 +298,41 @@ class Scraper {
                              if (this.catcha === true) {
                                 if (restartFunction) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 } 
                             }
                             if(e.message === 'pagination load fails'){
                                 log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
                                 this.result.resetState = true;
-                                await this.resetBrowser();
+                                
                                 retry++;
                             }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);
                                 this.result.resetState = true;
-                                await this.resetBrowser();
+                                
                                 retry++;
                             }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -361,18 +341,18 @@ class Scraper {
         
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             } else if (e.message.split(' ')[0] === 'Cannot') {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 }
         
@@ -385,12 +365,12 @@ class Scraper {
                             } else {
                                 if (restartFunction < 10) {
                                     restartFunction++;
-                                    console.log('restarted');
+                                    console.log('Liverpool: restarted');
                                     continue;
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -457,7 +437,7 @@ class Scraper {
                                 throw new DERR('Timeout Exceeded');
                             }
     
-                            console.log('Time out')
+                            console.log('Liverpool: Time out')
                             resolve('solved with reload ' + indexForResolveTimeout)
                         } catch (error) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut() - '+ calledFrom +': error in settimeout: ')
@@ -477,7 +457,7 @@ class Scraper {
         //2.5 get data from page
         async getData() {
             var prom = new Promise(async (resolve,reject)=>{
-    
+        
                 var success = false;
                 var retry = 0;
                 var err = '';
@@ -542,7 +522,7 @@ class Scraper {
                                 finalDataOutput => {
                                     return finalDataOutput;
                                 }).catch(e => {
-                                    console.log('Error in Promise inside scraper');
+                                    console.log('Liverpool: Error in Promise inside scraper');
                                     console.log(e);
                                 });
         
@@ -595,7 +575,7 @@ class Scraper {
                         log(Log.fg.white + Log.bg.green,'bucle start')
                         var tempArr = [];
                         await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                                console.log('catcha ! a')
+                                console.log('Liverpool: catcha ! a')
                                 this.catcha = true;
                                 console.log(this.catcha);
             
@@ -606,13 +586,13 @@ class Scraper {
                             throw new Catcha({ catcha: true });
                         }
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-                            console.log('bucle 1 step before comprobations')
+                            console.log('Liverpool: bucle 1 step before comprobations')
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
-                                log(Log.bg.green,'bucle temparr not empty')
+                                log(Log.bg.green,'Liverpool_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
                                 
                                 if (lastArr[0] != tempArr[0]) {
@@ -650,19 +630,19 @@ class Scraper {
                                     }
                                     
             
-
+            
                                 }
             
             
                             } else if(tempArr != false){
-                                console.log('bucle tempar empty')
+                                console.log('Liverpool: bucle tempar empty')
             
             
                                 lastArr = tempArr;
             
                                 this.result.results = await this.result.results.concat(await tempArr);
             
-                                console.log('before comprobate actual pge error')
+                                console.log('Liverpool: before comprobate actual pge error')
             
                                 if (this.maxClicks === 1) {
                                     break;
@@ -702,7 +682,7 @@ class Scraper {
             
             
                         } else {
-                            console.log('break final assign')
+                            console.log('Liverpool: break final assign')
                             var finalArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
                             if(finalArr != false){
                                 this.result.results = await this.result.results.concat(finalArr);
@@ -712,7 +692,7 @@ class Scraper {
             
                             await this.comprobateActualPageF();
                         }
-                        log(Log.bg.green,'Data extracted:');
+                        log(Log.bg.green,'Liverpool_:Data extracted:');
                         log(Log.fg.green, this.result);
                         resolve({results:this.result.results})
                 } catch (error) {
@@ -720,20 +700,21 @@ class Scraper {
                 }
               
                })
-
+            
                return extData;
               
             }
+            a
         //2.6 desactive timeouts:
         async unsetTime() {
             this.resetDueToNotChargedPage = false;
             if (this.resolveTimeOut.length > 0) {
-                console.log('this.resolveTimeOut');
+                console.log('Liverpool: this.resolveTimeOut');
                 for (let promise of this.reloadTime) {
                     console.log(promise)
                     var resolveTime = this.resolveTimeOut[promise.indexArr]
                     resolveTime.resolvePromise('resolved');
-                    console.log('promise after unsetTime')
+                    console.log('Liverpool: promise after unsetTime')
                     console.log(promise)
                     this.reloadTime.splice(resolveTime.indexArr);
                     this.resolveTimeOut.splice(resolveTime.indexArr);
@@ -746,7 +727,7 @@ class Scraper {
             console.log(this.reloadTime);
     
             this.timeOuts = 0;
-            console.log('Timeouts destroyed')
+            console.log('Liverpool: Timeouts destroyed')
     
         }
         //2.7 click to next pagination:
@@ -757,7 +738,7 @@ class Scraper {
                 var extractPaginationSucceded = false
                 var extractTrys = 0;
                 while(!extractPaginationSucceded && extractTrys <= 5){
-    /*
+        /*
                             var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
                             var paginationToClick = paginationGroup[paginationGroup.length - 2];
                             */ 
@@ -769,7 +750,7 @@ class Scraper {
                                 , page.waitForNavigation().catch((e) => { throw e })
                             ]);
                             page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
-                                console.log('catcha ! a')
+                                console.log('Liverpool: catcha ! a')
                                 this.catcha = true;
                                 console.log(this.catcha);
             
@@ -780,7 +761,7 @@ class Scraper {
                             log(Log.fg.white + Log.bg.green,'_Scraper.clickNextPagination() - success in clickNextPagination');
                             this.delay(Math.ceil(Math.random() * 10) * 1000);
                             this.clickedTimes++;
-                            console.log('clicked!')
+                            console.log('Liverpool: clicked!')
                         } else {
                             res = false;
                         }
@@ -791,7 +772,7 @@ class Scraper {
                         console.log(Log.fg.red,e.message);
                         var uniqueErrorNameForImage = `_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                         page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                        log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                        log(Log.bg.green + Log.fg.white,`Liverpool_capture saved with the name ${uniqueErrorNameForImage}`);
                        
                         extractTrys++;
             
@@ -803,69 +784,69 @@ class Scraper {
                     reject({message:'error'})
                 }
             })
-    
-    
-    
+        
+        
+        
         }
         //2.8 verify actual pagination:
         async comprobateActualPageF() {
             
     
-                var page = await this.page;
-                await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
-                    console.log('catcha ! asa')
-                    this.catcha = true;
-                    console.log(this.catcha);
-                }).catch(e => {
-                });
-                /*
-                var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
-                        lastItemElement[lastItemElement.length - 2].click()
-                */ 
-                log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
-                this.comprobateActualPage = await page.waitForSelector('.col-lg-9.m-column_mainContent',{timeout:10000}).then(() => {
-                    
-                    return page.evaluate(
-                        async () => {
-                            var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
-                            if (paginationGroup) {
-    
-                                var paginationSelectedValue = await parseInt(document.querySelector('.page-item.active').innerText);
-                                var pagination = {
-                                    actualPage: paginationSelectedValue,
-                                    nextPageUrl: undefined
-                                }
-                            } else {
-                                var pagination = {
-                                    actualPage: 0,
-                                    nextPageUrl: false
-                                }
-    
+            var page = await this.page;
+            await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                console.log('Liverpool: catcha ! asa')
+                this.catcha = true;
+                console.log(this.catcha);
+            }).catch(e => {
+            });
+            /*
+            var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
+                    lastItemElement[lastItemElement.length - 2].click()
+            */ 
+            log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
+            this.comprobateActualPage = await page.waitForSelector('.col-lg-9.m-column_mainContent',{timeout:10000}).then(() => {
+                
+                return page.evaluate(
+                    async () => {
+                        var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
+                        if (paginationGroup) {
+        
+                            var paginationSelectedValue = await parseInt(document.querySelector('.page-item.active').innerText);
+                            var pagination = {
+                                actualPage: paginationSelectedValue,
+                                nextPageUrl: undefined
                             }
-    
-                            return pagination;
-                        })
-    
-                }).catch(e=>{
-                    log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
-                    log(Log.fg.red,e.message)
-                    var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
-                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
-                    var pagination = {
-                        actualPage: 0,
-                        nextPageUrl: false
-                    }
-                    return pagination;
-                });
-                if (this.comprobateActualPage.nextPageUrl != false) {
-                    this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
-                    this.paginationValue = this.comprobateActualPage.actualPage;
-                    this.url = this.url;
+                        } else {
+                            var pagination = {
+                                actualPage: 0,
+                                nextPageUrl: false
+                            }
+        
+                        }
+        
+                        return pagination;
+                    })
+        
+            }).catch(e=>{
+                log(Log.bg.red + Log.fg.white , 'Liverpool_Scraper.comprobateActualPageF() - Error: ')
+                log(Log.fg.red,e.message)
+                var uniqueErrorNameForImage = `_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
+                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
+                log(Log.bg.green + Log.fg.white,`Liverpool_capture saved with the name ${uniqueErrorNameForImage}`);
+                var pagination = {
+                    actualPage: 0,
+                    nextPageUrl: false
                 }
-                log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
-
-
+                return pagination;
+            });
+            if (this.comprobateActualPage.nextPageUrl != false) {
+                this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
+                this.paginationValue = this.comprobateActualPage.actualPage;
+                this.url = this.url;
+            }
+            log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
+        
+        
         }
         //2.9 if all the data its extracted returns this.result and apply the destroy() method
         //2.10 if theres an error apply the browserReset() method
@@ -878,67 +859,38 @@ class Scraper {
             });
         }
         //3.2 restart browser if something fails and its needed
-        async resetBrowser() {
-            try {
-                if (this.resetBrowsersInstanceError <= 15) {
-                    console.log('reset beggi')
-                    await Promise.all([
-                    this.closeBrowser()
-                ]);
 
-                    if (this.comprobateActualPage.nextPageUrl != false && this.comprobateActualPage.nextPageUrl != undefined) {
-                        this.url = this.comprobateActualPage.nextPageUrl;
-                    }
-    
-    
-                    this.browser = await browserObject.startBrowser();
-                    this.page = (await this.browser.pages())[0];
-  /*                  await this.page.setRequestInterception(true);
-                    this.page.on('request', (req) => {
-                        if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                            req.abort();
-                        }
-                        else {
-                            req.continue();
-                        }
-                    });*/
 
-                    this.resetBrowsersInstanceError++;
-                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
-
+        //3.3 unset any promise that its not finished yet 
+        async unsetExtPromises(){
+            for(let prom of this.extractDataLoopPromises){
+                if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
+                    prom.resolver({results:false});
                 }
-            } catch (error) {
-                log(Log.fg.white + Log.bg.red,"_Scraper.resetBrowser: error message from reset browser: ");
-                log(Log.fg.red,error.message);
             }
-    
         }
-        //3.3 close the browser and all the remaining process:
+        //3.4 close the browser and all the remaining process:
         async closeBrowser() {
             try {
-                console.log('closing browser...')
+                console.log('Liverpool: closing browser...')
                 var b = await this.browser;
                 await Promise.all([
                 b.close().catch(e => {
-                    console.log('e from callback');
+                    console.log('Liverpool: e from callback');
                     console.log(e);
                 })]);
             } catch (error) {
-                console.log('error from close Browser function');
+                console.log('Liverpool: error from close Browser function');
                 console.log(error);
             }
         }
-        //3.4 destroys the object and the internal data
+        //3.5 destroys the object and the internal data
         destroy(){
             this.url = null;
             this.unsetTime();
             this.resolveTimeOut = null;
             this.reloadTime = null;
         }
-
-    tryToSendUpAProxy(){
-
-    }
 }
 
 

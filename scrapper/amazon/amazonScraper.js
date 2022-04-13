@@ -34,7 +34,9 @@ class Scraper {
     url;
     browser;
     paginationValue;
-
+    constructor (page){
+        this.page = page;
+    }
     //2.browser related propertys:
     page;
     browserObject;
@@ -66,29 +68,7 @@ class Scraper {
 
     //1.start object methods : 
         //1.1 creates and return an object method:
-        static async create(url, browser , paginationValue) {
-            const newobject = new Scraper();
-            this.browser =  browser
-            await newobject.initialize(url,browser, paginationValue);
-            return newobject;
-        }
         //1.2 initialize the values for the returned object
-        async initialize(url,browser, paginationValue) {
-            console.log('Start browser in Scrape object')
-            this.url = url;
-            this.paginationValue = paginationValue;
-            this.page =await browser.newPage();
-            await this.page.setRequestInterception(true);
-            this.page.on('request', (req) => {
-                if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                    req.abort();
-                }
-                else {
-                    req.continue();
-                }
-            });
-            this.reloadTime = [];
-        }
     //2.Handle stages:
         //2.1 stage 1 - set the page wait for load method so it cancels the charge of css and js and the page charges faster
         async waitForRequestToFinish(page, requestUrl, timeout) {
@@ -122,7 +102,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks;
+                        return 2;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -148,7 +128,8 @@ class Scraper {
                 }
             }
         //2.3 start scraping:
-        async scraper() {
+        async scraper(initialUrl) {
+                this.url = initialUrl;
                 var success = false;
                 var retry = 0;
                 var restartFunction;
@@ -164,7 +145,7 @@ class Scraper {
                         await page.setDefaultTimeout(0);
         
                         if (page === undefined) {
-                            await this.resetBrowser();
+                            
                             retry++;
                         }
         
@@ -282,9 +263,6 @@ class Scraper {
         
                             var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
-                                await Promise.all([
-                                    this.closeBrowser(),
-                                ]);
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
                                 success = true;
@@ -312,7 +290,7 @@ class Scraper {
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -329,13 +307,13 @@ class Scraper {
                             if(e.message === 'pagination load fails'){
                                 log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
                                 this.result.resetState = true;
-                                await this.resetBrowser();
+                                
                                 retry++;
                             }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);
                                 this.result.resetState = true;
-                                await this.resetBrowser();
+                                
                                 retry++;
                             }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
                                 if (restartFunction < 10) {
@@ -345,7 +323,7 @@ class Scraper {
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
@@ -356,7 +334,7 @@ class Scraper {
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -370,7 +348,7 @@ class Scraper {
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             } else if (e.message.split(' ')[0] === 'Cannot') {
@@ -394,7 +372,7 @@ class Scraper {
                                 } else {
                                     this.unsetTime()
                                     this.result.resetState = true;
-                                    await this.resetBrowser();
+                                    
                                     retry++;
                                 }
                             }
@@ -615,7 +593,7 @@ class Scraper {
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
             
                             if (lastArr.length > 0 && tempArr != false) {
-                                log(Log.bg.green,'bucle temparr not empty')
+                                log(Log.bg.green,'Amazon_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
                                 
                                 if (lastArr[0] != tempArr[0]) {
@@ -715,7 +693,7 @@ class Scraper {
             
                             await this.comprobateActualPageF();
                         }
-                        log(Log.bg.green,'Data extracted:');
+                        log(Log.bg.green,'Amazon_:Data extracted:');
                         log(Log.fg.green, this.result);
                         resolve({results:this.result.results})
                 } catch (error) {
@@ -872,41 +850,7 @@ class Scraper {
             });
         }
         //3.2 restart browser if something fails and its needed
-        async resetBrowser() {
-            try {
-                if (this.resetBrowsersInstanceError <= 15) {
-                    console.log('reset beggi')
-                    await Promise.all([
-                    this.closeBrowser()
-                ]);
 
-                    if (this.comprobateActualPage.nextPageUrl != false && this.comprobateActualPage.nextPageUrl != undefined) {
-                        this.url = this.comprobateActualPage.nextPageUrl;
-                    }
-    
-    
-                    this.browser = await browserObject.startBrowser();
-                    this.page = (await this.browser.pages())[0];
-  /*                  await this.page.setRequestInterception(true);
-                    this.page.on('request', (req) => {
-                        if (req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'  ) {
-                            req.abort();
-                        }
-                        else {
-                            req.continue();
-                        }
-                    });*/
-
-                    this.resetBrowsersInstanceError++;
-                    log(Log.fg.white + Log.bg.red,"browser restarted : " + this.resetBrowsersInstanceError)
-
-                }
-            } catch (error) {
-                log(Log.fg.white + Log.bg.red,"_Scraper.resetBrowser: error message from reset browser: ");
-                log(Log.fg.red,error.message);
-            }
-    
-        }
 
         //3.3 unset any promise that its not finished yet 
         async unsetExtPromises(){

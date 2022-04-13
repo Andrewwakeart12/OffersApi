@@ -65,7 +65,7 @@ return false;
 
 }
 async function startBrowser(){
- var proxy  = await getProxy();
+ var proxy  = false;
 	console.log(proxy)
     try {
        console.log('proxy:');

@@ -1,12 +1,11 @@
 const browserObject = require('./scrapper/browser');
-
 preventInfiniteLoop = 0;
 preventInfiniteLoop2 = 0;
 restarted = false;
 var count = 0;
 var resultVal = {};
-
-async function scrapeAll(url){
+const CronDataExtractor = require('./FirstAproachToClassExtractor');
+async function scrapeAll(urlsArr){
     var pool =await import('./database.js');
     pool = pool.default
     try{
@@ -20,8 +19,8 @@ async function scrapeAll(url){
             var imp =  `./scrapper/${controller.controller}/` + controller.controller + protocolName + '.js';
             var GeneralScraperItem = await import(imp)
             var { Scraper} = GeneralScraperItem;
-            var Scrape = await Scraper.create(url,browser);    
-            ScraperArray.push({name: controller.controller, ScraperObj : Scrape, results: []});    
+            var Scrape = await Scraper.create(browser);    
+            ScraperArray.push({name: controller.controller, ScraperObj : Scrape, urls : urlsArr[controller.controller] });    
      /*       if(result.results != false && result.results != undefined){
                 Scrape.destroy()
                 Scrape = null;
@@ -33,10 +32,16 @@ async function scrapeAll(url){
 
     }
     catch(err){
-        console.log("Could not resolve the browser instance (controller : A )=> ", err);
+        console.log("Erro While extracting error => ", err);
         console.log("error Message : ", err.message);
         "Could not resolve the browser instance => \n" + err
     }
 }
-scrapeAll('a')
-module.exports = (url) => scrapeAll(url)
+async function proob() {
+    var cron = new CronDataExtractor();
+    var links = await cron.getLinks();
+    scrapeAll(links);
+
+}
+  proob();
+module.exports = (url) => scrapeAll(urlsArr)

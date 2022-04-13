@@ -25,37 +25,8 @@ const getArrayAsChunks = (array, chunkSize) => {
     return new Promise(async(resolve,reject)=>{
       try{
     var result = [];
-     
 
-        var users = await pool.query('SELECT id FROM users');
-        for(let user of users){
-          var controllers = await pool.query('SELECT id FROM scraper_controller WHERE user_id=? && controllerActive=1',[user.id])
-          for(let controller of controllers){
-          var urls = await pool.query('SELECT * FROM scraper_urls WHERE controller_id= ?' ,[controller.id]);
-            
-          for(let url of urls){
-     
-              let scrappedArr = await scraperController(url.product_url);
-              console.log('_CRON_LOG - SCRAPPER ARR : ');
-              console.log(scrappedArr);
-              if(scrappedArr === undefined && scrappedArr === false){
-                console.log({
-                  error: 'data its not extracted in category : ' + url.category
-                })
-              }
-                let obj = {}
-                if(scrappedArr !=  undefined){
-                  obj =  {dataArr : scrappedArr, category: url.category, controller_id : url.controller_id, url_id: url.id}
-    
-                  result.push(obj);
-                }else{
-                  obj= false;
-                  result.push(obj);
-                }
-            }
-            updateProductsInDD(result);
-          }
-        };
+
         resolve(true);      
       }catch(e){
         console.log("Error cron : ");

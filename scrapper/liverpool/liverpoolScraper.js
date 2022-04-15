@@ -34,8 +34,9 @@ class Scraper {
     url;
     browser;
     paginationValue;
-    constructor (page){
+    constructor (page,Proxy){
         this.page = page;
+        this.Proxy = Proxy;
     }
     //2.browser related propertys:
     page;
@@ -87,16 +88,23 @@ class Scraper {
         //2.2 gets the initial values:
             //2.2.1 gets the max number of paginations:
             async getMaxclicks() {
+                try {
+                    
                 log(Log.bg.green + Log.fg.white,'Getting clicks');
                 var page = await this.page;
-                this.maxClicks = await page.waitForSelector('.col-lg-9.m-column_mainContent', {timeout:5000}).then(res=>{
-                    
+
+                var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_saved${(new Date()).getTime()}.jpg`;
+                page.screenshot({path:`/opt/lampp/htdocs/screenshots/${uniqueErrorNameForImage}`}).catch(e=>{});
+                log(Log.bg.green + Log.fg.white,`Liverpool_capture saved with the name ${uniqueErrorNameForImage}`);
+               
+                this.maxClicks = await page.waitForSelector('.col-lg-9.m-column_mainContent', {timeout:10000}).then(res=>{
+
                     return page.evaluate(async () => {
-                        var productsLength =document.querySelectorAll('.m-product__listingPlp > .m-product__card').length;
+                        var productsLength =document.querySelectorAll('.m-product__card').length;
                         var maxClicks = 0;
 
-                        if(productsLength > 56){
-                            maxClicks = Math.round(parseInt(document.querySelector('.a-plp-results-title > span').innerText) / document.querySelectorAll('.m-product__listingPlp > .m-product__card').length)
+                        if(productsLength >= 56){
+                            maxClicks = Math.ceil(parseInt(document.querySelector('.a-plp-results-title > span').innerText) / document.querySelectorAll('.m-product__listingPlp > .m-product__card').length)
                         }else{
                              maxClicks = 1; 
                         }
@@ -123,6 +131,9 @@ class Scraper {
                     return true;
                 }else{
                     return false;
+                }
+                } catch (error) {
+                    console.log(error);
                 }
             }
         //2.3 start scraping:
@@ -153,7 +164,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 8000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 20000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -196,7 +207,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]
+                                page.waitForNavigation( { timeout: 20000 } )]
                             )
                         });
         
@@ -216,7 +227,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]
+                                page.waitForNavigation( { timeout: 20000 } )]
                             )
                         }).catch(e => {
                             // console.log('Liverpool: e from error-code')
@@ -237,7 +248,7 @@ class Scraper {
                                     throw new DERR('!catcha')
                                 }
                                 await Promise.all([page.reload(),
-                                        page.waitForNavigation( { timeout: 8000 } )]);
+                                        page.waitForNavigation( { timeout: 20000 } )]);
                                     this.maxClicks = null;
                                     getPagintaionFails++;
                                 }else{
@@ -360,7 +371,7 @@ class Scraper {
                             }
                             else if (restartFunction < 20) {
                                 await Promise.all([page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]);
+                                page.waitForNavigation( { timeout: 20000 } )]);
                                 continue;
                             } else {
                                 if (restartFunction < 10) {
@@ -704,7 +715,6 @@ class Scraper {
                return extData;
               
             }
-            a
         //2.6 desactive timeouts:
         async unsetTime() {
             this.resetDueToNotChargedPage = false;
@@ -743,7 +753,7 @@ class Scraper {
                             var paginationToClick = paginationGroup[paginationGroup.length - 2];
                             */ 
                            var referenceForSelector = this.maxClicks + 3;
-                    await page.waitForSelector('.page-item > a.page-link', { timeout: 5000 }).then(async () => {
+                    await page.waitForSelector('.page-item > a.page-link', { timeout: 16000 }).then(async () => {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             await Promise.all([
                                 page.click(`ul.pagination:nth-child(1) > .page-item:nth-child(${referenceForSelector})`),
@@ -858,33 +868,7 @@ class Scraper {
                 setTimeout(resolve, time)
             });
         }
-        //3.2 restart browser if something fails and its needed
-
-
-        //3.3 unset any promise that its not finished yet 
-        async unsetExtPromises(){
-            for(let prom of this.extractDataLoopPromises){
-                if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
-                    prom.resolver({results:false});
-                }
-            }
-        }
-        //3.4 close the browser and all the remaining process:
-        async closeBrowser() {
-            try {
-                console.log('Liverpool: closing browser...')
-                var b = await this.browser;
-                await Promise.all([
-                b.close().catch(e => {
-                    console.log('Liverpool: e from callback');
-                    console.log(e);
-                })]);
-            } catch (error) {
-                console.log('Liverpool: error from close Browser function');
-                console.log(error);
-            }
-        }
-        //3.5 destroys the object and the internal data
+        //3.1 destroys the object and the internal data
         destroy(){
             this.url = null;
             this.unsetTime();

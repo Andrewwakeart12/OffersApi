@@ -1,3 +1,4 @@
+//https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
 const e = require("express");
 const res = require("express/lib/response");
 const { restart } = require("nodemon");
@@ -34,9 +35,11 @@ class Scraper {
     url;
     browser;
     paginationValue;
-    constructor (page){
+    constructor (page,Proxy){
         this.page = page;
+        this.Proxy = Proxy;
     }
+    Proxy;
     //2.browser related propertys:
     page;
     browserObject;
@@ -102,7 +105,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return 2;
+                        return maxClicks >= 100 ? 100 : maxClicks  ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -137,6 +140,7 @@ class Scraper {
                     try {
 
                         var page = this.page;
+                        
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         
@@ -155,7 +159,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 8000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 165000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -198,7 +202,7 @@ class Scraper {
         
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]
+                                page.waitForNavigation( { timeout: 16000 } )]
                             )
                         });
         
@@ -218,7 +222,7 @@ class Scraper {
                             log(Log.fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]
+                                page.waitForNavigation( { timeout: 16000 } )]
                             )
                         }).catch(e => {
                             // console.log('e from error-code')
@@ -239,7 +243,7 @@ class Scraper {
                                     throw new DERR('!catcha')
                                 }
                                 await Promise.all([page.reload(),
-                                        page.waitForNavigation( { timeout: 8000 } )]);
+                                        page.waitForNavigation( { timeout: 16000 } )]);
                                     this.maxClicks = null;
                                     getPagintaionFails++;
                                 }else{
@@ -362,7 +366,7 @@ class Scraper {
                             }
                             else if (restartFunction < 20) {
                                 await Promise.all([page.reload(),
-                                page.waitForNavigation( { timeout: 8000 } )]);
+                                page.waitForNavigation( { timeout: 16000 } )]);
                                 continue;
                             } else {
                                 if (restartFunction < 10) {
@@ -739,7 +743,7 @@ class Scraper {
                 var extractTrys = 0;
                 while(!extractPaginationSucceded && extractTrys <= 5){
     
-                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 5000 }).then(async () => {
+                    await page.waitForSelector('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator', { timeout: 10000 }).then(async () => {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             await Promise.all([
                                 page.click('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator'),
@@ -848,32 +852,6 @@ class Scraper {
             return new Promise(function (resolve) {
                 setTimeout(resolve, time)
             });
-        }
-        //3.2 restart browser if something fails and its needed
-
-
-        //3.3 unset any promise that its not finished yet 
-        async unsetExtPromises(){
-            for(let prom of this.extractDataLoopPromises){
-                if(prom.promise.isFulfilled() != true && prom.promise.isRejected() != true){
-                    prom.resolver({results:false});
-                }
-            }
-        }
-        //3.4 close the browser and all the remaining process:
-        async closeBrowser() {
-            try {
-                console.log('closing browser...')
-                var b = await this.browser;
-                await Promise.all([
-                b.close().catch(e => {
-                    console.log('e from callback');
-                    console.log(e);
-                })]);
-            } catch (error) {
-                console.log('error from close Browser function');
-                console.log(error);
-            }
         }
         //3.5 destroys the object and the internal data
         destroy(){

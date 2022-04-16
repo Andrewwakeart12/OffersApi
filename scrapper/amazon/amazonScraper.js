@@ -1,12 +1,15 @@
 //https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
 const e = require("express");
-const res = require("express/lib/response");
-const { restart } = require("nodemon");
-const browserObject = require('../browser');
+
 var colors = require('colors');
+
+const {proxyRequest} = require('puppeteer-proxy')
+
 colors.enable();
+
 const Log = require('../../toolkit/colorsLog');
 const log = (color, text) => {
+
     console.log(`${color}%s${Log.reset}`, text);
     };
 class Catcha {
@@ -140,6 +143,17 @@ class Scraper {
                     try {
 
                         var page = this.page;
+
+                        console.log('this.Proxy.getRandomProxy() in scraper');
+                        var finalProxy = await this.Proxy.getRandomProxy();
+                        console.log(finalProxy.proxy);
+                        page.on('request', async (request) => {
+                            await proxyRequest({
+                              page,
+                              proxyUrl:finalProxy.proxy,
+                              request,
+                            });
+                          });
                         
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);

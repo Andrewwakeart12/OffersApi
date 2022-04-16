@@ -49,7 +49,9 @@ class CronDataExtractor {
     };
     const withPage = (browser) => async (fn) => {
       const page = await browser.newPage();
+ 
       try {
+        await page.setRequestInterception(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(0);
         return await fn(page);
@@ -65,6 +67,7 @@ class CronDataExtractor {
   
       const results = await withBrowser(async (browser) => {
         const Proxy = new ProxyManager();
+        await Proxy.init();
         return bluebird.map(controllers,async (controller)=>{
          var localUrls =urls[controller.controller]
                 return bluebird.map(localUrls, async (url) => {

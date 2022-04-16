@@ -7,11 +7,11 @@ class ProxyManager{
 static counter = 0;
     proxysArr = [];
     //returns new proxy (request proxy to proxyOrbit);
-constructor(){
-    for(let i = 0; i <= 10 ; i++){
-        this.fakeSetNewProxy();
+     async init(){
+        for(let i = 0; i <= 2 ; i++){
+           await this.setNewProxy();
+        }
     }
-}    
     async getProxy(){
             console.log('getting new proxy...');
             var resetGet = 0
@@ -20,7 +20,12 @@ constructor(){
             try{
                 var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
                 if(res.data != undefined){
+                    console.log(res.data);
+                    const {ip,port,protocol} = res.data;
+                    var finalAddr = `${protocol}://${ip}:${port}`; 
                     success = true;
+                    return finalAddr;
+
                 }
             }catch(e){
                 console.log(e.message)
@@ -66,7 +71,7 @@ constructor(){
     async setNewProxy(){
             var temporal_proxy = await this.getProxy();
             if(temporal_proxy != false){
-                this.proxysArr.push({proxy:temporal_proxy, in_use: false, id: this.counter++});
+                this.proxysArr.push({proxy:temporal_proxy, in_use: false, id: ProxyManager.counter++});
             }
         }
     //getRandom proxy from the local array if all proxys are in use gets a new proxy
@@ -97,7 +102,7 @@ constructor(){
         this.proxysArr[selectedId].in_use = true;
         return proxySelected;
         }else{
-            this.fakeSetNewProxy();
+            this.setNewProxy();
             return this.getRandomProxy();
        
 
@@ -129,7 +134,7 @@ constructor(){
         if(newProxy != false){
             return newProxy;
         }else{
-            await this.fakeSetNewProxy();
+            await this.setNewProxy();
             return await this.getRandomProxy();
         }
     }
@@ -158,9 +163,10 @@ async function test(){
     console.log(tProxy);
 
 }*/
+/*
 const proxy = new ProxyManager();
 
-const task = cron.schedule('*/5 * * * * *', async () =>{
+const task = cron.schedule('5 * * * * *', async () =>{
    var arr = ['1','2']
    bluebird.map(arr,(a)=>{
         var linksArr = ['1','2','3','4','5'];
@@ -171,6 +177,7 @@ const task = cron.schedule('*/5 * * * * *', async () =>{
    })
 
 });
+
 task.start()
 //test();
 class Rev {
@@ -202,6 +209,6 @@ class Rev {
         )
     }
 }
-/*
       
 */ 
+module.exports = ProxyManager;

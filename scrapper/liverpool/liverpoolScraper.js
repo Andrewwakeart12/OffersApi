@@ -1,8 +1,6 @@
 const e = require("express");
-const res = require("express/lib/response");
-const { restart } = require("nodemon");
-const browserObject = require('../browser');
 var colors = require('colors');
+const {proxyRequest} = require('puppeteer-proxy');
 colors.enable();
 const Log = require('../../toolkit/colorsLog');
 const log = (color, text) => {
@@ -34,6 +32,7 @@ class Scraper {
     url;
     browser;
     paginationValue;
+    selectedProxy;
     constructor (page,Proxy){
         this.page = page;
         this.Proxy = Proxy;
@@ -143,10 +142,15 @@ class Scraper {
                 var retry = 0;
                 var restartFunction;
                 while (!success && retry < 15) {
-                    try {
+                      try {
 
                         var page = this.page;
-                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+                        
+                        console.log('this.Proxy.getRandomProxy() in scraper');
+                        var finalProxy = await this.Proxy.getRandomProxy();
+                        console.log(finalProxy.proxy);
+                        
+                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         
         

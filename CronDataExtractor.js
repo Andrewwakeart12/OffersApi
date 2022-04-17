@@ -38,7 +38,7 @@ class CronDataExtractor {
     }
     return linksArr;
   }
-  async runJobsInParallel() {
+  async runJobsInParallel(Proxy) {
     const withBrowser = async (fn) => {
       const browser = await browserObject.startBrowser();
       try {
@@ -54,6 +54,7 @@ class CronDataExtractor {
         await page.setRequestInterception(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(0);
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
         return await fn(page);
       } finally {
         await page.close();
@@ -66,8 +67,7 @@ class CronDataExtractor {
       const urls = await this.getLinks()
   
       const results = await withBrowser(async (browser) => {
-        const Proxy = new ProxyManager();
-        await Proxy.init();
+        
         return bluebird.map(controllers,async (controller)=>{
          var localUrls =urls[controller.controller]
                 return bluebird.map(localUrls, async (url) => {
@@ -83,7 +83,8 @@ class CronDataExtractor {
   
                      var res = await Scrape.scraper(url.url);
                      var resObj ={results:res, controller_id: controller.id,category:url.category, url_id:url.id};
-                    return resObj;
+                   
+                     return resObj;
                   });
                   return result;
                 },{concurrency: 3});
@@ -99,9 +100,11 @@ class CronDataExtractor {
 
 async function proob() {
 
-  
+  const Proxy = new ProxyManager();
+  await Proxy.init();
+
   var cron = new CronDataExtractor();
-  var links = await cron.runJobsInParallel();
+  var links = await cron.runJobsInParallel(Proxy);
   console.log(links);
 }
 proob();

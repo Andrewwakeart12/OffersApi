@@ -21,10 +21,8 @@ static counter = 0;
                 var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
                 if(res.data != undefined){
                     console.log(res.data);
-                    const {ip,port,protocol} = res.data;
-                    var finalAddr = `${protocol}://${ip}:${port}`; 
                     success = true;
-                    return finalAddr;
+                    return res.data.curl;
 
                 }
             }catch(e){
@@ -72,6 +70,9 @@ static counter = 0;
             var temporal_proxy = await this.getProxy();
             if(temporal_proxy != false){
                 this.proxysArr.push({proxy:temporal_proxy, in_use: false, id: ProxyManager.counter++});
+                return true;
+            }else{
+                return false;
             }
         }
     //getRandom proxy from the local array if all proxys are in use gets a new proxy
@@ -102,9 +103,13 @@ static counter = 0;
         this.proxysArr[selectedId].in_use = true;
         return proxySelected;
         }else{
-            this.setNewProxy();
-            return this.getRandomProxy();
-       
+            var prox =await this.setNewProxy();
+            if(prox != false){
+                var finalProxy = await this.getRandomProxy();
+                return finalProxy;
+            }else{
+                return false;
+            }
 
         }
         }catch(e){
@@ -131,12 +136,8 @@ static counter = 0;
         })
         this.proxysArr.splice(selectedId,1);
         var newProxy = await this.getRandomProxy();
-        if(newProxy != false){
             return newProxy;
-        }else{
-            await this.setNewProxy();
-            return await this.getRandomProxy();
-        }
+        
     }
     //when finish a extraction gets a new proxy automatically;
     async markProxyAsUnused(id){

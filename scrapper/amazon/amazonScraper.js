@@ -3,7 +3,7 @@ const e = require("express");
 
 var colors = require('colors');
 
-const {proxyRequest} = require('puppeteer-proxy')
+const useProxy = require('puppeteer-page-proxy');
 
 colors.enable();
 
@@ -43,6 +43,7 @@ class Scraper {
         this.Proxy = Proxy;
     }
     Proxy;
+    selectedProxy;
     //2.browser related propertys:
     page;
     browserObject;
@@ -78,7 +79,7 @@ class Scraper {
     //2.Handle stages:
         //2.1 stage 1 - set the page wait for load method so it cancels the charge of css and js and the page charges faster
         async waitForRequestToFinish(page, requestUrl, timeout) {
-            page.on('requestfinished', onRequestFinished);
+            page.once('requestfinished', onRequestFinished);
             let fulfill, timeoutId = (typeof timeout === 'number' && timeout >= 0) ? setTimeout(done, timeout) : -1;
             return new Promise(resolve => fulfill = resolve);
             function done() {
@@ -146,26 +147,15 @@ class Scraper {
 
                         console.log('this.Proxy.getRandomProxy() in scraper');
                         var finalProxy = await this.Proxy.getRandomProxy();
+                        this.selectedProxy = finalProxy;
                         console.log(finalProxy.proxy);
-                        page.on('request', async (request) => {
-                            await proxyRequest({
-                              page,
-                              proxyUrl:finalProxy.proxy,
-                              request,
-                            });
-                          });
-                        
+                        page.once('request',  (request) => {
+                            useProxy(
+                               request,finalProxy.proxy
+                           );
+                         });
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
-        
-        
-                        await page.setDefaultNavigationTimeout(0);
-                        await page.setDefaultTimeout(0);
-        
-                        if (page === undefined) {
-                            
-                            retry++;
-                        }
         
                         var navigationSuccess = false;
                         var navigationFails = 0;
@@ -210,7 +200,7 @@ class Scraper {
                             throw new CAPF('Error navigation failed in first run');
                         }
                         
-                        page.on("pageerror",{timeout:1000}, async function (err) {
+                        page.once("pageerror",{timeout:1000}, async function (err) {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
         
@@ -220,7 +210,7 @@ class Scraper {
                             )
                         });
         
-                        page.on('error',{timeout:1000}, async (err) => {
+                        page.once('error',{timeout:1000}, async (err) => {
                             log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
                             log(Log.fg.red ,err.error);
                           await Promise.all([
@@ -284,13 +274,13 @@ class Scraper {
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
                                 success = true;
-
+                                this.Proxy.markProxyAsUnused(this.selectedProxy.id);
                                 return extractedData;
                             }else{
                                 break;
                             }
 
-                    } catch (e) {
+                    }   catch (e) {
 
                         console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
                         console.log('Message : '.red);
@@ -306,9 +296,13 @@ class Scraper {
                                     console.log('restarted withoud reset'.green);
                                     continue;
                                 } else {
-                                    this.unsetTime()
-                                    this.result.resetState = true;
-                                    
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
                                     retry++;
                                 }
                             }
@@ -326,13 +320,27 @@ class Scraper {
                                 log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
                                 this.result.resetState = true;
                                 
-                                retry++;
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
+                                    retry++;
                             }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);
                                 this.result.resetState = true;
                                 
-                                retry++;
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
+                                    retry++;
                             }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
                                 if (restartFunction < 10) {
                                     restartFunction++;
@@ -342,6 +350,13 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
                                     retry++;
                                 }
                             } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
@@ -353,6 +368,13 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
                                     retry++;
                                 }
                             }
@@ -367,6 +389,13 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
                                     retry++;
                                 }
                             } else if (e.message.split(' ')[0] === 'Cannot') {
@@ -391,6 +420,13 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
+                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+                                    this.selectedProxy = newProxy;
+                        page.once('request',  (request) => {
+                             useProxy(
+                                request,finalProxy.proxy
+                            );
+                          });
                                     retry++;
                                 }
                             }
@@ -479,9 +515,9 @@ class Scraper {
             var prom = new Promise(async (resolve,reject)=>{
     
                 var success = false;
-                var retry = 0;
+                var getDataRetry = 0;
                 var err = '';
-                while (!success && retry < 5) {
+                while (!success && getDataRetry < 5) {
                 try {
                     var page = await this.page;
                     log(Log.fg.white + Log.bg.green,'get data initialize');
@@ -558,7 +594,7 @@ class Scraper {
                         success = true;
                         resolve(finalDataObject);
                     }else{
-                        retry++;
+                        getDataRetry++;
                         continue;
                     }
                 } catch (error) {
@@ -572,10 +608,10 @@ class Scraper {
                     }
                   
                     err = error;
-                    retry++;
+                    getDataRetry++;
                 }
             }
-            if(retry >= 5){
+            if(getDataRetry >= 5){
                 reject(err);
             }
             })

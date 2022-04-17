@@ -11,7 +11,7 @@ let port_numbers = [];
 let country = [];
 var get_proxy_try_counter =  0
 
-puppeteer.use(StealthPlugin());
+
 var browser;
 
 async function startBrowser(){
@@ -28,6 +28,7 @@ async function startBrowser(){
         ];
 
        console.log("Opening the browser......");
+       puppeteer.use(StealthPlugin());
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,

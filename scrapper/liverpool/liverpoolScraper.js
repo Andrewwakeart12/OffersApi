@@ -179,15 +179,6 @@ class Scraper {
         var page = this.page;
 
         console.log("this.Proxy.getRandomProxy() in scraper");
-        var finalProxy = await this.Proxy.getRandomProxy();
-        this.selectedProxy = finalProxy;
-        console.log(finalProxy.proxy);
-        if (finalProxy != false) {
-
-            page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-            });
-        }
 
         log(
           Log.fg.white + Log.bg.green,
@@ -204,8 +195,14 @@ class Scraper {
         var navigationSuccess = false;
         var navigationFails = 0;
         while (!navigationSuccess && navigationFails <= 5) {
+          console.log("this.Proxy.getRandomProxy() in scraper");
+          var finalProxy = await this.Proxy.getRandomProxy();
+          this.selectedProxy = finalProxy;
+          console.log(finalProxy.proxy);
+
+          await useProxy(page, finalProxy.proxy);
           var prom = await Promise.all([
-            page.goto("https://httpbin.org/ip"),
+            page.goto(this.url),
             page.waitForNavigation({ timeout: 20000 }),
           ])
             .then((res) => {
@@ -380,14 +377,11 @@ class Scraper {
               console.log("restarted withoud reset".green);
               continue;
             } else {
-              var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = finalProxy;
-                if (finalProxy != false) {
-
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+              this.selectedProxy = newProxy;
+              page.once("request", (request) => {
+                useProxy(request, finalProxy.proxy);
+              });
               retry++;
             }
           }
@@ -408,26 +402,21 @@ class Scraper {
             );
             this.result.resetState = true;
 
-            var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-            this.selectedProxy = finalProxy;
-            if (finalProxy != false) {
-
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+            var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+            this.selectedProxy = newProxy;
+            page.once("request", (request) => {
+              useProxy(request, finalProxy.proxy);
+            });
             retry++;
           }
           if (e.message === "Error navigation failed in first run") {
             console.log(`rebooting after fail in navigation to ${this.url}`);
             this.result.resetState = true;
 
-            var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-            this.selectedProxy = finalProxy;
+            var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+            this.selectedProxy = newProxy;
             page.once("request", (request) => {
-              if (finalProxy != false) {
-                useProxy(request, finalProxy.proxy);
-              }
+              useProxy(request, finalProxy.proxy);
             });
             retry++;
           } else if (
@@ -443,13 +432,11 @@ class Scraper {
               this.unsetTime();
               this.result.resetState = true;
 
-              var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = finalProxy;
-                if (finalProxy != false) {
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+              this.selectedProxy = newProxy;
+              page.once("request", (request) => {
+                useProxy(request, finalProxy.proxy);
+              });
               retry++;
             }
           } else if (
@@ -464,14 +451,11 @@ class Scraper {
               this.unsetTime();
               this.result.resetState = true;
 
-              var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = finalProxy;
-                if (finalProxy != false) {
-
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+              this.selectedProxy = newProxy;
+              page.once("request", (request) => {
+                useProxy(request, finalProxy.proxy);
+              });
               retry++;
             }
           } else if (
@@ -488,14 +472,11 @@ class Scraper {
               this.unsetTime();
               this.result.resetState = true;
 
-              var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = finalProxy;
-                if (finalProxy != false) {
-
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+              this.selectedProxy = newProxy;
+              page.once("request", (request) => {
+                useProxy(request, finalProxy.proxy);
+              });
               retry++;
             }
           } else if (e.message.split(" ")[0] === "Cannot") {
@@ -519,14 +500,11 @@ class Scraper {
               this.unsetTime();
               this.result.resetState = true;
 
-              var finalProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = finalProxy;
-                if (finalProxy != false) {
-
-                page.once("request", (request) => {
-                    useProxy(request, finalProxy.proxy);
-                });
-                }
+              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
+              this.selectedProxy = newProxy;
+              page.once("request", (request) => {
+                useProxy(request, finalProxy.proxy);
+              });
               retry++;
             }
           }

@@ -40,7 +40,7 @@ class CronDataExtractor {
   }
   async runJobsInParallel(Proxy) {
     const withBrowser = async (fn) => {
-      const browser = await browserObject.startBrowser();
+      const browser = await browserObject.startBrowser(Proxy);
       try {
         return await fn(browser);
       } finally {
@@ -65,10 +65,10 @@ class CronDataExtractor {
         "SELECT id,controller FROM scraper_controller WHERE user_id=1 && controllerActive=1",
       );
       const urls = await this.getLinks()
+        return bluebird.map(controllers,async (controller)=>{
   
       const results = await withBrowser(async (browser) => {
         
-        return bluebird.map(controllers,async (controller)=>{
          var localUrls =urls[controller.controller]
                 return bluebird.map(localUrls, async (url) => {
   

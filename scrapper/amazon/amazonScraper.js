@@ -149,11 +149,11 @@ class Scraper {
                         var finalProxy = await this.Proxy.getRandomProxy();
                         this.selectedProxy = finalProxy;
                         console.log(finalProxy.proxy);
-                        page.once('request',  (request) => {
-                            useProxy(
-                               request,finalProxy.proxy
-                           );
-                         });
+
+                        await useProxy(
+                            page,finalProxy.proxy
+                        );
+                        
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         

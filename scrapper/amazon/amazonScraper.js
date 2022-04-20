@@ -43,7 +43,7 @@ class Scraper {
         this.Proxy = Proxy;
     }
     Proxy;
-    selectedProxy;
+    selectedProxy = 0;
     //2.browser related propertys:
     page;
     browserObject;
@@ -144,15 +144,27 @@ class Scraper {
                     try {
 
                         var page = this.page;
-
-                        console.log('this.Proxy.getRandomProxy() in scraper');
-                        var finalProxy = await this.Proxy.getRandomProxy();
-                        this.selectedProxy = finalProxy;
-                        console.log(finalProxy.proxy);
-
-                        await useProxy(
-                            page,finalProxy.proxy
+                        page.setJavaScriptEnabled(true);
+                        if(this.selectedProxy === 0){
+                            console.log('this.Proxy.getRandomProxy() in scraper');
+                          var finalProxy = await this.Proxy.getRandomProxy();
+                              this.selectedProxy = finalProxy;
+                              console.log(this.selectedProxy);
+              
+                          await useProxy(
+                            page,this.selectedProxy.proxy
                         );
+                          }else{
+                          console.log('this.Proxy.getRandomProxy() in scraper (change) ');
+                          var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
+                              this.selectedProxy = finalProxy;
+                              console.log(this.selectedProxy);
+                              await useProxy(
+                                  page,this.selectedProxy.proxy
+                              );
+                          }
+
+
                         
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
@@ -163,7 +175,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 165000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 15000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -287,22 +299,12 @@ class Scraper {
                         console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
                         if (e.message != undefined) {
-                            if(e.message === '!catcha'){
-                                
-                            }
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
                                     restartFunction++;
                                     console.log('restarted withoud reset'.green);
                                     continue;
                                 } else {
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                                 }
                             }
@@ -320,26 +322,12 @@ class Scraper {
                                 log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
                                 this.result.resetState = true;
                                 
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                             }
                             if(e.message === 'Error navigation failed in first run'){
                                 console.log(`rebooting after fail in navigation to ${this.url}`);
                                 this.result.resetState = true;
                                 
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                             }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
                                 if (restartFunction < 10) {
@@ -350,13 +338,6 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                                 }
                             } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
@@ -368,13 +349,6 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                                 }
                             }
@@ -389,13 +363,6 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                                 }
                             } else if (e.message.split(' ')[0] === 'Cannot') {
@@ -420,13 +387,6 @@ class Scraper {
                                     this.unsetTime()
                                     this.result.resetState = true;
                                     
-                                    var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-                                    this.selectedProxy = newProxy;
-                        page.once('request',  (request) => {
-                             useProxy(
-                                request,finalProxy.proxy
-                            );
-                          });
                                     retry++;
                                 }
                             }

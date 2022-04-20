@@ -32,7 +32,7 @@ class Scraper {
   url;
   browser;
   paginationValue;
-  selectedProxy;
+  selectedProxy=0;
   constructor(page, Proxy) {
     this.page = page;
     this.Proxy = Proxy;
@@ -175,343 +175,240 @@ class Scraper {
     var retry = 0;
     var restartFunction;
     while (!success && retry < 15) {
-      try {
-        var page = this.page;
+        try {
 
-        console.log("this.Proxy.getRandomProxy() in scraper");
+            var page = this.page;
+            page.setJavaScriptEnabled(true);
+            
+            log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+            console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
 
-        log(
-          Log.fg.white + Log.bg.green,
-          "_Scraper.scraper(): page its setted, proceed navigation"
-        );
-        console.log(
-          `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
-        );
+            var navigationSuccess = false;
+            var navigationFails = 0;
+            while(!navigationSuccess && navigationFails <= 5 ){
 
-        if (page === undefined) {
-          retry++;
-        }
-
-        var navigationSuccess = false;
-        var navigationFails = 0;
-        while (!navigationSuccess && navigationFails <= 5) {
-          console.log("this.Proxy.getRandomProxy() in scraper");
-          var finalProxy = await this.Proxy.getRandomProxy();
-          this.selectedProxy = finalProxy;
-          console.log(finalProxy.proxy);
-
-          await useProxy(page, finalProxy.proxy);
-          var prom = await Promise.all([
-            page.goto(this.url),
-            page.waitForNavigation({ timeout: 20000 }),
-          ])
-            .then((res) => {
-              return true;
-            })
-            .catch((e) => {
-              log(
-                Log.fg.white + Log.bg.red,
-                "_Scraper: Error in page.goto() : "
-              );
-              if (
-                e.message.split(" ")[0] === "net::ERR_PROXY_CONNECTION_FAILED"
-              ) {
-                return { proxy_not_connect: true };
-              }
-              console.log(e.message.red);
-              return false;
-            });
-          log(Log.bg.yellow + Log.fg.white, prom);
-          if (prom.proxy_not_connect != undefined) {
-            if (prom.proxy_not_connect === true) {
-              throw new DERR("Proxy Not Connected");
+                var prom = await Promise.all([
+                    page.goto(this.url),
+                    page.waitForNavigation( { timeout: 165000 } )]).then((res)=>{
+                   
+                    return true;
+                }).catch((e) => {
+                    log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                    if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
+                        return {proxy_not_connect :true};
+                    }
+                    console.log(e.message.red)
+                    return false;
+                });
+                log(Log.bg.yellow + Log.fg.white,prom)
+                    if(prom.proxy_not_connect != undefined)
+                    {
+                        if(prom.proxy_not_connect === true){
+                            throw new DERR('Proxy Not Connected');
+                        }
+                    }
+                navigationSuccess =  prom;
+                
+                if(navigationSuccess === true){
+                    log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                }else{
+                    var uniqueErrorNameForImage = `Amazon_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
+                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
+                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                   
+                    navigationFails++;
+                }
+               
             }
-          }
-          navigationSuccess = prom;
+            log(Log.bg.cyan + Log.fg.white,'after request');
 
-          if (navigationSuccess === true) {
-            log(
-              Log.fg.white + Log.bg.green,
-              `Navigation to ${this.url} succeded`
-            );
-          } else {
-            var uniqueErrorNameForImage = `Liverpool_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${new Date().getTime()}.jpg`;
-            page
-              .screenshot({
-                path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,
-              })
-              .catch((e) => {});
-            log(
-              Log.bg.green + Log.fg.white,
-              `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
-            );
+            if(navigationSuccess === true && navigationFails >= 5){
+                throw new CAPF('Error navigation failed in first run');
+            }
+            
+            page.once("pageerror",{timeout:1000}, async function (err) {
+                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(Log.fg.red ,err.error);
 
-            navigationFails++;
-          }
-        }
-        log(Log.bg.cyan + Log.fg.white, "after request");
+                await Promise.all([
+                    page.reload(),
+                    page.waitForNavigation( { timeout: 16000 } )]
+                )
+            });
 
-        if (navigationSuccess === true && navigationFails >= 5) {
-          throw new CAPF("Error navigation failed in first run");
-        }
-
-        page.once("pageerror", { timeout: 1000 }, async function (err) {
-          log(
-            Log.fg.white + Log.bg.red,
-            "_Scraper.scraper().waitforselector: Page error:"
-          );
-          log(Log.fg.red, err.error);
-
-          await Promise.all([
-            page.reload(),
-            page.waitForNavigation({ timeout: 20000 }),
-          ]);
-        });
-
-        page.once("error", { timeout: 1000 }, async (err) => {
-          log(
-            Log.fg.white + Log.bg.red,
-            "_Scraper.scraper().waitforselector: Page error:"
-          );
-          log(Log.fg.red, err.error);
-          await Promise.all([page.reload(), page.waitForNavigation()]);
-        });
-
-        page
-          .waitForSelector(".error-code", { timeout: 1000 })
-          .then(async () => {
-            log(
-              Log.fg.white + Log.bg.red,
-              "_Scraper.scraper().waitforselector: Page error:"
-            );
-            log(Log.fg.red, err.error);
-            await Promise.all([
-              page.reload(),
-              page.waitForNavigation({ timeout: 20000 }),
-            ]);
-          })
-          .catch((e) => {
-            // console.log('Liverpool: e from error-code')
-            // console.log(e)
-          });
-
-        log(Log.bg.cyan + Log.fg.white, "After error page comprobation");
-        if (this.maxClicks === false) {
-          this.maxClicks = null;
-        }
-        if (
-          (this.comprobateActualPage.actualPage === 0 &&
-            this.maxClicks === null) ||
-          (this.comprobateActualPage.actualPage === undefined &&
-            this.maxClicks === null)
-        ) {
-          var getPaginationSuccess = false;
-          var getPagintaionFails = 0;
-          while (!getPaginationSuccess && getPagintaionFails < 5) {
-            var pag = await this.getMaxclicks();
-            if (pag != true) {
-              if (this.catcha === true) {
-                throw new DERR("!catcha");
-              }
+            page.once('error',{timeout:1000}, async (err) => {
+                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(Log.fg.red ,err.error);
               await Promise.all([
-                page.reload(),
-                page.waitForNavigation({ timeout: 20000 }),
-              ]);
-              this.maxClicks = null;
-              getPagintaionFails++;
-            } else {
-              getPaginationSuccess = true;
-            }
-          }
+                    page.reload(),
+                    page.waitForNavigation()
+                ])
 
-          if (this.catcha === true) {
-            throw new Catcha("!catcha");
-          }
-        }
-        if (
-          this.maxClicks === null &&
-          getPaginationSuccess != true &&
-          getPagintaionFails >= 5
-        ) {
-          throw new DERR("pagination load fails");
-        }
-        console.log("Liverpool: pagination value".green);
-        console.log(`${this.paginationValue}`.green);
-        console.log("Liverpool: maxClicks: ".green);
-        console.log(`${this.maxClicks}`.green);
-
-        var extractedData = await this.extractDataLoop()
-          .then((res) => {
-            log(Log.bg.green + Log.fg.white, res);
-            if (res.results != false) {
-              return res;
-            }
-          })
-          .catch((e) => {
-            console.log(`error from promise ${e.message}`.red);
-            throw e;
-          });
-        if (extractedData.results != false) {
-          this.reloadTime = 0;
-          this.resolveTimeOut = 0;
-          success = true;
-          this.Proxy.markProxyAsUnused(this.selectedProxy.id);
-          return extractedData;
-        } else {
-          break;
-        }
-      } catch (e) {
-        console.log("ERROR IN SCRAPPER (UNNESESARY RESET?)".red);
-        console.log("Message : ".red);
-        console.log(e.message != undefined ? e.message.red : e.red);
-        console.log("-----------------");
-        if (e.message != undefined) {
-          if (e.message === "!catcha") {
-          }
-          if (
-            e.message.split(" ")[0] === "net::ERR_TIMED_OUT" ||
-            e.message.split(" ")[1] === "net::ERR_TIMED_OUT"
-          ) {
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted withoud reset".green);
-              continue;
-            } else {
-              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = newProxy;
-              page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-              });
-              retry++;
-            }
-          }
-        }
-
-        if (e.message != undefined) {
-          if (this.catcha === true) {
-            if (restartFunction) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            }
-          }
-          if (e.message === "pagination load fails") {
-            log(
-              Log.bg.red + Log.fg.white,
-              `rebooting after fail in getPagination()`
-            );
-            this.result.resetState = true;
-
-            var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-            this.selectedProxy = newProxy;
-            page.once("request", (request) => {
-              useProxy(request, finalProxy.proxy);
             });
-            retry++;
-          }
-          if (e.message === "Error navigation failed in first run") {
-            console.log(`rebooting after fail in navigation to ${this.url}`);
-            this.result.resetState = true;
 
-            var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-            this.selectedProxy = newProxy;
-            page.once("request", (request) => {
-              useProxy(request, finalProxy.proxy);
+
+            page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
+                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(Log.fg.red ,err.error);
+                await Promise.all([
+                    page.reload(),
+                    page.waitForNavigation( { timeout: 16000 } )]
+                )
+            }).catch(e => {
+                // console.log('e from error-code')
+                // console.log(e)
             });
-            retry++;
-          } else if (
-            "CAPF:" +
-              "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." ===
-            e.message
-          ) {
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            } else {
-              this.unsetTime();
-              this.result.resetState = true;
 
-              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = newProxy;
-              page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-              });
-              retry++;
+            log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
+            if(this.maxClicks === false){
+                this.maxClicks = null;
             }
-          } else if (
-            e.message ===
-            "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed."
-          ) {
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            } else {
-              this.unsetTime();
-              this.result.resetState = true;
+            if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
+                var getPaginationSuccess = false;
+                var getPagintaionFails = 0;
+                while(!getPaginationSuccess && getPagintaionFails < 5 ){
+                var pag = await this.getMaxclicks();
+                if(pag != true ){
+                    if(this.catcha === true){
+                        throw new DERR('!catcha')
+                    }
+                    await Promise.all([page.reload(),
+                            page.waitForNavigation( { timeout: 16000 } )]);
+                        this.maxClicks = null;
+                        getPagintaionFails++;
+                    }else{
+                        getPaginationSuccess = true;
+                    }
+                }
 
-              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = newProxy;
-              page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-              });
-              retry++;
+                if(this.catcha === true){
+                    throw new Catcha('!catcha')
+                }
             }
-          } else if (
-            e.message.trim() ===
-            "Navigation failed because browser has disconnected!"
-          ) {
-            console.log(e.message);
+            if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
+                throw new DERR('pagination load fails');
+            }
+            console.log('pagination value'.green)
+            console.log(`${this.paginationValue}`.green);
+            console.log('maxClicks: '.green)
+            console.log(`${this.maxClicks}`.green)
 
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            } else {
-              this.unsetTime();
-              this.result.resetState = true;
 
-              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = newProxy;
-              page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-              });
-              retry++;
-            }
-          } else if (e.message.split(" ")[0] === "Cannot") {
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            }
-          } else if (restartFunction < 20) {
-            await Promise.all([
-              page.reload(),
-              page.waitForNavigation({ timeout: 16000 }),
-            ]);
-            continue;
-          } else {
-            if (restartFunction < 10) {
-              restartFunction++;
-              console.log("restarted");
-              continue;
-            } else {
-              this.unsetTime();
-              this.result.resetState = true;
 
-              var newProxy = this.Proxy.changeProxy(this.selectedProxy.id);
-              this.selectedProxy = newProxy;
-              page.once("request", (request) => {
-                useProxy(request, finalProxy.proxy);
-              });
-              retry++;
+                var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                if(extractedData.results != false){
+                        this.reloadTime = 0;
+                        this.resolveTimeOut = 0;
+                    success = true;
+                    this.Proxy.markProxyAsUnused(this.selectedProxy.id);
+                    return extractedData;
+                }else{
+                    break;
+                }
+
+        }   catch (e) {
+
+            console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
+            console.log('Message : '.red);
+            console.log(e.message != undefined ? e.message.red : e.red);
+            console.log('-----------------');
+            if (e.message != undefined) {
+                if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted withoud reset'.green);
+                        continue;
+                    } else {
+                        retry++;
+                    }
+                }
             }
-          }
+
+            if (e.message != undefined) {
+                 if (this.catcha === true) {
+                    if (restartFunction) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    } 
+                }
+                if(e.message === 'pagination load fails'){
+                    log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
+                    this.result.resetState = true;
+                    
+                        retry++;
+                }
+                if(e.message === 'Error navigation failed in first run'){
+                    console.log(`rebooting after fail in navigation to ${this.url}`);
+                    this.result.resetState = true;
+                    
+                        retry++;
+                }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    } else {
+                        this.unsetTime()
+                        this.result.resetState = true;
+                        
+                        retry++;
+                    }
+                } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    } else {
+                        this.unsetTime()
+                        this.result.resetState = true;
+                        
+                        retry++;
+                    }
+                }
+                else if (e.message.trim() === "Navigation failed because browser has disconnected!") {
+                    console.log(e.message);
+
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    } else {
+                        this.unsetTime()
+                        this.result.resetState = true;
+                        
+                        retry++;
+                    }
+                } else if (e.message.split(' ')[0] === 'Cannot') {
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    }
+
+
+                }
+                else if (restartFunction < 20) {
+                    await Promise.all([page.reload(),
+                    page.waitForNavigation( { timeout: 16000 } )]);
+                    continue;
+                } else {
+                    if (restartFunction < 10) {
+                        restartFunction++;
+                        console.log('restarted');
+                        continue;
+                    } else {
+                        this.unsetTime()
+                        this.result.resetState = true;
+                        
+                        retry++;
+                    }
+                }
+            }
+
         }
-      }
     }
-  }
+}
   //2.4 set conditions to reload page if something fails or its a captcha in page:
   async setReloadTime(calledFrom) {
     var page = await this.page;

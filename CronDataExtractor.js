@@ -54,7 +54,6 @@ class CronDataExtractor {
         await page.setRequestInterception(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(0);
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36');
         return await fn(page);
       } finally {
         await page.close();

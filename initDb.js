@@ -1,14 +1,14 @@
-const express = require('express')
+import express from 'express';
 const app = express()
 const port = 3700
-const puppeteer = require('puppeteer');
-const pool =require('./database');
-var cors = require('cors');
-const browserObject = require('./scrapper/browser');
-const scraperController = require('./scrapper/amazon/amazonController');
-const { save } = require('node-cron/src/storage');
-const { url } = require('./scrapper/amazon/amazonScraper');
-const { product } = require('puppeteer');
+import puppeteer from 'puppeteer';
+import { query } from './database';
+import cors from 'cors';
+import browserObject from './scrapper/browser';
+import scraperController from './scrapper/amazon/amazonController';
+import { save } from 'node-cron/src/storage';
+import { url } from './scrapper/amazon/amazonScraper';
+import { product } from 'puppeteer';
 
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
@@ -21,7 +21,7 @@ const getArrayAsChunks = (array, chunkSize) => {
 
 
 async function init(){
-pool.query(`
+    query(`
 
 CREATE TABLE users(
     id INT(11) NOT NULL ,

@@ -1,8 +1,7 @@
-const pool = require("./database");
-const browserObject = require("./scrapper/browser").default;
-const bluebird = require("bluebird");
-const {Scraper} = require('./scrapper/amazon/amazonScraper').default;
-const ProxyManager = require('./ProxyManager');
+import { query } from "./database";
+import browserObject from "./scrapper/browser";
+import { map } from "bluebird";
+import ProxyManager from './ProxyManager';
 class CronDataExtractor {
   /*return obj of links by controller
         {
@@ -17,15 +16,15 @@ class CronDataExtractor {
     */
   async getLinks() {
     var linksArr = {};
-    var users = await pool.query("SELECT id FROM users");
+    var users = await query("SELECT id FROM users");
     for (let user of users) {
-      var controllers = await pool.query(
+      var controllers = await query(
         "SELECT id,controller FROM scraper_controller WHERE user_id=? && controllerActive=1",
         [user.id]
       );
 
       for (let controller of controllers) {
-        var urls = await pool.query(
+        var urls = await query(
           "SELECT * FROM scraper_urls WHERE controller_id= ?",
           [controller.id]
         );
@@ -60,16 +59,16 @@ class CronDataExtractor {
       }
     };
     try {
-      var controllers = await pool.query(
+      var controllers = await query(
         "SELECT id,controller FROM scraper_controller WHERE user_id=1 && controllerActive=1",
       );
       const urls = await this.getLinks()
       const results = await withBrowser(async (browser) => {
 
-        return bluebird.map(controllers,async (controller)=>{
+        return map(controllers,async (controller)=>{
   
          var localUrls =urls[controller.controller]
-                return bluebird.map(localUrls, async (url) => {
+                return map(localUrls, async (url) => {
   
                   console.log(url);
                   const result = await withPage(browser)(async (page) => {
@@ -107,4 +106,4 @@ async function proob() {
   console.log(links);
 }
 proob();
-module.exports = CronDataExtractor;
+export default CronDataExtractor;

@@ -1,47 +1,47 @@
-const express = require('express')
+import express, { json, Router } from 'express'
 
-const jwt = require('jsonwebtoken')
-const config = require('./config/config')
-const path = require('path')
+import { sign, verify } from 'jsonwebtoken'
+import { key } from './config/config'
+import path from 'path'
 const app = express()
 const port = 3700
-const pool = require('./database');
-var pdf = require("pdf-creator-node");
-var fs = require("fs");
-const cors = require('cors');
-const ExcelCreator = require('./ExcelGenerator');
-const axios = require('axios')
-var bodyParser = require('body-parser')
-app.use(bodyParser.json())
+import { query, getConnection } from './database'
+import { create } from "pdf-creator-node"
+import { readFileSync } from "fs"
+import cors from 'cors'
+import ExcelCreator from './ExcelGenerator'
+import { post } from 'axios'
+import { json as _json, urlencoded } from 'body-parser'
+app.use(_json())
 app.use(cors());
-app.use(express.json())
-const Log = require('./toolkit/colorsLog');
+app.use(json())
+import { reset, bg, fg } from './toolkit/colorsLog'
 const log = (color, text) => {
-    console.log(`${color}%s${Log.reset}`, text);
+    console.log(`${color}%s${reset}`, text);
     };
 // 1
-app.set('key', config.key);
+app.set('key', key);
 // 2
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(urlencoded({ extended: true }));
 // 3
-app.use(bodyParser.json());
-const guard = express.Router();
+app.use(_json());
+const guard = Router();
 app.get('/s ', async (req, res) => {
-  var users = await pool.query('SELECT jwtoken,id FROM users');
+  var users = await query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
-      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var urls = await query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_starts_at * -1]);
+        var products = await query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_starts_at * -1]);
         console.log('products jwtoken');
         console.log(user.jwtoken);
         for (let product of products) {
-          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+          var response = await post("https://app.nativenotify.com/api/indie/notification", {
             appId: 2194,
             subID: user.jwtoken,
             appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -56,11 +56,11 @@ app.get('/s ', async (req, res) => {
       logged: true,
       check: true
     };
-    const token = await jwt.sign(payload, app.get('key'), {
+    const token = await sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
 
-        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+        var response = await post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,
           subID: 'obe2',
           appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -103,7 +103,7 @@ app.get('/s ', async (req, res) => {
 guard.use((req, res, next) => {
   const token = req.headers['access-token'];
   if (token != '') {
-    jwt.verify(token, app.get('key'), (err, decoded) => {
+    verify(token, app.get('key'), (err, decoded) => {
       if (err) {
         return res.json({ error: { JWTokenErr: 'Token no valido', LoginInvalid: true } })
       } else {
@@ -121,9 +121,9 @@ app.get('/api/testView', async (req, res) => {
   res.render('oferta', { info });
 })
 app.get('/api/getOffersDataToPdf', async (req, res) => {
-  var products = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
+  var products = await query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
 
-  var html = fs.readFileSync("./views/template.html", "utf8");
+  var html = readFileSync("./views/template.html", "utf8");
 
   var optionsPDF = {
     format: "B2",
@@ -140,8 +140,7 @@ app.get('/api/getOffersDataToPdf', async (req, res) => {
     timeout: '100000',
     type: "",
   };
-  await Promise.all([pdf
-    .create(document, optionsPDF)
+  await Promise.all([create(document, optionsPDF)
     .then((res) => {
       console.log(res);
     })
@@ -165,7 +164,7 @@ app.get('/proob', async (req, res) => {
   var sql = "INSERT INTO proob (log,prop) VALUES ?";
   var obj = [{ log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }]
   var records = obj.map(e => { return Object.values(e) })
-  pool.query(sql, [records], function (err, result) {
+  query(sql, [records], function (err, result) {
     console.log(result);
   });
   res.send('done!');
@@ -177,7 +176,7 @@ app.get('/generateExcel', async (req,res) =>{
   // calculate offset
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
-  const prodsQuery =await pool.query( `SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -30 ORDER BY category ASC,discount; `)
+  const prodsQuery =await query( `SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -30 ORDER BY category ASC,discount; `)
   const excel = new ExcelCreator();
   excel.getProductsData(prodsQuery);
   var created = excel.Save();
@@ -186,7 +185,7 @@ app.get('/generateExcel', async (req,res) =>{
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
-  userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
+  userExist = await query('SELECT id,username,password FROM users WHERE username = ?', [username]);
 
   console.log(userExist)
   if (userExist.length > 0) {
@@ -206,7 +205,7 @@ app.post('/api/login', async (req, res) => {
       check: true
     };
 
-    const token = await jwt.sign(payload, app.get('key'), {
+    const token = await sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
     res.json({
@@ -228,11 +227,11 @@ app.post('/api/login', async (req, res) => {
 });
 app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
-  data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
+  data = await query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
   res.send(data);
 });
 app.post('/api/getContollers', guard, async (req, res) => {
-  data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
+  data = await query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
   res.json(data);
 });
 app.post('/api/config', guard, (req, res) => {
@@ -242,7 +241,7 @@ app.post('/api/config', guard, (req, res) => {
 
 });
 app.get('/api/testResonse', async (req, res) => {
-  data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
+  data = await query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
   console.log(data[0].product);
   res.json({ products: data })
 
@@ -260,7 +259,7 @@ app.post('/api/config/save/controller/:controller_id', guard, async (req, res) =
   };
   console.log(config)
   console.log(controller_id)
-  var result = await pool.query('UPDATE scraper_controller set ? WHERE id = ?', [config, controller_id]);
+  var result = await query('UPDATE scraper_controller set ? WHERE id = ?', [config, controller_id]);
   console.log(result);
 
   res.json(result.affectedRows > 0 ? { success: true, } : { error: true })
@@ -275,7 +274,7 @@ app.post('/api/config/pagination', (req, res) => {
   const offset = (page - 1) * limit
   // query for fetching data with page number and offset
   const prodsQuery = "select * from scraped_data WHERE discount < " + discount + " limit  " + limit + " OFFSET " + offset
-  pool.getConnection(function (err, connection) {
+  getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
@@ -303,7 +302,7 @@ app.post('/api/config/save/nofications', guard, async (req, res) => {
     pushNotification: notifyByPushNotification || 0,
     controller_active: controller_active || 0
   }
-  await pool.query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig, user_id, controller]);
+  await query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig, user_id, controller]);
   res.send('success');
 
 });
@@ -315,7 +314,7 @@ app.post('/api/config/save/link', guard, async (req, res) => {
     controller_id,
     category
   };
-  let result = await pool.query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
+  let result = await query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
   console.log(newScraperUrl);
   res.json(result.affectedRows > 0 ? { success: true, id: result.insertId } : { error: true });
 })
@@ -328,12 +327,12 @@ app.post('/api/config/update/link/:id', guard, async (req, res) => {
     category
   };
   if (url != null) {
-    var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+    var products = await query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
     console.log(products[0]['COUNT(*)']);
     if (products[0]['COUNT(*)'] > 0) {
-      await pool.query('UPDATE scraped_data set category = ? WHERE url_id=?', [category, id]);
+      await query('UPDATE scraped_data set category = ? WHERE url_id=?', [category, id]);
     }
-    var result = await pool.query('UPDATE scraper_urls set ? WHERE id = ?', [updateUrl, id]);
+    var result = await query('UPDATE scraper_urls set ? WHERE id = ?', [updateUrl, id]);
 
   }
   console.log(result);
@@ -342,30 +341,30 @@ app.post('/api/config/update/link/:id', guard, async (req, res) => {
 app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   console.log('deleting');
   const { id } = req.params;
-  var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+  var products = await query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
   console.log(products[0]['COUNT(*)']);
   if (products[0]['COUNT(*)'] > 0) {
-    await pool.query('DELETE FROM scraped_reviewed WHERE url_id =?', [id]);
-    await pool.query('DELETE FROM scraped_data WHERE url_id=?', [id]);
+    await query('DELETE FROM scraped_reviewed WHERE url_id =?', [id]);
+    await query('DELETE FROM scraped_data WHERE url_id=?', [id]);
   }
-  let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
+  let result = await query('DELETE FROM scraper_urls WHERE id=?', [id]);
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
 app.get('/sendNotification', async (req,res)=>{
-  var users = await pool.query('SELECT jwtoken,id FROM users');
+  var users = await query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
-      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var urls = await query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
-        log(Log.bg.red + Log.fg.white, `Products in session: ${products.length}`)
+        var products = await query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
+        log(bg.red + fg.white, `Products in session: ${products.length}`)
         for (let product of products) {
-          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+          var response = await post("https://app.nativenotify.com/api/indie/notification", {
             appId: 2194,
             subID: user.jwtoken,
             appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -375,11 +374,11 @@ app.get('/sendNotification', async (req,res)=>{
           });
           console.log(response.data);
 
-          await pool.query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
+          await query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
           
-          log(Log.bg.red + Log.fg.white,`Section ${url.category}`)
-          log(Log.bg.green + Log.fg.white,`Nofiyed about product`)
-          log(Log.fg.green,product.product);
+          log(bg.red + fg.white,`Section ${url.category}`)
+          log(bg.green + fg.white,`Nofiyed about product`)
+          log(fg.green,product.product);
         }
         /*
         const payload = {
@@ -414,8 +413,8 @@ app.get('/sendNotification', async (req,res)=>{
   res.send('done')
 })
 app.post('/api/config/getAllOffers', async (req, res) => {
-  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
-  const controller_id = await pool.query('SELECT id FROM scraper_controller ');
+  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const controller_id = await query('SELECT id FROM scraper_controller ');
   
   // limit as 20
   var discount = dis[0].discount_starts_at != null ? dis[0].discount_starts_at * -1 : -1;
@@ -427,7 +426,7 @@ app.post('/api/config/getAllOffers', async (req, res) => {
 });
 app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const { controller_id, page } = req.body;
-  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
@@ -441,7 +440,7 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
 
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
-  pool.getConnection(function (err, connection) {
+  getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
@@ -471,7 +470,7 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
 app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;
-  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
@@ -485,7 +484,7 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND category="Games" ORDER BY discount ASC  limit 10 OFFSET 10;
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
-  pool.getConnection(function (err, connection) {
+  getConnection(function (err, connection) {
     connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
@@ -518,22 +517,22 @@ app.post('/api/reviewProduct',guard,async (req,res)=>{
   if(review != undefined){
     productF.excluded = review.excluded;
     productF.interested_in = review.interested_in;
-    var productInReview = await pool.query('SELECT * FROM scraped_reviewed WHERE product = ?', productF.product);
+    var productInReview = await query('SELECT * FROM scraped_reviewed WHERE product = ?', productF.product);
     if(productInReview.length > 0){
       if(productInReview[0].discount != productF.discount)
-      await pool.query('UPDATE scraped_reviewed set ? WHERE id=? ',[productF,productInReview[0].id]);
+      await query('UPDATE scraped_reviewed set ? WHERE id=? ',[productF,productInReview[0].id]);
       console.log('ya esta en db')
     } else{
-      await pool.query('INSERT INTO scraped_reviewed SET ? ', [productF]);
+      await query('INSERT INTO scraped_reviewed SET ? ', [productF]);
     }
   }
 
-  var reviewedProduct =await pool.query(`
+  var reviewedProduct =await query(`
   SELECT DISTINCT *
   FROM scraped_reviewed
   WHERE product IN (SELECT product FROM scraped_data);
   `);
-  var productsInDb =await pool.query(`
+  var productsInDb =await query(`
   SELECT DISTINCT * 
   FROM scraped_data
   WHERE product IN (SELECT product FROM scraped_reviewed);
@@ -545,10 +544,10 @@ app.post('/api/reviewProduct',guard,async (req,res)=>{
     if(productReviewed.interested_in)
     {
       if(productReviewed.discount === productInDb.discount || productReviewed.discount * -1 > productInDb.discount * -1  ){
-        await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+        await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
       }
     }else if(productReviewed.excluded){
-      await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+      await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
     }
   }
   }

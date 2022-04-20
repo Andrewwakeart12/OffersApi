@@ -1,8 +1,8 @@
-const mysql = require('mysql');
-const {database} = require('./keys');
-const {promisify} = require('util');
+import { createPool } from 'mysql';
+import { database } from './keys';
+import { promisify } from 'util';
 
-const pool=mysql.createPool(database);
+const pool=createPool(database);
 
 pool.getConnection((err,connection)=>{
     if(err){
@@ -23,4 +23,4 @@ pool.getConnection((err,connection)=>{
 
 pool.query = promisify(pool.query);
 
-module.exports = pool;
+export default pool;

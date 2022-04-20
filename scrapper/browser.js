@@ -1,11 +1,11 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const request = require('request');
-const cheerio = require('cheerio'); 
-const axios = require('axios');
-const { response } = require('express');
-const randomUA = require('modern-random-ua');
-const proxyChain = require('proxy-chain');
+import { use, launch } from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import request from 'request';
+import cheerio from 'cheerio'; 
+import axios from 'axios';
+import { response } from 'express';
+import { generate } from 'modern-random-ua';
+import proxyChain from 'proxy-chain';
 let ip_addresses = [];
 let port_numbers = [];
 let country = [];
@@ -27,13 +27,13 @@ async function startBrowser(){
             '--ignore-certifcate-errors-spki-list'
         ];
        console.log("Opening the browser......");
-       puppeteer.use(StealthPlugin());
-        browser = await puppeteer.launch({
+       use(StealthPlugin());
+        browser = await launch({
             pipe: true,
             headless: false,
             ignoreHTTPSErrors: true,
             slowMo: 0,
-            userAgent: randomUA.generate(),
+            userAgent: generate(),
             args: argumentsForBrowser
         });
     return browser;
@@ -47,7 +47,7 @@ async function startBrowser(){
 async function closeB(){
     await browser.close();
 }
-module.exports = {
+export default {
     startBrowser,
     closeB
 };

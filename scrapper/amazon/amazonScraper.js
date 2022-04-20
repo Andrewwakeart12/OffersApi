@@ -1,16 +1,16 @@
 //https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
-const e = require("express");
+import e, { querySelector } from "express";
 
-var colors = require('colors');
+import { enable } from 'colors';
 
-const useProxy = require('puppeteer-page-proxy');
-const { createPageProxy } = import("puppeteer-proxy");
-colors.enable();
+import useProxy from 'puppeteer-page-proxy';
+import { createPageProxy } from "puppeteer-proxy";
+enable();
 
-const Log = require('../../toolkit/colorsLog');
+import { reset, bg, fg } from '../../toolkit/colorsLog';
 const log = (color, text) => {
 
-    console.log(`${color}%s${Log.reset}`, text);
+    console.log(`${color}%s${reset}`, text);
     };
 class Catcha {
     obj;
@@ -82,7 +82,7 @@ class Scraper {
         //2.2 gets the initial values:
             //2.2.1 gets the max number of paginations:
             async getMaxclicks() {
-                log(Log.bg.green + Log.fg.white, 'Getting clicks');
+                log(bg.green + fg.white, 'Getting clicks');
                 var page = await this.page;
                 this.maxClicks = await page.waitForSelector('.a-section.a-spacing-small.a-spacing-top-small', {timeout:5000}).then(res=>{
                     return page.evaluate(async () => {
@@ -100,11 +100,11 @@ class Scraper {
                         return maxClicks >= 100 ? 100 : maxClicks  ;
                     });
                 }).catch(async e =>{
-                    log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
-                    log(Log.fg.red, e.message);
+                    log(bg.red + fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
+                    log(fg.red, e.message);
                     var uniqueErrorNameForImage = `Amazon_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                     await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                         console.log('catcha ! a')
                         this.catcha = true;
@@ -167,7 +167,7 @@ class Scraper {
 
 
                         
-                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+                        log(fg.white + bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         
                         var navigationSuccess = false;
@@ -180,14 +180,14 @@ class Scraper {
                                
                                 return true;
                             }).catch((e) => {
-                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                                log(fg.white + bg.red, "_Scraper: Error in page.goto() : ");
                                 if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
                                     return {proxy_not_connect :true};
                                 }
                                 console.log(e.message.red)
                                 return false;
                             });
-                            log(Log.bg.yellow + Log.fg.white,prom)
+                            log(bg.yellow + fg.white,prom)
                                 if(prom.proxy_not_connect != undefined)
                                 {
                                     if(prom.proxy_not_connect === true){
@@ -197,25 +197,25 @@ class Scraper {
                             navigationSuccess =  prom;
                             
                             if(navigationSuccess === true){
-                                log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                                log(fg.white + bg.green,`Navigation to ${this.url} succeded`);
                             }else{
                                 var uniqueErrorNameForImage = `Amazon_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
                                 page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                                log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                                log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                                
                                 navigationFails++;
                             }
                            
                         }
-                        log(Log.bg.cyan + Log.fg.white,'after request');
+                        log(bg.cyan + fg.white,'after request');
 
                         if(navigationSuccess === true && navigationFails >= 5){
                             throw new CAPF('Error navigation failed in first run');
                         }
                         
                         page.once("pageerror",{timeout:1000}, async function (err) {
-                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                            log(Log.fg.red ,err.error);
+                            log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(fg.red ,err.error);
         
                             await Promise.all([
                                 page.reload(),
@@ -224,8 +224,8 @@ class Scraper {
                         });
         
                         page.once('error',{timeout:1000}, async (err) => {
-                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                            log(Log.fg.red ,err.error);
+                            log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(fg.red ,err.error);
                           await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation()
@@ -235,8 +235,8 @@ class Scraper {
         
         
                         page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
-                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                            log(Log.fg.red ,err.error);
+                            log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(fg.red ,err.error);
                             await Promise.all([
                                 page.reload(),
                                 page.waitForNavigation( { timeout: 16000 } )]
@@ -246,7 +246,7 @@ class Scraper {
                             // console.log(e)
                         });
 
-                        log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
+                        log(bg.cyan + fg.white, 'After error page comprobation');
                         if(this.maxClicks === false){
                             this.maxClicks = null;
                         }
@@ -282,7 +282,7 @@ class Scraper {
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                            var extractedData=await this.extractDataLoop().then(res=>{log(bg.green + fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             extractedData = extractedData.filter(Boolean);
                             if(extractedData.results != false){
                                     this.reloadTime = 0;
@@ -322,7 +322,7 @@ class Scraper {
                                 } 
                             }
                             if(e.message === 'pagination load fails'){
-                                log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
+                                log(bg.red + fg.white,`rebooting after fail in getPagination()`);
                                 this.result.resetState = true;
                                 
                                     retry++;
@@ -416,15 +416,15 @@ class Scraper {
                                 page.reload(),
                                 page.waitForNavigation({ waitUntil: 'load' })
                                 ]).then(res => {
-                                    log(Log.fg.white + Log.bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')
-                                    log(Log.fg.green,e);
+                                    log(fg.white + bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')
+                                    log(fg.green,e);
                                 }).catch(e=>{
-                                    log(Log.fg.white + Log.bg.red,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : error of reloader');
-                                    log(Log.fg.red,e);
+                                    log(fg.white + bg.red,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : error of reloader');
+                                    log(fg.red,e);
                                 })
 
                                 await this.delay(5000)
-                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = true)').then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - '+ calledFrom +' - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - '+ calledFrom +' - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); 
+                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = true)').then(res=>{log(fg.white + bg.red,'_Scraper.setTimeOut()  - '+ calledFrom +' - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(fg.white + bg.red,'_Scraper.settimeout() - '+ calledFrom +' - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); 
                                 if(calledFrom === 'scraper()'){
                                     throw e;    
                                 }else{
@@ -436,7 +436,7 @@ class Scraper {
                                 this.resetDueToNotChargedPage = true;
 
                                 await this.delay(5000)
-                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = false)').then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - '+ calledFrom +' - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - '+ calledFrom +' - false : rejected in set timeout function',e.message); 
+                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = false)').then(res=>{log(fg.white + bg.green,'_Scraper.setTimeOut() - '+ calledFrom +' - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(fg.white + bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - '+ calledFrom +' - false : rejected in set timeout function',e.message); 
                                 if(calledFrom === 'scraper()' || calledFrom === 'ExtracData'){
                                     throw e;    
                                 }else{
@@ -459,14 +459,14 @@ class Scraper {
                             console.log('Time out')
                             resolve('solved with reload ' + indexForResolveTimeout)
                         } catch (error) {
-                            log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut() - '+ calledFrom +': error in settimeout: ')
-                            log(Log.fg.red,error.message)
+                            log(fg.white + bg.red,'_Scraper.setTimeOut() - '+ calledFrom +': error in settimeout: ')
+                            log(fg.red,error.message)
                             reject(error);
                         }
                     }, 5000)
                 })
                 this.reloadTime.push({ promise: promise, indexArr: this.reloadTime.length });
-                log(Log.fg.white + Log.bg.green,`Timeout setted... for : ${calledFrom}`)
+                log(fg.white + bg.green,`Timeout setted... for : ${calledFrom}`)
     
                 return promise;
     
@@ -483,16 +483,16 @@ class Scraper {
                 while (!success && getDataRetry < 5) {
                 try {
                     var page = await this.page;
-                    log(Log.fg.white + Log.bg.green,'get data initialize');
+                    log(fg.white + bg.green,'get data initialize');
                     await page.waitForSelector('#captchacharacters', { timeout: 3000 }).then(() => {
-                        log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector: catcha ! asa');
+                        log(fg.white + bg.red,'_Scraper.getData().waitforselector: catcha ! asa');
                         this.catcha = true;
                         reject( new Catcha({ catcha: true }));
         
                     }).catch(e => {
                         
                     })
-                    log(Log.fg.white + Log.bg.green,'_Scraper.getData() : catcha not found');
+                    log(fg.white + bg.green,'_Scraper.getData() : catcha not found');
                     await page.viewport({
                         width: 1024 + Math.floor(Math.random() * 100),
                         height: 768 + Math.floor(Math.random() * 100),
@@ -524,13 +524,13 @@ class Scraper {
                                 };
         
         
-                                finalDataObject.product = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
-                                finalDataObject.img_url = e.querySelector('img') ? e.querySelector('img').src : null //img url
-                                finalDataObject.url = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
-                                finalDataObject.newPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
-                                finalDataObject.oldPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
+                                finalDataObject.product = querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
+                                finalDataObject.img_url = querySelector('img') ? querySelector('img').src : null //img url
+                                finalDataObject.url = querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
+                                finalDataObject.newPrice = querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
+                                finalDataObject.oldPrice = querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
                                 finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
-                                finalDataObject.prime = e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
+                                finalDataObject.prime = querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
         
                                 if (finalDataObject.oldPrice != null) {
                                     finalDataOutput.push(finalDataObject);
@@ -549,8 +549,8 @@ class Scraper {
                         })
                     }).catch((e) => {
                         if(e.message.trim() != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
-                        log(Log.fg.white + Log.bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
-                            log(Log.fg.red,e.message)
+                        log(fg.white + bg.red,'_Scraper.getData().waitforselector(results): error while trying to get data')
+                            log(fg.red,e.message)
         
                         }
                        return false;
@@ -563,10 +563,10 @@ class Scraper {
                         continue;
                     }
                 } catch (error) {
-                    log(Log.fg.white + Log.bg.red,'error in while')
+                    log(fg.white + bg.red,'error in while')
                     if(error.message != 'Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.' && error.message != 'Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.'){
-                        log(Log.fg.red,"_Scraper.getData() fails: ")
-                        log(Log.fg.white + Log.bg.red,error.message)
+                        log(fg.red,"_Scraper.getData() fails: ")
+                        log(fg.white + bg.red,error.message)
                     }else{
                         resolve(false)
                         break;
@@ -592,7 +592,7 @@ class Scraper {
                     for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks; i++) 
                     {
             
-                        log(Log.fg.white + Log.bg.green,'bucle start')
+                        log(fg.white + bg.green,'bucle start')
                         var tempArr = [];
                         await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
                                 console.log('catcha ! a')
@@ -608,13 +608,13 @@ class Scraper {
                         if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
                             console.log('bucle 1 step before comprobations')
             
-                            tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
+                            tempArr = await this.getData().then(res=>{log(fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
                             tempArr = tempArr.filter(Boolean);
                             lastArr = lastArr.filter(Boolean);
                             if (lastArr.length > 0 && tempArr != false) {
-                                log(Log.bg.green,'Amazon_:bucle temparr not empty')
-                                log(Log.bg.cyan,tempArr[0]);
+                                log(bg.green,'Amazon_:bucle temparr not empty')
+                                log(bg.cyan,tempArr[0]);
                                 
                                 if (lastArr[0] != tempArr[0]) {
                                     lastArr = tempArr;
@@ -630,11 +630,11 @@ class Scraper {
                                         paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
                                     };
                                     var clicked = await this.clickNextPagination().then(res =>{
-                                        log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                        log(bg.green + fg.white , '_Scraper.clickNextPagination() - done');
                                         return true;
                                     }).catch(e => { return false;});
                                     if (clicked === false) {
-                                        log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                        log(fg.white + bg.red, 'Pagination not clicked');
                                         break;
                                     }
                                     if (clicked != true) {
@@ -658,11 +658,11 @@ class Scraper {
                                     if(tempArrForComparation[0] != lastArrForComparation[0]){
 
                                         var clicked = await this.clickNextPagination().then(res =>{
-                                            log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                            log(bg.green + fg.white , '_Scraper.clickNextPagination() - done');
                                             return true;
                                         }).catch(e => { return false;});
                                         if (clicked === false) {
-                                            log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                            log(fg.white + bg.red, 'Pagination not clicked');
                                             break;
                                         }
                                         if (clicked != true) {
@@ -705,11 +705,11 @@ class Scraper {
                                 };
                                 
                                 var clicked = await this.clickNextPagination().then(res =>{
-                                    log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                    log(bg.green + fg.white , '_Scraper.clickNextPagination() - done');
                                     return true;
                                 }).catch(e => { return false;});
                                 if (clicked === false) {
-                                    log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                    log(fg.white + bg.red, 'Pagination not clicked');
                                     break;
                                 }
                                 if (clicked != true) {
@@ -730,7 +730,7 @@ class Scraper {
             
                         } else {
                             console.log('break final assign')
-                            var finalArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
+                            var finalArr = await this.getData().then(res=>{log(fg.green, res);return res}).catch(e=>{throw e});
                             if(finalArr != false){
                                 this.result.results = await this.result.results.concat(finalArr);
                             }
@@ -739,8 +739,8 @@ class Scraper {
             
                             await this.comprobateActualPageF();
                         }
-                        log(Log.bg.green,'Amazon_:Data extracted:');
-                        log(Log.fg.green, this.result);
+                        log(bg.green,'Amazon_:Data extracted:');
+                        log(fg.green, this.result);
                         resolve({results:this.result.results})
                 } catch (error) {
                     reject(error);
@@ -800,7 +800,7 @@ class Scraper {
                                 this.catcha = false;
                             })
                             res = true;
-                            log(Log.fg.white + Log.bg.green,'_Scraper.clickNextPagination() - success in clickNextPagination');
+                            log(fg.white + bg.green,'_Scraper.clickNextPagination() - success in clickNextPagination');
                             this.delay(Math.ceil(Math.random() * 10) * 1000);
                             this.clickedTimes++;
                             console.log('clicked!')
@@ -810,11 +810,11 @@ class Scraper {
                     }).then(res =>{
                         extractPaginationSucceded = true;
                     }).catch(e => {
-                        log(Log.fg.white + Log.bg.red,'_Scraper.clickNextPagination() - Error from clickNextPagination');
-                        console.log(Log.fg.red,e.message);
+                        log(fg.white + bg.red,'_Scraper.clickNextPagination() - Error from clickNextPagination');
+                        console.log(fg.red,e.message);
                         var uniqueErrorNameForImage = `Amazon_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${(new Date()).getTime()}.jpg`;
                         page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                        log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                        log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                        
                         extractTrys++;
             
@@ -842,7 +842,7 @@ class Scraper {
                 }).catch(e => {
                 });
                 
-                log(Log.bg.green + Log.fg.white , '_Scraper.comprobateActualPageF() - Started: ')
+                log(bg.green + fg.white , '_Scraper.comprobateActualPageF() - Started: ')
                 this.comprobateActualPage = await page.waitForSelector('.s-pagination-selected',{timeout:10000}).then(() => {
                     return page.evaluate(
                         async () => {
@@ -865,11 +865,11 @@ class Scraper {
                         })
     
                 }).catch(e=>{
-                    log(Log.bg.red + Log.fg.white , '_Scraper.comprobateActualPageF() - Error: ')
-                    log(Log.fg.red,e.message)
+                    log(bg.red + fg.white , '_Scraper.comprobateActualPageF() - Error: ')
+                    log(fg.red,e.message)
                     var uniqueErrorNameForImage = `Amazon_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                     var pagination = {
                         actualPage: 0,
                         nextPageUrl: false
@@ -881,7 +881,7 @@ class Scraper {
                     this.paginationValue = this.comprobateActualPage.actualPage;
                     this.url = this.comprobateActualPage.nextPageUrl;
                 }
-                log(Log.fg.white + Log.bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
+                log(fg.white + bg.green, `actual page :${this.comprobateActualPage.actualPage}`)
 
 
         }
@@ -906,4 +906,4 @@ class Scraper {
 
 
 
-module.exports = {DERR,Scraper};
+export default {DERR,Scraper};

@@ -1,4 +1,4 @@
-const Excel = require('exceljs');
+import { Workbook } from 'exceljs';
 
 String.prototype.replaceAll = function (search, replacement) {
   var target = this;
@@ -7,7 +7,7 @@ String.prototype.replaceAll = function (search, replacement) {
 class ExcelCreator {
   filename = ''
   columnsData = [];
-  wb = new Excel.Workbook();
+  wb = new Workbook();
   ws = this.wb.addWorksheet('Productos');
   constructor() {
     var actualDate = new Date().toISOString().
@@ -75,4 +75,4 @@ class ExcelCreator {
       return created;
   }
 }
-module.exports = ExcelCreator;
+export default ExcelCreator;

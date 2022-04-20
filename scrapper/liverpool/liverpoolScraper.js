@@ -1,10 +1,10 @@
-const e = require("express");
-var colors = require("colors");
-const useProxy = require("puppeteer-page-proxy");
-colors.enable();
-const Log = require("../../toolkit/colorsLog");
+import e, { querySelector } from "express";
+import { enable } from "colors";
+import useProxy from "puppeteer-page-proxy";
+enable();
+import { reset, bg, fg } from "../../toolkit/colorsLog";
 const log = (color, text) => {
-  console.log(`${color}%s${Log.reset}`, text);
+  console.log(`${color}%s${reset}`, text);
 };
 class Catcha {
   obj;
@@ -92,7 +92,7 @@ class Scraper {
   //2.2.1 gets the max number of paginations:
   async getMaxclicks() {
     try {
-      log(Log.bg.green + Log.fg.white, "Getting clicks");
+      log(bg.green + fg.white, "Getting clicks");
       var page = await this.page;
 
       var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_saved${new Date().getTime()}.jpg`;
@@ -102,7 +102,7 @@ class Scraper {
         })
         .catch((e) => {});
       log(
-        Log.bg.green + Log.fg.white,
+        bg.green + fg.white,
         `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
       );
 
@@ -132,10 +132,10 @@ class Scraper {
         })
         .catch(async (e) => {
           log(
-            Log.bg.red + Log.fg.white,
+            bg.red + fg.white,
             "_Scraper.getMaxClicks() - error cause pagination was not found"
           );
-          log(Log.fg.red, e.message);
+          log(fg.red, e.message);
           var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
           page
             .screenshot({
@@ -143,7 +143,7 @@ class Scraper {
             })
             .catch((e) => {});
           log(
-            Log.bg.green + Log.fg.white,
+            bg.green + fg.white,
             `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
           );
           await page
@@ -198,7 +198,7 @@ class Scraper {
                 );
             }
             
-            log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+            log(fg.white + bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
             console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
 
             var navigationSuccess = false;
@@ -211,14 +211,14 @@ class Scraper {
                    
                     return true;
                 }).catch((e) => {
-                    log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                    log(fg.white + bg.red, "_Scraper: Error in page.goto() : ");
                     if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
                         return {proxy_not_connect :true};
                     }
                     console.log(e.message.red)
                     return false;
                 });
-                log(Log.bg.yellow + Log.fg.white,prom)
+                log(bg.yellow + fg.white,prom)
                     if(prom.proxy_not_connect != undefined)
                     {
                         if(prom.proxy_not_connect === true){
@@ -228,25 +228,25 @@ class Scraper {
                 navigationSuccess =  prom;
                 
                 if(navigationSuccess === true){
-                    log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                    log(fg.white + bg.green,`Navigation to ${this.url} succeded`);
                 }else{
                     var uniqueErrorNameForImage = `Amazon_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
                     page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                    log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
                    
                     navigationFails++;
                 }
                
             }
-            log(Log.bg.cyan + Log.fg.white,'after request');
+            log(bg.cyan + fg.white,'after request');
 
             if(navigationSuccess === true && navigationFails >= 5){
                 throw new CAPF('Error navigation failed in first run');
             }
             
             page.once("pageerror",{timeout:1000}, async function (err) {
-                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(Log.fg.red ,err.error);
+                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(fg.red ,err.error);
 
                 await Promise.all([
                     page.reload(),
@@ -255,8 +255,8 @@ class Scraper {
             });
 
             page.once('error',{timeout:1000}, async (err) => {
-                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(Log.fg.red ,err.error);
+                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(fg.red ,err.error);
               await Promise.all([
                     page.reload(),
                     page.waitForNavigation()
@@ -266,8 +266,8 @@ class Scraper {
 
 
             page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
-                log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(Log.fg.red ,err.error);
+                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                log(fg.red ,err.error);
                 await Promise.all([
                     page.reload(),
                     page.waitForNavigation( { timeout: 16000 } )]
@@ -277,7 +277,7 @@ class Scraper {
                 // console.log(e)
             });
 
-            log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
+            log(bg.cyan + fg.white, 'After error page comprobation');
             if(this.maxClicks === false){
                 this.maxClicks = null;
             }
@@ -313,7 +313,7 @@ class Scraper {
 
 
 
-                var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                var extractedData=await this.extractDataLoop().then(res=>{log(bg.green + fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                 if(extractedData.results != false){
                         this.reloadTime = 0;
                         this.resolveTimeOut = 0;
@@ -351,7 +351,7 @@ class Scraper {
                     } 
                 }
                 if(e.message === 'pagination load fails'){
-                    log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
+                    log(bg.red + fg.white,`rebooting after fail in getPagination()`);
                     this.result.resetState = true;
                     
                         retry++;
@@ -455,7 +455,7 @@ class Scraper {
               ])
                 .then((res) => {
                   log(
-                    Log.fg.white + Log.bg.green,
+                    fg.white + bg.green,
                     "_Scraper.reloadPromises()  - " +
                       calledFrom +
                       " - resetDueToNotChargedPage - " +
@@ -463,11 +463,11 @@ class Scraper {
                       ? "true"
                       : "false" + " : resolver of reloader"
                   );
-                  log(Log.fg.green, e);
+                  log(fg.green, e);
                 })
                 .catch((e) => {
                   log(
-                    Log.fg.white + Log.bg.red,
+                    fg.white + bg.red,
                     "_Scraper.reloadPromises()  - " +
                       calledFrom +
                       " - resetDueToNotChargedPage - " +
@@ -475,14 +475,14 @@ class Scraper {
                       ? "true"
                       : "false" + " : error of reloader"
                   );
-                  log(Log.fg.red, e);
+                  log(fg.red, e);
                 });
 
               await this.delay(5000);
               this.setReloadTime("TimeOut(resetDueToNotChargedPage = true)")
                 .then((res) => {
                   log(
-                    Log.fg.white + Log.bg.red,
+                    fg.white + bg.red,
                     "_Scraper.setTimeOut()  - " +
                       calledFrom +
                       " - resetDueToNotChargedPage - true : resolved in set time out after reload"
@@ -492,7 +492,7 @@ class Scraper {
                 })
                 .catch((e) => {
                   log(
-                    Log.fg.white + Log.bg.red,
+                    fg.white + bg.red,
                     "_Scraper.settimeout() - " +
                       calledFrom +
                       " - resetDueToNotChargedPage - true  : rejected in set timeout function",
@@ -511,7 +511,7 @@ class Scraper {
               this.setReloadTime("TimeOut(resetDueToNotChargedPage = false)")
                 .then((res) => {
                   log(
-                    Log.fg.white + Log.bg.green,
+                    fg.white + bg.green,
                     "_Scraper.setTimeOut() - " +
                       calledFrom +
                       " - resetDueToNotChargedPage - false :resolved in set time out without reload"
@@ -519,7 +519,7 @@ class Scraper {
                 })
                 .catch((e) => {
                   log(
-                    Log.fg.white + Log.bg.red,
+                    fg.white + bg.red,
                     "_Scraper.settimeout() - resetDueToNotChargedPage - " +
                       calledFrom +
                       " - false : rejected in set timeout function",
@@ -550,12 +550,12 @@ class Scraper {
             resolve("solved with reload " + indexForResolveTimeout);
           } catch (error) {
             log(
-              Log.fg.white + Log.bg.red,
+              fg.white + bg.red,
               "_Scraper.setTimeOut() - " +
                 calledFrom +
                 ": error in settimeout: "
             );
-            log(Log.fg.red, error.message);
+            log(fg.red, error.message);
             reject(error);
           }
         }, 5000);
@@ -564,7 +564,7 @@ class Scraper {
         promise: promise,
         indexArr: this.reloadTime.length,
       });
-      log(Log.fg.white + Log.bg.green, `Timeout setted... for : ${calledFrom}`);
+      log(fg.white + bg.green, `Timeout setted... for : ${calledFrom}`);
 
       return promise;
     }
@@ -578,12 +578,12 @@ class Scraper {
       while (!success && retry < 5) {
         try {
           var page = await this.page;
-          log(Log.fg.white + Log.bg.green, "get data initialize");
+          log(fg.white + bg.green, "get data initialize");
           await page
             .waitForSelector("#captchacharacters", { timeout: 3000 })
             .then(() => {
               log(
-                Log.fg.white + Log.bg.red,
+                fg.white + bg.red,
                 "_Scraper.getData().waitforselector: catcha ! asa"
               );
               this.catcha = true;
@@ -591,7 +591,7 @@ class Scraper {
             })
             .catch((e) => {});
           log(
-            Log.fg.white + Log.bg.green,
+            fg.white + bg.green,
             "_Scraper.getData() : catcha not found"
           );
           await page.viewport({
@@ -626,19 +626,17 @@ class Scraper {
                   };
 
                   finalDataObject.product =
-                    e.querySelector(".card-title").innerText;
-                  finalDataObject.img_url = e.querySelector("img")
-                    ? e.querySelector("img").src
+                    querySelector(".card-title").innerText;
+                  finalDataObject.img_url = querySelector("img")
+                    ? querySelector("img").src
                     : null; //img url
                   finalDataObject.url =
                     document.querySelector(".m-product__card a").href;
-                  finalDataObject.newPrice = e
-                    .querySelector(".a-card-price")
+                  finalDataObject.newPrice = querySelector(".a-card-price")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
-                  finalDataObject.oldPrice = e
-                    .querySelector(".a-card-discount")
+                  finalDataObject.oldPrice = querySelector(".a-card-discount")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
@@ -660,7 +658,7 @@ class Scraper {
                           parseFloat(finalDataObject.oldPrice)
                         );
                   finalDataObject.prime =
-                    e.querySelector(".a-icon.a-icon-prime.a-icon-medium") !=
+                    querySelector(".a-icon.a-icon-prime.a-icon-medium") !=
                     null
                       ? true
                       : false;
@@ -686,10 +684,10 @@ class Scraper {
                 "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed."
               ) {
                 log(
-                  Log.fg.white + Log.bg.red,
+                  fg.white + bg.red,
                   "_Scraper.getData().waitforselector(results): error while trying to get data"
                 );
-                log(Log.fg.red, e.message);
+                log(fg.red, e.message);
               }
               return false;
             });
@@ -701,15 +699,15 @@ class Scraper {
             continue;
           }
         } catch (error) {
-          log(Log.fg.white + Log.bg.red, "error in while");
+          log(fg.white + bg.red, "error in while");
           if (
             error.message !=
               "Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." &&
             error.message !=
               "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed."
           ) {
-            log(Log.fg.red, "_Scraper.getData() fails: ");
-            log(Log.fg.white + Log.bg.red, error.message);
+            log(fg.red, "_Scraper.getData() fails: ");
+            log(fg.white + bg.red, error.message);
           } else {
             resolve(false);
             break;
@@ -738,7 +736,7 @@ class Scraper {
           (this.maxClicks === 1 && this.clickedTimes != this.maxClicks);
           i++
         ) {
-          log(Log.fg.white + Log.bg.green, "bucle start");
+          log(fg.white + bg.green, "bucle start");
           var tempArr = [];
           await page
             .waitForSelector("#captchacharacters", { timeout: 2000 })
@@ -758,7 +756,7 @@ class Scraper {
 
             tempArr = await this.getData()
               .then((res) => {
-                log(Log.fg.green, res[0]);
+                log(fg.green, res[0]);
                 return res;
               })
               .catch((e) => {
@@ -771,8 +769,8 @@ class Scraper {
             );
 
             if (lastArr.length > 0 && tempArr != false) {
-              log(Log.bg.green, "Liverpool_:bucle temparr not empty");
-              log(Log.bg.cyan, tempArr[0]);
+              log(bg.green, "Liverpool_:bucle temparr not empty");
+              log(bg.cyan, tempArr[0]);
 
               if (lastArr[0] != tempArr[0]) {
                 lastArr = tempArr;
@@ -799,7 +797,7 @@ class Scraper {
                 var clicked = await this.clickNextPagination()
                   .then((res) => {
                     log(
-                      Log.bg.green + Log.fg.white,
+                      bg.green + fg.white,
                       "_Scraper.clickNextPagination() - done"
                     );
                     return true;
@@ -808,7 +806,7 @@ class Scraper {
                     return false;
                   });
                 if (clicked === false) {
-                  log(Log.fg.white + Log.bg.red, "Pagination not clicked");
+                  log(fg.white + bg.red, "Pagination not clicked");
                   break;
                 }
                 if (clicked != true) {
@@ -857,7 +855,7 @@ class Scraper {
               var clicked = await this.clickNextPagination()
                 .then((res) => {
                   log(
-                    Log.bg.green + Log.fg.white,
+                    bg.green + fg.white,
                     "_Scraper.clickNextPagination() - done"
                   );
                   return true;
@@ -866,7 +864,7 @@ class Scraper {
                   return false;
                 });
               if (clicked === false) {
-                log(Log.fg.white + Log.bg.red, "Pagination not clicked");
+                log(fg.white + bg.red, "Pagination not clicked");
                 break;
               }
               if (clicked != true) {
@@ -883,7 +881,7 @@ class Scraper {
             console.log("Liverpool: break final assign");
             var finalArr = await this.getData()
               .then((res) => {
-                log(Log.fg.green, res);
+                log(fg.green, res);
                 return res;
               })
               .catch((e) => {
@@ -897,8 +895,8 @@ class Scraper {
 
           await this.comprobateActualPageF();
         }
-        log(Log.bg.green, "Liverpool_:Data extracted:");
-        log(Log.fg.green, this.result);
+        log(bg.green, "Liverpool_:Data extracted:");
+        log(fg.green, this.result);
         resolve({ results: this.result.results });
       } catch (error) {
         reject(error);
@@ -969,7 +967,7 @@ class Scraper {
                 });
               res = true;
               log(
-                Log.fg.white + Log.bg.green,
+                fg.white + bg.green,
                 "_Scraper.clickNextPagination() - success in clickNextPagination"
               );
               this.delay(Math.ceil(Math.random() * 10) * 1000);
@@ -984,10 +982,10 @@ class Scraper {
           })
           .catch((e) => {
             log(
-              Log.fg.white + Log.bg.red,
+              fg.white + bg.red,
               "_Scraper.clickNextPagination() - Error from clickNextPagination"
             );
-            console.log(Log.fg.red, e.message);
+            console.log(fg.red, e.message);
             var uniqueErrorNameForImage = `Liverpool_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
             page
               .screenshot({
@@ -995,7 +993,7 @@ class Scraper {
               })
               .catch((e) => {});
             log(
-              Log.bg.green + Log.fg.white,
+              bg.green + fg.white,
               `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
             );
 
@@ -1025,7 +1023,7 @@ class Scraper {
                     lastItemElement[lastItemElement.length - 2].click()
             */
     log(
-      Log.bg.green + Log.fg.white,
+      bg.green + fg.white,
       "_Scraper.comprobateActualPageF() - Started: "
     );
     this.comprobateActualPage = await page
@@ -1055,10 +1053,10 @@ class Scraper {
       })
       .catch((e) => {
         log(
-          Log.bg.red + Log.fg.white,
+          bg.red + fg.white,
           "Liverpool_Scraper.comprobateActualPageF() - Error: "
         );
-        log(Log.fg.red, e.message);
+        log(fg.red, e.message);
         var uniqueErrorNameForImage = `Liverpool_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${new Date().getTime()}.jpg`;
         page
           .screenshot({
@@ -1066,7 +1064,7 @@ class Scraper {
           })
           .catch((e) => {});
         log(
-          Log.bg.green + Log.fg.white,
+          bg.green + fg.white,
           `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
         );
         var pagination = {
@@ -1081,7 +1079,7 @@ class Scraper {
       this.url = this.url;
     }
     log(
-      Log.fg.white + Log.bg.green,
+      fg.white + bg.green,
       `actual page :${this.comprobateActualPage.actualPage}`
     );
   }
@@ -1104,4 +1102,4 @@ class Scraper {
   }
 }
 
-module.exports = { DERR, Scraper };
+export default { DERR, Scraper };

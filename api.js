@@ -5,16 +5,16 @@ import { key } from './config/config.js'
 import path from 'path'
 const app = express()
 const port = 3700
-import { query, getConnection } from './database.js'
+import pool from './database.js'
 import { create } from "pdf-creator-node"
 import { readFileSync } from "fs"
 import cors from 'cors'
 import ExcelCreator from './ExcelGenerator.js'
 import axios from 'axios'
-import { json as _json, urlencoded } from 'body-parser'
-app.use(_json())
+import bodyparser from 'body-parser'
+app.use(bodyparser.json())
 app.use(cors());
-app.use(json())
+app.use(express.json())
 import Log from './toolkit/colorsLog.js'
 const log = (color, text) => {
     console.log(`${color}%s${Log.reset}`, text);
@@ -22,22 +22,22 @@ const log = (color, text) => {
 // 1
 app.set('key', key);
 // 2
-app.use(urlencoded({ extended: true }));
+app.use(bodyparser.urlencoded({ extended: true }));
 // 3
-app.use(_json());
+app.use(bodyparser.json());
 const guard = Router();
 app.get('/s ', async (req, res) => {
-  var users = await query('SELECT jwtoken,id FROM users');
+  var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
-      var urls = await query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_starts_at * -1]);
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? ORDER BY discount ASC LIMIT 3', [url.id, controller.discount_starts_at * -1]);
         console.log('products jwtoken');
         console.log(user.jwtoken);
         for (let product of products) {
@@ -121,7 +121,7 @@ app.get('/api/testView', async (req, res) => {
   res.render('oferta', { info });
 })
 app.get('/api/getOffersDataToPdf', async (req, res) => {
-  var products = await query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
+  var products = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
 
   var html = readFileSync("./views/template.html", "utf8");
 
@@ -164,7 +164,7 @@ app.get('/proob', async (req, res) => {
   var sql = "INSERT INTO proob (log,prop) VALUES ?";
   var obj = [{ log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }, { log: 1, prop: 1 }]
   var records = obj.map(e => { return Object.values(e) })
-  query(sql, [records], function (err, result) {
+  pool.query(sql, [records], function (err, result) {
     console.log(result);
   });
   res.send('done!');
@@ -176,16 +176,16 @@ app.get('/generateExcel', async (req,res) =>{
   // calculate offset
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND ORDER BY discount ASC  limit 10 OFFSET 10;
-  const prodsQuery =await query( `SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -30 ORDER BY category ASC,discount; `)
+  const prodsQuery =await pool.query( `SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -30 ORDER BY category ASC,discount; `)
   const excel = new ExcelCreator();
   excel.getProductsData(prodsQuery);
   var created = excel.Save();
   res.json(created);
 });
-app.axios.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
-  userExist = await query('SELECT id,username,password FROM users WHERE username = ?', [username]);
+  userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
 
   console.log(userExist)
   if (userExist.length > 0) {
@@ -225,23 +225,23 @@ app.axios.post('/api/login', async (req, res) => {
   }
 
 });
-app.axios.post('/api/getLinks/:controller_id', guard, async (req, res) => {
+app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
-  data = await query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
+  data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
   res.send(data);
 });
-app.axios.post('/api/getContollers', guard, async (req, res) => {
-  data = await query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
+app.post('/api/getContollers', guard, async (req, res) => {
+  data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
   res.json(data);
 });
-app.axios.post('/api/config', guard, (req, res) => {
+app.post('/api/config', guard, (req, res) => {
 
   res.json(req.decoded)
 
 
 });
 app.get('/api/testResonse', async (req, res) => {
-  data = await query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
+  data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
   console.log(data[0].product);
   res.json({ products: data })
 
@@ -250,7 +250,7 @@ app.get('/api/testResonse', async (req, res) => {
 app.get('/api/logout', (req, res) => {
   res.json({ LoginInvalid: true });
 });
-app.axios.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
+app.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
   var config = {
     discount_starts_at: parseInt(req.body.discount_starts_at) || null,
@@ -259,12 +259,12 @@ app.axios.post('/api/config/save/controller/:controller_id', guard, async (req, 
   };
   console.log(config)
   console.log(controller_id)
-  var result = await query('UPDATE scraper_controller set ? WHERE id = ?', [config, controller_id]);
+  var result = await pool.query('UPDATE scraper_controller set ? WHERE id = ?', [config, controller_id]);
   console.log(result);
 
   res.json(result.affectedRows > 0 ? { success: true, } : { error: true })
 });
-app.axios.post('/api/config/pagination', (req, res) => {
+app.post('/api/config/pagination', (req, res) => {
   // limit as 20
   var discount = 20 * -1
   const limit = 10
@@ -274,8 +274,8 @@ app.axios.post('/api/config/pagination', (req, res) => {
   const offset = (page - 1) * limit
   // query for fetching data with page number and offset
   const prodsQuery = "select * from scraped_data WHERE discount < " + discount + " limit  " + limit + " OFFSET " + offset
-  getConnection(function (err, connection) {
-    connection.query(prodsQuery, function (error, results, fields) {
+  pool.getConnection(function (err, connection) {
+    connection.pool.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;
@@ -294,7 +294,7 @@ app.axios.post('/api/config/pagination', (req, res) => {
     })
   })
 })
-app.axios.post('/api/config/save/nofications', guard, async (req, res) => {
+app.post('/api/config/save/nofications', guard, async (req, res) => {
   const { notifyByEmail, notifyByPhone, notifyByPushNotification, controller_active, controller_id } = req.body;
   notiConfig = {
     mailNotification: notifyByEmail || 0,
@@ -302,11 +302,11 @@ app.axios.post('/api/config/save/nofications', guard, async (req, res) => {
     pushNotification: notifyByPushNotification || 0,
     controller_active: controller_active || 0
   }
-  await query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig, user_id, controller]);
+  await pool.query('UPDATE scraper_controller set ? WHERE user_id = ? AND controller = ?', [notiConfig, user_id, controller]);
   res.send('success');
 
 });
-app.axios.post('/api/config/save/link', guard, async (req, res) => {
+app.post('/api/config/save/link', guard, async (req, res) => {
   const { product_url, controller_id, category } = req.body;
   console.log('save link')
   const newScraperUrl = {
@@ -314,11 +314,11 @@ app.axios.post('/api/config/save/link', guard, async (req, res) => {
     controller_id,
     category
   };
-  let result = await query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
+  let result = await pool.query('INSERT INTO scraper_urls set ?', [newScraperUrl]);
   console.log(newScraperUrl);
   res.json(result.affectedRows > 0 ? { success: true, id: result.insertId } : { error: true });
 })
-app.axios.post('/api/config/update/link/:id', guard, async (req, res) => {
+app.post('/api/config/update/link/:id', guard, async (req, res) => {
   const { url, category } = req.body;
   const { id } = req.params;
 
@@ -327,41 +327,41 @@ app.axios.post('/api/config/update/link/:id', guard, async (req, res) => {
     category
   };
   if (url != null) {
-    var products = await query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+    var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
     console.log(products[0]['COUNT(*)']);
     if (products[0]['COUNT(*)'] > 0) {
-      await query('UPDATE scraped_data set category = ? WHERE url_id=?', [category, id]);
+      await pool.query('UPDATE scraped_data set category = ? WHERE url_id=?', [category, id]);
     }
-    var result = await query('UPDATE scraper_urls set ? WHERE id = ?', [updateUrl, id]);
+    var result = await pool.query('UPDATE scraper_urls set ? WHERE id = ?', [updateUrl, id]);
 
   }
   console.log(result);
   res.json(result.affectedRows > 0 ? { success: true } : updateUrl);
 })
-app.axios.post('/api/config/delete/link/:id', guard, async (req, res) => {
+app.post('/api/config/delete/link/:id', guard, async (req, res) => {
   console.log('deleting');
   const { id } = req.params;
-  var products = await query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
+  var products = await pool.query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
   console.log(products[0]['COUNT(*)']);
   if (products[0]['COUNT(*)'] > 0) {
-    await query('DELETE FROM scraped_reviewed WHERE url_id =?', [id]);
-    await query('DELETE FROM scraped_data WHERE url_id=?', [id]);
+    await pool.query('DELETE FROM scraped_reviewed WHERE url_id =?', [id]);
+    await pool.query('DELETE FROM scraped_data WHERE url_id=?', [id]);
   }
-  let result = await query('DELETE FROM scraper_urls WHERE id=?', [id]);
+  let result = await pool.query('DELETE FROM scraper_urls WHERE id=?', [id]);
   res.json(result.affectedRows > 0 ? { success: true } : { error: true });
 })
 app.get('/sendNotification', async (req,res)=>{
-  var users = await query('SELECT jwtoken,id FROM users');
+  var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
     
-    var controllerData = await query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
+    var controllerData = await pool.query('SELECT discount_starts_at,id FROM scraper_controller WHERE user_id = ? and controllerActive = true;', [user.id])
     for(let controller of controllerData){
       
-      var urls = await query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
+      var urls = await pool.query('SELECT id,category FROM scraper_urls WHERE controller_id = ? ', [controller.id]);
       var jwtoken = controller.jwtoken
       for(let url of urls) {
       
-        var products = await query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
+        var products = await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
         log(Log.bg.red + Log.fg.white, `Products in session: ${products.length}`)
         for (let product of products) {
           var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
@@ -374,7 +374,7 @@ app.get('/sendNotification', async (req,res)=>{
           });
           console.log(response.data);
 
-          await query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
+          await pool.query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
           
           log(Log.bg.red + Log.fg.white,`Section ${url.category}`)
           log(Log.bg.green + Log.fg.white,`Nofiyed about product`)
@@ -412,9 +412,9 @@ app.get('/sendNotification', async (req,res)=>{
 
   res.send('done')
 })
-app.axios.post('/api/config/getAllOffers', async (req, res) => {
-  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
-  const controller_id = await query('SELECT id FROM scraper_controller ');
+app.post('/api/config/getAllOffers', async (req, res) => {
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const controller_id = await pool.query('SELECT id FROM scraper_controller ');
   
   // limit as 20
   var discount = dis[0].discount_starts_at != null ? dis[0].discount_starts_at * -1 : -1;
@@ -424,9 +424,9 @@ app.axios.post('/api/config/getAllOffers', async (req, res) => {
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
 });
-app.axios.post('/api/config/getAllOffersForController',guard, async (req, res) => {
+app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const { controller_id, page } = req.body;
-  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
@@ -440,8 +440,8 @@ app.axios.post('/api/config/getAllOffersForController',guard, async (req, res) =
 
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
-  getConnection(function (err, connection) {
-    connection.query(prodsQuery, function (error, results, fields) {
+  pool.getConnection(function (err, connection) {
+    connection.pool.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;
@@ -467,10 +467,10 @@ app.axios.post('/api/config/getAllOffersForController',guard, async (req, res) =
     })
   })
 });
-app.axios.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
+app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;
-  const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
+  const dis = await pool.query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
   console.log(page);
   // limit as 20
@@ -484,8 +484,8 @@ app.axios.post('/api/config/getAllOffers/:category', guard, async (req, res) => 
   // query for fetching data with page number and offset
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND category="Games" ORDER BY discount ASC  limit 10 OFFSET 10;
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
-  getConnection(function (err, connection) {
-    connection.query(prodsQuery, function (error, results, fields) {
+  pool.getConnection(function (err, connection) {
+    connection.pool.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;
@@ -511,28 +511,28 @@ app.axios.post('/api/config/getAllOffers/:category', guard, async (req, res) => 
     })
   })
 });
-app.axios.post('/api/reviewProduct',guard,async (req,res)=>{
+app.post('/api/reviewProduct',guard,async (req,res)=>{
   const {review, product} = req.body;
   var productF = product;
   if(review != undefined){
     productF.excluded = review.excluded;
     productF.interested_in = review.interested_in;
-    var productInReview = await query('SELECT * FROM scraped_reviewed WHERE product = ?', productF.product);
+    var productInReview = await pool.query('SELECT * FROM scraped_reviewed WHERE product = ?', productF.product);
     if(productInReview.length > 0){
       if(productInReview[0].discount != productF.discount)
-      await query('UPDATE scraped_reviewed set ? WHERE id=? ',[productF,productInReview[0].id]);
+      await pool.query('UPDATE scraped_reviewed set ? WHERE id=? ',[productF,productInReview[0].id]);
       console.log('ya esta en db')
     } else{
-      await query('INSERT INTO scraped_reviewed SET ? ', [productF]);
+      await pool.query('INSERT INTO scraped_reviewed SET ? ', [productF]);
     }
   }
 
-  var reviewedProduct =await query(`
+  var reviewedProduct =await pool.query(`
   SELECT DISTINCT *
   FROM scraped_reviewed
   WHERE product IN (SELECT product FROM scraped_data);
   `);
-  var productsInDb =await query(`
+  var productsInDb =await pool.query(`
   SELECT DISTINCT * 
   FROM scraped_data
   WHERE product IN (SELECT product FROM scraped_reviewed);
@@ -544,10 +544,10 @@ app.axios.post('/api/reviewProduct',guard,async (req,res)=>{
     if(productReviewed.interested_in)
     {
       if(productReviewed.discount === productInDb.discount || productReviewed.discount * -1 > productInDb.discount * -1  ){
-        await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+        await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
       }
     }else if(productReviewed.excluded){
-      await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+      await pool.query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
     }
   }
   }

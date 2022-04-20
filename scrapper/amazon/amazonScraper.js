@@ -10,7 +10,7 @@ colors.enable();
 import Log from '../../toolkit/colorsLog.js';
 const log = (color, text) => {
 
-    console.log(`${color}%s${reset}`, text);
+    console.log(`${color}%s${Log.reset}`, text);
     };
 class Catcha {
     obj;

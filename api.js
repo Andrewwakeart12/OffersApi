@@ -1,23 +1,23 @@
 import express, { json, Router } from 'express'
 
 import { sign, verify } from 'jsonwebtoken'
-import { key } from './config/config'
+import { key } from './config/config.js'
 import path from 'path'
 const app = express()
 const port = 3700
-import { query, getConnection } from './database'
+import { query, getConnection } from './database.js'
 import { create } from "pdf-creator-node"
 import { readFileSync } from "fs"
 import cors from 'cors'
-import ExcelCreator from './ExcelGenerator'
-import { post } from 'axios'
+import ExcelCreator from './ExcelGenerator.js'
+import axios from 'axios'
 import { json as _json, urlencoded } from 'body-parser'
 app.use(_json())
 app.use(cors());
 app.use(json())
-import { reset, bg, fg } from './toolkit/colorsLog'
+import Log from './toolkit/colorsLog.js'
 const log = (color, text) => {
-    console.log(`${color}%s${reset}`, text);
+    console.log(`${color}%s${Log.reset}`, text);
     };
 // 1
 app.set('key', key);
@@ -41,7 +41,7 @@ app.get('/s ', async (req, res) => {
         console.log('products jwtoken');
         console.log(user.jwtoken);
         for (let product of products) {
-          var response = await post("https://app.nativenotify.com/api/indie/notification", {
+          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
             appId: 2194,
             subID: user.jwtoken,
             appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -60,7 +60,7 @@ app.get('/s ', async (req, res) => {
       expiresIn: '24h'
     });
 
-        var response = await post("https://app.nativenotify.com/api/indie/notification", {
+        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,
           subID: 'obe2',
           appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -86,7 +86,7 @@ app.get('/s ', async (req, res) => {
   /*
   for(let product of products){
     console.log(product)
-    var response =await  axios.post("https://app.nativenotify.com/api/indie/notification", {      
+    var response =await  axios.axios.post("https://app.nativenotify.com/api/indie/notification", {      
       appId: 2194,
       subID: 'obe2',
       appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -182,7 +182,7 @@ app.get('/generateExcel', async (req,res) =>{
   var created = excel.Save();
   res.json(created);
 });
-app.post('/api/login', async (req, res) => {
+app.axios.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
   userExist = await query('SELECT id,username,password FROM users WHERE username = ?', [username]);
@@ -225,16 +225,16 @@ app.post('/api/login', async (req, res) => {
   }
 
 });
-app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
+app.axios.post('/api/getLinks/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
   data = await query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
   res.send(data);
 });
-app.post('/api/getContollers', guard, async (req, res) => {
+app.axios.post('/api/getContollers', guard, async (req, res) => {
   data = await query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
   res.json(data);
 });
-app.post('/api/config', guard, (req, res) => {
+app.axios.post('/api/config', guard, (req, res) => {
 
   res.json(req.decoded)
 
@@ -250,7 +250,7 @@ app.get('/api/testResonse', async (req, res) => {
 app.get('/api/logout', (req, res) => {
   res.json({ LoginInvalid: true });
 });
-app.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
+app.axios.post('/api/config/save/controller/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
   var config = {
     discount_starts_at: parseInt(req.body.discount_starts_at) || null,
@@ -264,7 +264,7 @@ app.post('/api/config/save/controller/:controller_id', guard, async (req, res) =
 
   res.json(result.affectedRows > 0 ? { success: true, } : { error: true })
 });
-app.post('/api/config/pagination', (req, res) => {
+app.axios.post('/api/config/pagination', (req, res) => {
   // limit as 20
   var discount = 20 * -1
   const limit = 10
@@ -294,7 +294,7 @@ app.post('/api/config/pagination', (req, res) => {
     })
   })
 })
-app.post('/api/config/save/nofications', guard, async (req, res) => {
+app.axios.post('/api/config/save/nofications', guard, async (req, res) => {
   const { notifyByEmail, notifyByPhone, notifyByPushNotification, controller_active, controller_id } = req.body;
   notiConfig = {
     mailNotification: notifyByEmail || 0,
@@ -306,7 +306,7 @@ app.post('/api/config/save/nofications', guard, async (req, res) => {
   res.send('success');
 
 });
-app.post('/api/config/save/link', guard, async (req, res) => {
+app.axios.post('/api/config/save/link', guard, async (req, res) => {
   const { product_url, controller_id, category } = req.body;
   console.log('save link')
   const newScraperUrl = {
@@ -318,7 +318,7 @@ app.post('/api/config/save/link', guard, async (req, res) => {
   console.log(newScraperUrl);
   res.json(result.affectedRows > 0 ? { success: true, id: result.insertId } : { error: true });
 })
-app.post('/api/config/update/link/:id', guard, async (req, res) => {
+app.axios.post('/api/config/update/link/:id', guard, async (req, res) => {
   const { url, category } = req.body;
   const { id } = req.params;
 
@@ -338,7 +338,7 @@ app.post('/api/config/update/link/:id', guard, async (req, res) => {
   console.log(result);
   res.json(result.affectedRows > 0 ? { success: true } : updateUrl);
 })
-app.post('/api/config/delete/link/:id', guard, async (req, res) => {
+app.axios.post('/api/config/delete/link/:id', guard, async (req, res) => {
   console.log('deleting');
   const { id } = req.params;
   var products = await query('SELECT COUNT(*) FROM `scraped_data` WHERE url_id=?', [id]);
@@ -362,9 +362,9 @@ app.get('/sendNotification', async (req,res)=>{
       for(let url of urls) {
       
         var products = await query('SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ', [url.id, controller.discount_starts_at * -1]);
-        log(bg.red + fg.white, `Products in session: ${products.length}`)
+        log(Log.bg.red + Log.fg.white, `Products in session: ${products.length}`)
         for (let product of products) {
-          var response = await post("https://app.nativenotify.com/api/indie/notification", {
+          var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
             appId: 2194,
             subID: user.jwtoken,
             appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -376,9 +376,9 @@ app.get('/sendNotification', async (req,res)=>{
 
           await query("UPDATE scraped_data SET notifyed = 1 WHERE id = ? ", product.id )
           
-          log(bg.red + fg.white,`Section ${url.category}`)
-          log(bg.green + fg.white,`Nofiyed about product`)
-          log(fg.green,product.product);
+          log(Log.bg.red + Log.fg.white,`Section ${url.category}`)
+          log(Log.bg.green + Log.fg.white,`Nofiyed about product`)
+          log(Log.fg.green,product.product);
         }
         /*
         const payload = {
@@ -389,7 +389,7 @@ app.get('/sendNotification', async (req,res)=>{
         const token = await jwt.sign(payload, app.get('key'), {
           expiresIn: '24h'
         });
-        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+        var response = await axios.axios.post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,
           subID: user.jwtoken,
           appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -412,7 +412,7 @@ app.get('/sendNotification', async (req,res)=>{
 
   res.send('done')
 })
-app.post('/api/config/getAllOffers', async (req, res) => {
+app.axios.post('/api/config/getAllOffers', async (req, res) => {
   const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   const controller_id = await query('SELECT id FROM scraper_controller ');
   
@@ -424,7 +424,7 @@ app.post('/api/config/getAllOffers', async (req, res) => {
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id[0].controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
 });
-app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
+app.axios.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
   console.log('page');
@@ -467,7 +467,7 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
     })
   })
 });
-app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
+app.axios.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   const { controller_id, page } = req.body;
   const { category } = req.params;
   const dis = await query('SELECT discount_starts_at,discount_ends_at FROM scraper_controller WHERE id=?',[controller_id]);
@@ -511,7 +511,7 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
     })
   })
 });
-app.post('/api/reviewProduct',guard,async (req,res)=>{
+app.axios.post('/api/reviewProduct',guard,async (req,res)=>{
   const {review, product} = req.body;
   var productF = product;
   if(review != undefined){

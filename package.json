@@ -17,6 +17,7 @@
     "cheerio": "^1.0.0-rc.10",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
+    "exceljs": "^4.3.0",
     "expo-server-sdk": "^3.6.0",
     "express": "^4.17.2",
     "express-handlebars": "^6.0.2",

@@ -1,6 +1,6 @@
 import express, { json, Router } from 'express'
 
-import { sign, verify } from 'jsonwebtoken'
+import jwtoken from 'jsonwebtoken'
 import { key } from './config/config.js'
 import path from 'path'
 const app = express()
@@ -56,7 +56,7 @@ app.get('/s ', async (req, res) => {
       logged: true,
       check: true
     };
-    const token = await sign(payload, app.get('key'), {
+    const token = await jwtoken.sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
 
@@ -103,7 +103,7 @@ app.get('/s ', async (req, res) => {
 guard.use((req, res, next) => {
   const token = req.headers['access-token'];
   if (token != '') {
-    verify(token, app.get('key'), (err, decoded) => {
+    jwtoken.verify(token, app.get('key'), (err, decoded) => {
       if (err) {
         return res.json({ error: { JWTokenErr: 'Token no valido', LoginInvalid: true } })
       } else {
@@ -205,7 +205,7 @@ app.axios.post('/api/login', async (req, res) => {
       check: true
     };
 
-    const token = await sign(payload, app.get('key'), {
+    const token = await jwtoken.sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
     res.json({
@@ -386,7 +386,7 @@ app.get('/sendNotification', async (req,res)=>{
           logged: true,
           check: true
         };
-        const token = await jwt.sign(payload, app.get('key'), {
+        const token = await jwt.jwtoken.sign(payload, app.get('key'), {
           expiresIn: '24h'
         });
         var response = await axios.axios.post("https://app.nativenotify.com/api/indie/notification", {

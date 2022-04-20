@@ -1,4 +1,4 @@
-import { use, launch } from 'puppeteer-extra';
+import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import request from 'request';
 import cheerio from 'cheerio'; 
@@ -27,8 +27,8 @@ async function startBrowser(){
             '--ignore-certifcate-errors-spki-list'
         ];
        console.log("Opening the browser......");
-       use(StealthPlugin());
-        browser = await launch({
+       puppeteer.use(StealthPlugin());
+        browser = await puppeteer.launch({
             pipe: true,
             headless: false,
             ignoreHTTPSErrors: true,

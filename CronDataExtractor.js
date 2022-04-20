@@ -1,14 +1,14 @@
-import { query } from "./database";
-import browserObject from "./scrapper/browser";
-import { map } from "bluebird";
-import ProxyManager from './ProxyManager';
+import pool from "./database.js";
+import browserObject from "./scrapper/browser.js";
+import bluebird from "bluebird";
+import ProxyManager from './ProxyManager.js';
 class CronDataExtractor {
   /*return obj of links by controller
         {
            amazon : [
                URL,URL,...
            ],
-           liverpool: [
+           liverpool.query: [
                URL,URL,...
            ]
             ...
@@ -16,15 +16,15 @@ class CronDataExtractor {
     */
   async getLinks() {
     var linksArr = {};
-    var users = await query("SELECT id FROM users");
+    var users = await pool.query("SELECT id FROM users");
     for (let user of users) {
-      var controllers = await query(
+      var controllers = await pool.query(
         "SELECT id,controller FROM scraper_controller WHERE user_id=? && controllerActive=1",
         [user.id]
       );
 
       for (let controller of controllers) {
-        var urls = await query(
+        var urls = await pool.query(
           "SELECT * FROM scraper_urls WHERE controller_id= ?",
           [controller.id]
         );
@@ -59,16 +59,16 @@ class CronDataExtractor {
       }
     };
     try {
-      var controllers = await query(
+      var controllers = await pool.query(
         "SELECT id,controller FROM scraper_controller WHERE user_id=1 && controllerActive=1",
       );
       const urls = await this.getLinks()
       const results = await withBrowser(async (browser) => {
 
-        return map(controllers,async (controller)=>{
+        return bluebird.map(controllers,async (controller)=>{
   
          var localUrls =urls[controller.controller]
-                return map(localUrls, async (url) => {
+                return bluebird.map(localUrls, async (url) => {
   
                   console.log(url);
                   const result = await withPage(browser)(async (page) => {

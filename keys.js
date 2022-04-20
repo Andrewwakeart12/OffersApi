@@ -1,4 +1,5 @@
-require('dotenv').config()
+import {} from 'dotenv/config';
+
 export const database = {
     connectionLimit: 10,
     host: process.env.DB_HOST,

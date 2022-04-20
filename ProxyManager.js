@@ -1,7 +1,6 @@
-const axios = require('axios');
-const bluebird = require("bluebird");
-const { links } = require('express/lib/response');
-var cron = require('node-cron');
+import axios from 'axios';
+import bluebird from "bluebird";
+import cron from 'node-cron';
 
 class ProxyManager{
 static counter = 0;
@@ -212,4 +211,4 @@ class Rev {
 }
       
 */ 
-module.exports = ProxyManager;
+export default ProxyManager;

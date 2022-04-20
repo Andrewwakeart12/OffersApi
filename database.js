@@ -1,5 +1,5 @@
 import { createPool } from 'mysql';
-import { database } from './keys';
+import { database } from './keys.js';
 import { promisify } from 'util';
 
 const pool=createPool(database);

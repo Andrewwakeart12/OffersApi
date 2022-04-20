@@ -178,7 +178,25 @@ class Scraper {
         try {
 
             var page = this.page;
-            page.setJavaScriptEnabled(true);
+            
+            if(this.selectedProxy === 0){
+              console.log('this.Proxy.getRandomProxy() in scraper');
+            var finalProxy = await this.Proxy.getRandomProxy();
+                this.selectedProxy = finalProxy;
+                console.log(this.selectedProxy);
+
+            await useProxy(
+              page,this.selectedProxy.proxy
+          );
+            }else{
+            console.log('this.Proxy.getRandomProxy() in scraper (change) ');
+            var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
+                this.selectedProxy = finalProxy;
+                console.log(this.selectedProxy);
+                await useProxy(
+                    page,this.selectedProxy.proxy
+                );
+            }
             
             log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
             console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);

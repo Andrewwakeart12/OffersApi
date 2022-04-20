@@ -1,7 +1,7 @@
 const pool = require("./database");
-const browserObject = require("./scrapper/browser");
+const browserObject = require("./scrapper/browser").default;
 const bluebird = require("bluebird");
-const {Scraper} = require('./scrapper/amazon/amazonScraper');
+const {Scraper} = require('./scrapper/amazon/amazonScraper').default;
 const ProxyManager = require('./ProxyManager');
 class CronDataExtractor {
   /*return obj of links by controller
@@ -64,10 +64,10 @@ class CronDataExtractor {
         "SELECT id,controller FROM scraper_controller WHERE user_id=1 && controllerActive=1",
       );
       const urls = await this.getLinks()
+      const results = await withBrowser(async (browser) => {
+
         return bluebird.map(controllers,async (controller)=>{
   
-      const results = await withBrowser(async (browser) => {
-        
          var localUrls =urls[controller.controller]
                 return bluebird.map(localUrls, async (url) => {
   

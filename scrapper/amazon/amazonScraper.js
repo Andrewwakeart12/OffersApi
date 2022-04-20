@@ -4,7 +4,7 @@ const e = require("express");
 var colors = require('colors');
 
 const useProxy = require('puppeteer-page-proxy');
-
+const { createPageProxy } = import("puppeteer-proxy");
 colors.enable();
 
 const Log = require('../../toolkit/colorsLog');
@@ -78,19 +78,7 @@ class Scraper {
         //1.2 initialize the values for the returned object
     //2.Handle stages:
         //2.1 stage 1 - set the page wait for load method so it cancels the charge of css and js and the page charges faster
-        async waitForRequestToFinish(page, requestUrl, timeout) {
-            page.once('requestfinished', onRequestFinished);
-            let fulfill, timeoutId = (typeof timeout === 'number' && timeout >= 0) ? setTimeout(done, timeout) : -1;
-            return new Promise(resolve => fulfill = resolve);
-            function done() {
-                page.removeListener('requestfinished', onRequestFinished);
-                clearTimeout(timeoutId);
-                fulfill();
-            }
-            function onRequestFinished(req) {
-                if (req.url() === requestUrl) done();
-            }
-        }
+
         //2.2 gets the initial values:
             //2.2.1 gets the max number of paginations:
             async getMaxclicks() {
@@ -140,28 +128,41 @@ class Scraper {
                 var success = false;
                 var retry = 0;
                 var restartFunction;
+                var  dataProxy;
+                var page = this.page;
                 while (!success && retry < 15) {
                     try {
+                        const pageProxy = createPageProxy({
+                            page,
+                        });
 
-                        var page = this.page;
-                        page.setJavaScriptEnabled(true);
                         if(this.selectedProxy === 0){
                             console.log('this.Proxy.getRandomProxy() in scraper');
                           var finalProxy = await this.Proxy.getRandomProxy();
                               this.selectedProxy = finalProxy;
                               console.log(this.selectedProxy);
               
-                          await useProxy(
-                            page,this.selectedProxy.proxy
-                        );
+                              page.once('request', async (request)=>{
+                                await pageProxy.proxyRequest({
+                                    request,
+                                    proxyUrl:this.selectedProxy.proxy
+                                })
+                            })
                           }else{
                           console.log('this.Proxy.getRandomProxy() in scraper (change) ');
                           var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
-                              this.selectedProxy = finalProxy;
-                              console.log(this.selectedProxy);
-                              await useProxy(
-                                  page,this.selectedProxy.proxy
-                              );
+                            if(finalProxy != false && finalProxy != undefined){
+                                this.selectedProxy = finalProxy;
+                                console.log(this.selectedProxy);
+                                page.once('request', async (request)=>{
+                                    await pageProxy.proxyRequest({
+                                        request,
+                                        proxyUrl:this.selectedProxy.proxy
+                                    })
+                                })
+                            }else{
+                                this.selectedProxy = 0;
+                            }  
                           }
 
 
@@ -175,7 +176,7 @@ class Scraper {
 
                             var prom = await Promise.all([
                                 page.goto(this.url),
-                                page.waitForNavigation( { timeout: 15000 } )]).then((res)=>{
+                                page.waitForNavigation( { timeout: 35000 } )]).then((res)=>{
                                
                                 return true;
                             }).catch((e) => {
@@ -282,6 +283,7 @@ class Scraper {
         
         
                             var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                            extractedData = extractedData.filter(Boolean);
                             if(extractedData.results != false){
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
@@ -298,6 +300,7 @@ class Scraper {
                         console.log('Message : '.red);
                         console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
+                        await useProxy(page, null);
                         if (e.message != undefined) {
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
@@ -531,6 +534,8 @@ class Scraper {
         
                                 if (finalDataObject.oldPrice != null) {
                                     finalDataOutput.push(finalDataObject);
+                                }else{
+                                    finalDataOutput.push(false);
                                 }
                             }
                             return Promise.all(finalDataOutput).then(
@@ -605,7 +610,8 @@ class Scraper {
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
-            
+                            tempArr = tempArr.filter(Boolean);
+                            lastArr = lastArr.filter(Boolean);
                             if (lastArr.length > 0 && tempArr != false) {
                                 log(Log.bg.green,'Amazon_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
@@ -646,6 +652,32 @@ class Scraper {
                                     
             
 
+                                }else if(tempArr[0] == false){
+                                    var tempArrForComparation = tempArr.filter(Boolean);
+                                    var lastArrForComparation =lastArr.filter(Boolean);
+                                    if(tempArrForComparation[0] != lastArrForComparation[0]){
+
+                                        var clicked = await this.clickNextPagination().then(res =>{
+                                            log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                            return true;
+                                        }).catch(e => { return false;});
+                                        if (clicked === false) {
+                                            log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                            break;
+                                        }
+                                        if (clicked != true) {
+                                            await Promise.all([
+                                                page.reload(),
+                                                page.waitForNavigation()
+                                            ]);
+                    
+                                            continue;
+                                        }else{
+                                            if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                                resolve({results:this.result.results})
+                                            }
+                                        }
+                                    }
                                 }
             
             

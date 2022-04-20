@@ -1,10 +1,10 @@
 //https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
-import e, { querySelector } from "express";
+import e from "express";
 
 import colors from 'colors';
 
 import useProxy from 'puppeteer-page-proxy';
-import { createPageProxy } from "puppeteer-proxy";
+import { proxyRequest } from "puppeteer-proxy";
 colors.enable();
 
 import Log from '../../toolkit/colorsLog.js';
@@ -132,9 +132,7 @@ class Scraper {
                 var page = this.page;
                 while (!success && retry < 15) {
                     try {
-                        const pageProxy = createPageProxy({
-                            page,
-                        });
+
 
                         if(this.selectedProxy === 0){
                             console.log('this.Proxy.getRandomProxy() in scraper');
@@ -143,9 +141,10 @@ class Scraper {
                               console.log(this.selectedProxy);
               
                               page.once('request', async (request)=>{
-                                await pageProxy.proxyRequest({
-                                    request,
-                                    proxyUrl:this.selectedProxy.proxy
+                                await proxyRequest({
+                                    page,
+                                    proxyUrl:this.selectedProxy.proxy,
+                                    request
                                 })
                             })
                           }else{
@@ -155,10 +154,12 @@ class Scraper {
                                 this.selectedProxy = finalProxy;
                                 console.log(this.selectedProxy);
                                 page.once('request', async (request)=>{
-                                    await pageProxy.proxyRequest({
-                                        request,
-                                        proxyUrl:this.selectedProxy.proxy
-                                    })
+                                    await proxyRequest({
+                                    page,
+                                    request,
+                                        proxyUrl:this.selectedProxy.proxy,
+                                    request
+                                })
                                 })
                             }else{
                                 this.selectedProxy = 0;
@@ -524,13 +525,13 @@ class Scraper {
                                 };
         
         
-                                finalDataObject.product = querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
-                                finalDataObject.img_url = querySelector('img') ? querySelector('img').src : null //img url
-                                finalDataObject.url = querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
-                                finalDataObject.newPrice = querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
-                                finalDataObject.oldPrice = querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
+                                finalDataObject.product =e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ?e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText :e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ?e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
+                                finalDataObject.img_url =e.querySelector('img') ?e.querySelector('img').src : null //img url
+                                finalDataObject.url =e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ?e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href :e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
+                                finalDataObject.newPrice =e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ?e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') :e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
+                                finalDataObject.oldPrice =e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ?e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') :e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
                                 finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
-                                finalDataObject.prime = querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
+                                finalDataObject.prime =e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
         
                                 if (finalDataObject.oldPrice != null) {
                                     finalDataOutput.push(finalDataObject);
@@ -906,4 +907,4 @@ class Scraper {
 
 
 
-export default {DERR,Scraper};
+export {DERR,Scraper};

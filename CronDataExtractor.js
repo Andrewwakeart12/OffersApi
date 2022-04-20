@@ -75,7 +75,8 @@ class CronDataExtractor {
                     var protocolName = 'Scraper';
                     var imp =  `./scrapper/${controller.controller}/` + controller.controller + protocolName + '.js';
                     var GeneralScraperItem = await import(imp)
-                   
+                    console.log('GeneralScraperItem');
+                    console.log(GeneralScraperItem);
                     var { Scraper} = GeneralScraperItem;
                     var Scrape = new Scraper(page,Proxy);    
   

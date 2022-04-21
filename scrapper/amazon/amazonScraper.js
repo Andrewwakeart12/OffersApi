@@ -133,6 +133,7 @@ class Scraper {
                 while (!success && retry < 15) {
                     try {
 
+                        await page.setRequestInterception(true);
 
                         if(this.selectedProxy === 0){
                             console.log('this.Proxy.getRandomProxy() in scraper');

@@ -50,7 +50,6 @@ class CronDataExtractor {
       const page = await browser.newPage();
  
       try {
-        await page.setRequestInterception(true);
         await page.setDefaultNavigationTimeout(0);
         await page.setDefaultTimeout(0);
         return await fn(page);

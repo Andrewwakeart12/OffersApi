@@ -1,93 +1,78 @@
-import e, { querySelector } from "express";
-import { enable } from "colors";
-import useProxy from "puppeteer-page-proxy";
-enable();
-import { reset, bg, fg } from "../../toolkit/colorsLog";
-const log = (color, text) => {
-  console.log(`${color}%s${reset}`, text);
-};
-class Catcha {
-  obj;
+//https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
+import e from "express";
 
-  constructor(obj) {
-    this.obj = obj;
-  }
+import colors from 'colors';
+
+import useProxy from 'puppeteer-page-proxy';
+import { proxyRequest } from "puppeteer-proxy";
+colors.enable();
+
+import Log from '../../toolkit/colorsLog.js';
+const log = (color, text) => {
+
+    console.log(`${color}%s${Log.reset}`, text);
+    };
+class Catcha {
+    obj;
+
+    constructor(obj) {
+        this.obj = obj;
+    }
 }
 class CAPF {
-  message;
+    message;
 
-  constructor(message) {
-    this.message = message;
-  }
+    constructor(message) {
+        this.message = message;
+    }
 }
 class DERR {
-  message;
+    message;
 
-  constructor(message) {
-    this.message = message;
-  }
+    constructor(message) {
+        this.message = message;
+    }
 }
 class Scraper {
-  //1.initial propertys:
-  url;
-  browser;
-  paginationValue;
-  selectedProxy=0;
-  constructor(page, Proxy) {
-    this.page = page;
-    this.Proxy = Proxy;
-  }
-  //2.browser related propertys:
-  page;
-  browserObject;
-  //2.1 pagination property:
-  maxClicks = null;
-  //2.2 pagination value:
-  comprobateActualPage = { actualPage: 0 };
-  //2.3 extracted data final arr:
-  result = { results: [] };
-  //2.4 pagination clicked times property:
-  clickedTimes = 0;
-
-  //3.queueable propertys for promises:
-  reloadTime = [];
-  extractDataLoopPromises = [];
-  //3.1resolvers:
-  resolveTimeOut = [];
-
-  //4.state propertys:
-  catcha = false;
-
-  //5.error counting propertys :
-  //5.1 reset browser counter:
-  resetBrowsersInstanceError = 0;
-  //5.2 timeOuts executed counter
-  timeOuts = 0;
-  //5.3 prevent unnesesary page resets:
-  resetDueToNotChargedPage = false;
-
-  //1.start object methods :
-  //1.1 creates and return an object method:
-  //1.2 initialize the values for the returned object
-  //2.Handle stages:
-  //2.1 stage 1 - set the page wait for load method so it cancels the charge of css and js and the page charges faster
-  async waitForRequestToFinish(page, requestUrl, timeout) {
-    page.once("requestfinished", onRequestFinished);
-    let fulfill,
-      timeoutId =
-        typeof timeout === "number" && timeout >= 0
-          ? setTimeout(done, timeout)
-          : -1;
-    return new Promise((resolve) => (fulfill = resolve));
-    function done() {
-      page.removeListener("requestfinished", onRequestFinished);
-      clearTimeout(timeoutId);
-      fulfill();
+    //1.initial propertys:
+    url;
+    browser;
+    paginationValue;
+    constructor (page,Proxy){
+        this.page = page;
+        this.Proxy = Proxy;
     }
-    function onRequestFinished(req) {
-      if (req.url() === requestUrl) done();
-    }
-  }
+    Proxy;
+    selectedProxy = 0;
+    //2.browser related propertys:
+    page;
+    browserObject;
+        //2.1 pagination property:   
+        maxClicks = null;
+        //2.2 pagination value:
+        comprobateActualPage = { actualPage: 0 };
+        //2.3 extracted data final arr:
+        result = { results: [] };
+        //2.4 pagination clicked times property:
+        clickedTimes = 0;
+        
+    //3.queueable propertys for promises:
+    reloadTime = [];
+    extractDataLoopPromises = [];
+        //3.1resolvers:
+        resolveTimeOut = [];
+
+    //4.state propertys:
+    catcha = false;
+
+    //5.error counting propertys : 
+        //5.1 reset browser counter:
+        resetBrowsersInstanceError = 0;
+        //5.2 timeOuts executed counter
+        timeOuts = 0;
+        //5.3 prevent unnesesary page resets: 
+        resetDueToNotChargedPage = false;
+
   //2.2 gets the initial values:
   //2.2.1 gets the max number of paginations:
   async getMaxclicks() {
@@ -168,407 +153,359 @@ class Scraper {
       console.log(error);
     }
   }
-  //2.3 start scraping:
-  async scraper(initialUrl) {
-    this.url = initialUrl;
-    var success = false;
-    var retry = 0;
-    var restartFunction;
-    while (!success && retry < 15) {
-        try {
+        //2.3 start scraping:
+        async scraper(initialUrl) {
+                this.url = initialUrl;
+                var success = false;
+                var retry = 0;
+                var restartFunction;
+                var  dataProxy;
+                var page = this.page;
+                while (!success && retry < 15) {
+                    try {
 
-            var page = this.page;
-            
-            if(this.selectedProxy === 0){
-              console.log('this.Proxy.getRandomProxy() in scraper');
-            var finalProxy = await this.Proxy.getRandomProxy();
-                this.selectedProxy = finalProxy;
-                console.log(this.selectedProxy);
+                      await page.setRequestInterception(true);
 
-            await useProxy(
-              page,this.selectedProxy.proxy
-          );
-            }else{
-            console.log('this.Proxy.getRandomProxy() in scraper (change) ');
-            var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
-                this.selectedProxy = finalProxy;
-                console.log(this.selectedProxy);
-                await useProxy(
-                    page,this.selectedProxy.proxy
-                );
-            }
-            
-            log(fg.white + bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
-            console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
+                        if(this.selectedProxy === 0){
+                            console.log('this.Proxy.getRandomProxy() in scraper');
+                          var finalProxy = await this.Proxy.getRandomProxy();
+                              this.selectedProxy = finalProxy;
+                              console.log(this.selectedProxy);
+              
+                              page.once('request', async (request)=>{
+                                await proxyRequest({
+                                    page,
+                                    proxyUrl:this.selectedProxy.proxy,
+                                    request
+                                })
+                            })
+                          }else{
+                          console.log('this.Proxy.getRandomProxy() in scraper (change) ');
+                          var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
+                            if(finalProxy != false && finalProxy != undefined){
+                                this.selectedProxy = finalProxy;
+                                console.log(this.selectedProxy);
+                                page.once('request', async (request)=>{
+                                    await proxyRequest({
+                                    page,
+                                    request,
+                                        proxyUrl:this.selectedProxy.proxy,
+                                    request
+                                })
+                                })
+                            }else{
+                                this.selectedProxy = 0;
+                            }  
+                          }
 
-            var navigationSuccess = false;
-            var navigationFails = 0;
-            while(!navigationSuccess && navigationFails <= 5 ){
 
-                var prom = await Promise.all([
-                    page.goto(this.url),
-                    page.waitForNavigation( { timeout: 165000 } )]).then((res)=>{
-                   
-                    return true;
-                }).catch((e) => {
-                    log(fg.white + bg.red, "_Scraper: Error in page.goto() : ");
-                    if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
-                        return {proxy_not_connect :true};
-                    }
-                    console.log(e.message.red)
-                    return false;
-                });
-                log(bg.yellow + fg.white,prom)
-                    if(prom.proxy_not_connect != undefined)
-                    {
-                        if(prom.proxy_not_connect === true){
-                            throw new DERR('Proxy Not Connected');
+                        
+                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
+                        console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
+        
+                        var navigationSuccess = false;
+                        var navigationFails = 0;
+                        while(!navigationSuccess && navigationFails <= 5 ){
+
+                            var prom = await Promise.all([
+                                page.goto(this.url),
+                                page.waitForNavigation( { timeout: 35000 } )]).then((res)=>{
+                               
+                                return true;
+                            }).catch((e) => {
+                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+                                if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
+                                    return {proxy_not_connect :true};
+                                }
+                                console.log(e.message.red)
+                                return false;
+                            });
+                            log(Log.bg.yellow + Log.fg.white,prom)
+                                if(prom.proxy_not_connect != undefined)
+                                {
+                                    if(prom.proxy_not_connect === true){
+                                        throw new DERR('Proxy Not Connected');
+                                    }
+                                }
+                            navigationSuccess =  prom;
+                            
+                            if(navigationSuccess === true){
+                                log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
+                            }else{
+                                var uniqueErrorNameForImage = `Amazon_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
+                                page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
+                                log(Log.bg.green + Log.fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
+                               
+                                navigationFails++;
+                            }
+                           
                         }
-                    }
-                navigationSuccess =  prom;
-                
-                if(navigationSuccess === true){
-                    log(fg.white + bg.green,`Navigation to ${this.url} succeded`);
-                }else{
-                    var uniqueErrorNameForImage = `Amazon_Scraper.page.goto()_ERROR_WHILE_NAVIGATION_${(new Date()).getTime()}.jpg`;
-                    page.screenshot({path:`/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`}).catch(e=>{});
-                    log(bg.green + fg.white,`capture saved with the name ${uniqueErrorNameForImage}`);
-                   
-                    navigationFails++;
-                }
-               
-            }
-            log(bg.cyan + fg.white,'after request');
+                        log(Log.bg.cyan + Log.fg.white,'after request');
 
-            if(navigationSuccess === true && navigationFails >= 5){
-                throw new CAPF('Error navigation failed in first run');
-            }
-            
-            page.once("pageerror",{timeout:1000}, async function (err) {
-                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(fg.red ,err.error);
-
-                await Promise.all([
-                    page.reload(),
-                    page.waitForNavigation( { timeout: 16000 } )]
-                )
-            });
-
-            page.once('error',{timeout:1000}, async (err) => {
-                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(fg.red ,err.error);
-              await Promise.all([
-                    page.reload(),
-                    page.waitForNavigation()
-                ])
-
-            });
-
-
-            page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
-                log(fg.white + bg.red,'_Scraper.scraper().waitforselector: Page error:');
-                log(fg.red ,err.error);
-                await Promise.all([
-                    page.reload(),
-                    page.waitForNavigation( { timeout: 16000 } )]
-                )
-            }).catch(e => {
-                // console.log('e from error-code')
-                // console.log(e)
-            });
-
-            log(bg.cyan + fg.white, 'After error page comprobation');
-            if(this.maxClicks === false){
-                this.maxClicks = null;
-            }
-            if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
-                var getPaginationSuccess = false;
-                var getPagintaionFails = 0;
-                while(!getPaginationSuccess && getPagintaionFails < 5 ){
-                var pag = await this.getMaxclicks();
-                if(pag != true ){
-                    if(this.catcha === true){
-                        throw new DERR('!catcha')
-                    }
-                    await Promise.all([page.reload(),
-                            page.waitForNavigation( { timeout: 16000 } )]);
-                        this.maxClicks = null;
-                        getPagintaionFails++;
-                    }else{
-                        getPaginationSuccess = true;
-                    }
-                }
-
-                if(this.catcha === true){
-                    throw new Catcha('!catcha')
-                }
-            }
-            if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
-                throw new DERR('pagination load fails');
-            }
-            console.log('pagination value'.green)
-            console.log(`${this.paginationValue}`.green);
-            console.log('maxClicks: '.green)
-            console.log(`${this.maxClicks}`.green)
-
-
-
-                var extractedData=await this.extractDataLoop().then(res=>{log(bg.green + fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
-                if(extractedData.results != false){
-                        this.reloadTime = 0;
-                        this.resolveTimeOut = 0;
-                    success = true;
-                    this.Proxy.markProxyAsUnused(this.selectedProxy.id);
-                    return extractedData;
-                }else{
-                    break;
-                }
-
-        }   catch (e) {
-
-            console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
-            console.log('Message : '.red);
-            console.log(e.message != undefined ? e.message.red : e.red);
-            console.log('-----------------');
-            if (e.message != undefined) {
-                if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted withoud reset'.green);
-                        continue;
-                    } else {
-                        retry++;
-                    }
-                }
-            }
-
-            if (e.message != undefined) {
-                 if (this.catcha === true) {
-                    if (restartFunction) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    } 
-                }
-                if(e.message === 'pagination load fails'){
-                    log(bg.red + fg.white,`rebooting after fail in getPagination()`);
-                    this.result.resetState = true;
-                    
-                        retry++;
-                }
-                if(e.message === 'Error navigation failed in first run'){
-                    console.log(`rebooting after fail in navigation to ${this.url}`);
-                    this.result.resetState = true;
-                    
-                        retry++;
-                }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    } else {
-                        this.unsetTime()
-                        this.result.resetState = true;
+                        if(navigationSuccess === true && navigationFails >= 5){
+                            throw new CAPF('Error navigation failed in first run');
+                        }
                         
-                        retry++;
-                    }
-                } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    } else {
-                        this.unsetTime()
-                        this.result.resetState = true;
-                        
-                        retry++;
-                    }
-                }
-                else if (e.message.trim() === "Navigation failed because browser has disconnected!") {
-                    console.log(e.message);
+                        page.once("pageerror",{timeout:1000}, async function (err) {
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
+        
+                            await Promise.all([
+                                page.reload(),
+                                page.waitForNavigation( { timeout: 16000 } )]
+                            )
+                        });
+        
+                        page.once('error',{timeout:1000}, async (err) => {
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
+                          await Promise.all([
+                                page.reload(),
+                                page.waitForNavigation()
+                            ])
+        
+                        });
+        
+        
+                        page.waitForSelector('.error-code', { timeout: 1000 }).then(async () => {
+                            log(Log.fg.white + Log.bg.red,'_Scraper.scraper().waitforselector: Page error:');
+                            log(Log.fg.red ,err.error);
+                            await Promise.all([
+                                page.reload(),
+                                page.waitForNavigation( { timeout: 16000 } )]
+                            )
+                        }).catch(e => {
+                            // console.log('e from error-code')
+                            // console.log(e)
+                        });
 
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    } else {
-                        this.unsetTime()
-                        this.result.resetState = true;
-                        
-                        retry++;
-                    }
-                } else if (e.message.split(' ')[0] === 'Cannot') {
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    }
+                        log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
+                        if(this.maxClicks === false){
+                            this.maxClicks = null;
+                        }
+                        if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
+                            var getPaginationSuccess = false;
+                            var getPagintaionFails = 0;
+                            while(!getPaginationSuccess && getPagintaionFails < 5 ){
+                            var pag = await this.getMaxclicks();
+                            if(pag != true ){
+                                if(this.catcha === true){
+                                    throw new DERR('!catcha')
+                                }
+                                await Promise.all([page.reload(),
+                                        page.waitForNavigation( { timeout: 16000 } )]);
+                                    this.maxClicks = null;
+                                    getPagintaionFails++;
+                                }else{
+                                    getPaginationSuccess = true;
+                                }
+                            }
 
+                            if(this.catcha === true){
+                                throw new Catcha('!catcha')
+                            }
+                        }
+                        if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
+                            throw new DERR('pagination load fails');
+                        }
+                        console.log('pagination value'.green)
+                        console.log(`${this.paginationValue}`.green);
+                        console.log('maxClicks: '.green)
+                        console.log(`${this.maxClicks}`.green)
+        
+        
+        
+                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
+                            extractedData = extractedData.filter(Boolean);
+                            if(extractedData.results != false){
+                                    this.reloadTime = 0;
+                                    this.resolveTimeOut = 0;
+                                success = true;
+                                this.Proxy.markProxyAsUnused(this.selectedProxy.id);
+                                return extractedData;
+                            }else{
+                                break;
+                            }
 
-                }
-                else if (restartFunction < 20) {
-                    await Promise.all([page.reload(),
-                    page.waitForNavigation( { timeout: 16000 } )]);
-                    continue;
-                } else {
-                    if (restartFunction < 10) {
-                        restartFunction++;
-                        console.log('restarted');
-                        continue;
-                    } else {
-                        this.unsetTime()
-                        this.result.resetState = true;
-                        
-                        retry++;
+                    }   catch (e) {
+
+                        console.log('ERROR IN SCRAPPER (UNNESESARY RESET?)'.red);
+                        console.log('Message : '.red);
+                        console.log(e.message != undefined ? e.message.red : e.red);
+                        console.log('-----------------');
+                        await useProxy(page, null);
+                        if (e.message != undefined) {
+                            if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted withoud reset'.green);
+                                    continue;
+                                } else {
+                                    retry++;
+                                }
+                            }
+                        }
+
+                        if (e.message != undefined) {
+                             if (this.catcha === true) {
+                                if (restartFunction) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } 
+                            }
+                            if(e.message === 'pagination load fails'){
+                                log(Log.bg.red + Log.fg.white,`rebooting after fail in getPagination()`);
+                                this.result.resetState = true;
+                                
+                                    retry++;
+                            }
+                            if(e.message === 'Error navigation failed in first run'){
+                                console.log(`rebooting after fail in navigation to ${this.url}`);
+                                this.result.resetState = true;
+                                
+                                    retry++;
+                            }else if ('CAPF:' + "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." === e.message) {
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } else {
+                                    this.unsetTime()
+                                    this.result.resetState = true;
+                                    
+                                    retry++;
+                                }
+                            } else if (e.message === "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed.") {
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } else {
+                                    this.unsetTime()
+                                    this.result.resetState = true;
+                                    
+                                    retry++;
+                                }
+                            }
+                            else if (e.message.trim() === "Navigation failed because browser has disconnected!") {
+                                console.log(e.message);
+        
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } else {
+                                    this.unsetTime()
+                                    this.result.resetState = true;
+                                    
+                                    retry++;
+                                }
+                            } else if (e.message.split(' ')[0] === 'Cannot') {
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                }
+        
+        
+                            }
+                            else if (restartFunction < 20) {
+                                await Promise.all([page.reload(),
+                                page.waitForNavigation( { timeout: 16000 } )]);
+                                continue;
+                            } else {
+                                if (restartFunction < 10) {
+                                    restartFunction++;
+                                    console.log('restarted');
+                                    continue;
+                                } else {
+                                    this.unsetTime()
+                                    this.result.resetState = true;
+                                    
+                                    retry++;
+                                }
+                            }
+                        }
+        
                     }
                 }
             }
+        //2.4 set conditions to reload page if something fails or its a captcha in page:
+        async setReloadTime(calledFrom) {
+            var page = await this.page;
+            if (this.reloadTime != 1 && this.reloadTime.length < 1 && this.comprobateActualPage.actualPage < this.maxClicks || this.maxClicks === null && this.timeOuts <= 10) {
+                console.log(`Timeout setting... for : ${calledFrom}`);
+                var promise = new Promise((resolve, reject) => {
+                    var indexForResolveTimeout = this.resolveTimeOut.length;
+                    this.resolveTimeOut.push({ resolvePromise: resolve, indexArr: indexForResolveTimeout })
+                    setTimeout(async () => {
+                        try {
+                            if (this.timeOuts > 10) {
+                                throw new DERR('Timeout Exceeded');
+                            }
+                            if (this.resetDueToNotChargedPage === true) {
+                                await Promise.all([
+                                page.reload(),
+                                page.waitForNavigation({ waitUntil: 'load' })
+                                ]).then(res => {
+                                    log(Log.fg.white + Log.bg.green,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : resolver of reloader')
+                                    log(Log.fg.green,e);
+                                }).catch(e=>{
+                                    log(Log.fg.white + Log.bg.red,'_Scraper.reloadPromises()  - '+ calledFrom +' - resetDueToNotChargedPage - '+ this.resetDueToNotChargedPage ? 'true' : 'false' + ' : error of reloader');
+                                    log(Log.fg.red,e);
+                                })
 
+                                await this.delay(5000)
+                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = true)').then(res=>{log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut()  - '+ calledFrom +' - resetDueToNotChargedPage - true : resolved in set time out after reload');this.timeOuts++; resolve('resolve after reload')}).catch(e=>{log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - '+ calledFrom +' - resetDueToNotChargedPage - true  : rejected in set timeout function',e.message); 
+                                if(calledFrom === 'scraper()'){
+                                    throw e;    
+                                }else{
+                                    reject(e);
+                                }
+                                })
+
+                            } else {
+                                this.resetDueToNotChargedPage = true;
+
+                                await this.delay(5000)
+                                this.setReloadTime('TimeOut(resetDueToNotChargedPage = false)').then(res=>{log(Log.fg.white + Log.bg.green,'_Scraper.setTimeOut() - '+ calledFrom +' - resetDueToNotChargedPage - false :resolved in set time out without reload');}).catch(e=>{ log(Log.fg.white + Log.bg.red,'_Scraper.settimeout() - resetDueToNotChargedPage - '+ calledFrom +' - false : rejected in set timeout function',e.message); 
+                                if(calledFrom === 'scraper()' || calledFrom === 'ExtracData'){
+                                    throw e;    
+                                }else{
+                                    reject(e);
+                                }
+                            })
+                                resolve('solved without reload ' + indexForResolveTimeout)
+                            }
+                            if (this.catcha === false) {
+                                resolve('solved with reload ' + indexForResolveTimeout)
+                                await this.delay(Math.ceil(Math.random() * 5) * 1000);
+    
+                            }
+                            this.timeOuts++;
+    
+                            if (this.timeOuts > 10) {
+                                throw new DERR('Timeout Exceeded');
+                            }
+    
+                            console.log('Time out')
+                            resolve('solved with reload ' + indexForResolveTimeout)
+                        } catch (error) {
+                            log(Log.fg.white + Log.bg.red,'_Scraper.setTimeOut() - '+ calledFrom +': error in settimeout: ')
+                            log(Log.fg.red,error.message)
+                            reject(error);
+                        }
+                    }, 5000)
+                })
+                this.reloadTime.push({ promise: promise, indexArr: this.reloadTime.length });
+                log(Log.fg.white + Log.bg.green,`Timeout setted... for : ${calledFrom}`)
+    
+                return promise;
+    
+            }
+    
         }
-    }
-}
-  //2.4 set conditions to reload page if something fails or its a captcha in page:
-  async setReloadTime(calledFrom) {
-    var page = await this.page;
-    if (
-      (this.reloadTime != 1 &&
-        this.reloadTime.length < 1 &&
-        this.comprobateActualPage.actualPage < this.maxClicks) ||
-      (this.maxClicks === null && this.timeOuts <= 10)
-    ) {
-      console.log(`Timeout setting... for : ${calledFrom}`);
-      var promise = new Promise((resolve, reject) => {
-        var indexForResolveTimeout = this.resolveTimeOut.length;
-        this.resolveTimeOut.push({
-          resolvePromise: resolve,
-          indexArr: indexForResolveTimeout,
-        });
-        setTimeout(async () => {
-          try {
-            if (this.timeOuts > 10) {
-              throw new DERR("Timeout Exceeded");
-            }
-            if (this.resetDueToNotChargedPage === true) {
-              await Promise.all([
-                page.reload(),
-                page.waitForNavigation({ waitUntil: "load" }),
-              ])
-                .then((res) => {
-                  log(
-                    fg.white + bg.green,
-                    "_Scraper.reloadPromises()  - " +
-                      calledFrom +
-                      " - resetDueToNotChargedPage - " +
-                      this.resetDueToNotChargedPage
-                      ? "true"
-                      : "false" + " : resolver of reloader"
-                  );
-                  log(fg.green, e);
-                })
-                .catch((e) => {
-                  log(
-                    fg.white + bg.red,
-                    "_Scraper.reloadPromises()  - " +
-                      calledFrom +
-                      " - resetDueToNotChargedPage - " +
-                      this.resetDueToNotChargedPage
-                      ? "true"
-                      : "false" + " : error of reloader"
-                  );
-                  log(fg.red, e);
-                });
-
-              await this.delay(5000);
-              this.setReloadTime("TimeOut(resetDueToNotChargedPage = true)")
-                .then((res) => {
-                  log(
-                    fg.white + bg.red,
-                    "_Scraper.setTimeOut()  - " +
-                      calledFrom +
-                      " - resetDueToNotChargedPage - true : resolved in set time out after reload"
-                  );
-                  this.timeOuts++;
-                  resolve("resolve after reload");
-                })
-                .catch((e) => {
-                  log(
-                    fg.white + bg.red,
-                    "_Scraper.settimeout() - " +
-                      calledFrom +
-                      " - resetDueToNotChargedPage - true  : rejected in set timeout function",
-                    e.message
-                  );
-                  if (calledFrom === "scraper()") {
-                    throw e;
-                  } else {
-                    reject(e);
-                  }
-                });
-            } else {
-              this.resetDueToNotChargedPage = true;
-
-              await this.delay(5000);
-              this.setReloadTime("TimeOut(resetDueToNotChargedPage = false)")
-                .then((res) => {
-                  log(
-                    fg.white + bg.green,
-                    "_Scraper.setTimeOut() - " +
-                      calledFrom +
-                      " - resetDueToNotChargedPage - false :resolved in set time out without reload"
-                  );
-                })
-                .catch((e) => {
-                  log(
-                    fg.white + bg.red,
-                    "_Scraper.settimeout() - resetDueToNotChargedPage - " +
-                      calledFrom +
-                      " - false : rejected in set timeout function",
-                    e.message
-                  );
-                  if (
-                    calledFrom === "scraper()" ||
-                    calledFrom === "ExtracData"
-                  ) {
-                    throw e;
-                  } else {
-                    reject(e);
-                  }
-                });
-              resolve("solved without reload " + indexForResolveTimeout);
-            }
-            if (this.catcha === false) {
-              resolve("solved with reload " + indexForResolveTimeout);
-              await this.delay(Math.ceil(Math.random() * 5) * 1000);
-            }
-            this.timeOuts++;
-
-            if (this.timeOuts > 10) {
-              throw new DERR("Timeout Exceeded");
-            }
-
-            console.log("Liverpool: Time out");
-            resolve("solved with reload " + indexForResolveTimeout);
-          } catch (error) {
-            log(
-              fg.white + bg.red,
-              "_Scraper.setTimeOut() - " +
-                calledFrom +
-                ": error in settimeout: "
-            );
-            log(fg.red, error.message);
-            reject(error);
-          }
-        }, 5000);
-      });
-      this.reloadTime.push({
-        promise: promise,
-        indexArr: this.reloadTime.length,
-      });
-      log(fg.white + bg.green, `Timeout setted... for : ${calledFrom}`);
-
-      return promise;
-    }
-  }
   //2.5 get data from page
   async getData() {
     var prom = new Promise(async (resolve, reject) => {
@@ -1083,23 +1020,25 @@ class Scraper {
       `actual page :${this.comprobateActualPage.actualPage}`
     );
   }
-  //2.9 if all the data its extracted returns this.result and apply the destroy() method
-  //2.10 if theres an error apply the browserReset() method
-
-  //3 tool kit:
-  //3.1 wait x time before continue:
-  async delay(time) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve, time);
-    });
-  }
-  //3.1 destroys the object and the internal data
-  destroy() {
-    this.url = null;
-    this.unsetTime();
-    this.resolveTimeOut = null;
-    this.reloadTime = null;
-  }
+        //2.9 if all the data its extracted returns this.result and apply the destroy() method
+        //2.10 if theres an error apply the browserReset() method
+    
+    //3 tool kit:
+        //3.1 wait x time before continue:
+        async delay(time) {
+            return new Promise(function (resolve) {
+                setTimeout(resolve, time)
+            });
+        }
+        //3.5 destroys the object and the internal data
+        destroy(){
+            this.url = null;
+            this.unsetTime();
+            this.resolveTimeOut = null;
+            this.reloadTime = null;
+        }
 }
 
-export default { DERR, Scraper };
+
+
+export {DERR,Scraper};

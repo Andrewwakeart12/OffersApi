@@ -1,6 +1,21 @@
 import axios from 'axios';
+import https from 'https';
 import bluebird from "bluebird";
 import cron from 'node-cron';
+
+// At instance level
+const instance = axios.create({
+    httpsAgent: new https.Agent({  
+      rejectUnauthorized: false
+    })
+  });
+  
+  instance.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
+  
+  // At request level
+  const agent = new https.Agent({  
+    rejectUnauthorized: false
+  });
 
 class ProxyManager{
 static counter = 0;
@@ -17,7 +32,7 @@ static counter = 0;
             var success = false
             while(!success && resetGet < 10){
             try{
-                var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
+                var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http',{httpsAgent:agent});
                 if(res.data != undefined){
                     console.log(res.data);
                     success = true;

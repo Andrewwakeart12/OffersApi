@@ -3,6 +3,7 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const request = require('request');
 const cheerio = require('cheerio'); 
 const axios = require('axios');
+const https = require('https');
 const { response } = require('express');
 const randomUA = require('modern-random-ua');
 const proxyChain = require('proxy-chain');
@@ -16,9 +17,22 @@ var browser;
 async function getProxy(){
     var resetGet = 0
     var success = false
+    // At instance level
+    const instance = axios.create({
+        httpsAgent: new https.Agent({  
+        rejectUnauthorized: false
+        })
+    });
+    
+    instance.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
+    
+    // At request level
+    const agent = new https.Agent({  
+        rejectUnauthorized: false
+    });
     while(!success && resetGet < 10){
     try{
-        var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http');
+        var res =await  axios.get('https://api.proxyorbit.com/v1/?token=-ZZhH3ez3XLjAMii06NW1Ls9WluEd3I1oNJLbMbaJRo&ssl=true&amazon=true&protocol=http',{httpsAgent:agent});
         if(res.data != undefined){
             success = true;
         }

@@ -1,15 +1,7 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import request from 'request';
-import cheerio from 'cheerio'; 
-import axios from 'axios';
-import { response } from 'express';
 import { generate } from 'modern-random-ua';
-import proxyChain from 'proxy-chain';
-let ip_addresses = [];
-let port_numbers = [];
-let country = [];
-var get_proxy_try_counter =  0
+
 
 
 var browser;

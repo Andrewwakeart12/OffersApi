@@ -77,7 +77,7 @@ class Scraper {
   //2.2.1 gets the max number of paginations:
   async getMaxclicks() {
     try {
-      log(bg.green + fg.white, "Getting clicks");
+      log(Log.bg.green + Log.fg.white, "Getting clicks");
       var page = await this.page;
 
       var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_saved${new Date().getTime()}.jpg`;
@@ -87,7 +87,7 @@ class Scraper {
         })
         .catch((e) => {});
       log(
-        bg.green + fg.white,
+        Log.bg.green + Log.fg.white,
         `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
       );
 
@@ -117,10 +117,10 @@ class Scraper {
         })
         .catch(async (e) => {
           log(
-            bg.red + fg.white,
+            Log.bg.red + Log.fg.white,
             "_Scraper.getMaxClicks() - error cause pagination was not found"
           );
-          log(fg.red, e.message);
+          log(Log.fg.red, e.message);
           var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
           page
             .screenshot({
@@ -128,7 +128,7 @@ class Scraper {
             })
             .catch((e) => {});
           log(
-            bg.green + fg.white,
+            Log.bg.green + Log.fg.white,
             `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
           );
           await page
@@ -165,7 +165,7 @@ class Scraper {
                     try {
 
                       await page.setRequestInterception(true);
-
+/*
                         if(this.selectedProxy === 0){
                             console.log('this.Proxy.getRandomProxy() in scraper');
                           var finalProxy = await this.Proxy.getRandomProxy();
@@ -198,8 +198,7 @@ class Scraper {
                             }  
                           }
 
-
-                        
+                      */  
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
         
@@ -228,7 +227,7 @@ class Scraper {
                                     }
                                 }
                             navigationSuccess =  prom;
-                            
+
                             if(navigationSuccess === true){
                                 log(Log.fg.white + Log.bg.green,`Navigation to ${this.url} succeded`);
                             }else{
@@ -515,12 +514,12 @@ class Scraper {
       while (!success && retry < 5) {
         try {
           var page = await this.page;
-          log(fg.white + bg.green, "get data initialize");
+          log(Log.fg.white + Log.bg.green, "get data initialize");
           await page
             .waitForSelector("#captchacharacters", { timeout: 3000 })
             .then(() => {
               log(
-                fg.white + bg.red,
+                Log.fg.white + Log.bg.red,
                 "_Scraper.getData().waitforselector: catcha ! asa"
               );
               this.catcha = true;
@@ -528,7 +527,7 @@ class Scraper {
             })
             .catch((e) => {});
           log(
-            fg.white + bg.green,
+            Log.fg.white + Log.bg.green,
             "_Scraper.getData() : catcha not found"
           );
           await page.viewport({
@@ -621,10 +620,10 @@ class Scraper {
                 "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed."
               ) {
                 log(
-                  fg.white + bg.red,
+                  Log.fg.white + Log.bg.red,
                   "_Scraper.getData().waitforselector(results): error while trying to get data"
                 );
-                log(fg.red, e.message);
+                log(Log.fg.red, e.message);
               }
               return false;
             });
@@ -636,15 +635,15 @@ class Scraper {
             continue;
           }
         } catch (error) {
-          log(fg.white + bg.red, "error in while");
+          log(Log.fg.white + Log.bg.red, "error in while");
           if (
             error.message !=
               "Error: Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed." &&
             error.message !=
               "Protocol error (Runtime.callFunctionOn): Session closed. Most likely the page has been closed."
           ) {
-            log(fg.red, "_Scraper.getData() fails: ");
-            log(fg.white + bg.red, error.message);
+            log(Log.fg.red, "_Scraper.getData() fails: ");
+            log(Log.fg.white + Log.bg.red, error.message);
           } else {
             resolve(false);
             break;
@@ -673,7 +672,7 @@ class Scraper {
           (this.maxClicks === 1 && this.clickedTimes != this.maxClicks);
           i++
         ) {
-          log(fg.white + bg.green, "bucle start");
+          log(Log.fg.white + Log.bg.green, "bucle start");
           var tempArr = [];
           await page
             .waitForSelector("#captchacharacters", { timeout: 2000 })
@@ -693,7 +692,7 @@ class Scraper {
 
             tempArr = await this.getData()
               .then((res) => {
-                log(fg.green, res[0]);
+                log(Log.fg.green, res[0]);
                 return res;
               })
               .catch((e) => {
@@ -706,7 +705,7 @@ class Scraper {
             );
 
             if (lastArr.length > 0 && tempArr != false) {
-              log(bg.green, "Liverpool_:bucle temparr not empty");
+              log(Log.bg.green, "Liverpool_:bucle temparr not empty");
               log(bg.cyan, tempArr[0]);
 
               if (lastArr[0] != tempArr[0]) {
@@ -734,7 +733,7 @@ class Scraper {
                 var clicked = await this.clickNextPagination()
                   .then((res) => {
                     log(
-                      bg.green + fg.white,
+                      Log.bg.green + Log.fg.white,
                       "_Scraper.clickNextPagination() - done"
                     );
                     return true;
@@ -743,7 +742,7 @@ class Scraper {
                     return false;
                   });
                 if (clicked === false) {
-                  log(fg.white + bg.red, "Pagination not clicked");
+                  log(Log.fg.white + Log.bg.red, "Pagination not clicked");
                   break;
                 }
                 if (clicked != true) {
@@ -792,7 +791,7 @@ class Scraper {
               var clicked = await this.clickNextPagination()
                 .then((res) => {
                   log(
-                    bg.green + fg.white,
+                    Log.bg.green + Log.fg.white,
                     "_Scraper.clickNextPagination() - done"
                   );
                   return true;
@@ -801,7 +800,7 @@ class Scraper {
                   return false;
                 });
               if (clicked === false) {
-                log(fg.white + bg.red, "Pagination not clicked");
+                log(Log.fg.white + Log.bg.red, "Pagination not clicked");
                 break;
               }
               if (clicked != true) {
@@ -818,7 +817,7 @@ class Scraper {
             console.log("Liverpool: break final assign");
             var finalArr = await this.getData()
               .then((res) => {
-                log(fg.green, res);
+                log(Log.fg.green, res);
                 return res;
               })
               .catch((e) => {
@@ -832,8 +831,8 @@ class Scraper {
 
           await this.comprobateActualPageF();
         }
-        log(bg.green, "Liverpool_:Data extracted:");
-        log(fg.green, this.result);
+        log(Log.bg.green, "Liverpool_:Data extracted:");
+        log(Log.fg.green, this.result);
         resolve({ results: this.result.results });
       } catch (error) {
         reject(error);
@@ -904,7 +903,7 @@ class Scraper {
                 });
               res = true;
               log(
-                fg.white + bg.green,
+                Log.fg.white + Log.bg.green,
                 "_Scraper.clickNextPagination() - success in clickNextPagination"
               );
               this.delay(Math.ceil(Math.random() * 10) * 1000);
@@ -919,10 +918,10 @@ class Scraper {
           })
           .catch((e) => {
             log(
-              fg.white + bg.red,
+              Log.fg.white + Log.bg.red,
               "_Scraper.clickNextPagination() - Error from clickNextPagination"
             );
-            console.log(fg.red, e.message);
+            console.log(Log.fg.red, e.message);
             var uniqueErrorNameForImage = `Liverpool_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
             page
               .screenshot({
@@ -930,7 +929,7 @@ class Scraper {
               })
               .catch((e) => {});
             log(
-              bg.green + fg.white,
+              Log.bg.green + Log.fg.white,
               `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
             );
 
@@ -960,7 +959,7 @@ class Scraper {
                     lastItemElement[lastItemElement.length - 2].click()
             */
     log(
-      bg.green + fg.white,
+      Log.bg.green + Log.fg.white,
       "_Scraper.comprobateActualPageF() - Started: "
     );
     this.comprobateActualPage = await page
@@ -990,10 +989,10 @@ class Scraper {
       })
       .catch((e) => {
         log(
-          bg.red + fg.white,
+          Log.bg.red + Log.fg.white,
           "Liverpool_Scraper.comprobateActualPageF() - Error: "
         );
-        log(fg.red, e.message);
+        log(Log.fg.red, e.message);
         var uniqueErrorNameForImage = `Liverpool_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${new Date().getTime()}.jpg`;
         page
           .screenshot({
@@ -1001,7 +1000,7 @@ class Scraper {
           })
           .catch((e) => {});
         log(
-          bg.green + fg.white,
+          Log.bg.green + Log.fg.white,
           `Liverpool_capture saved with the name ${uniqueErrorNameForImage}`
         );
         var pagination = {
@@ -1015,8 +1014,10 @@ class Scraper {
       this.paginationValue = this.comprobateActualPage.actualPage;
       this.url = this.url;
     }
+    this.url=await page.url(); 
+
     log(
-      fg.white + bg.green,
+      Log.fg.white + Log.bg.green,
       `actual page :${this.comprobateActualPage.actualPage}`
     );
   }

@@ -122,7 +122,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks;
+                        return maxClicks >= 100 ? 100 : maxClicks ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -481,11 +481,11 @@ class Scraper {
         //2.5 get data from page
         async getData() {
             var prom = new Promise(async (resolve,reject)=>{
-    
+        
                 var success = false;
-                var retry = 0;
+                var getDataRetry = 0;
                 var err = '';
-                while (!success && retry < 5) {
+                while (!success && getDataRetry < 5) {
                 try {
                     var page = await this.page;
                     log(Log.fg.white + Log.bg.green,'get data initialize');
@@ -529,16 +529,18 @@ class Scraper {
                                 };
         
         
-                                finalDataObject.product = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText : e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ? e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
-                                finalDataObject.img_url = e.querySelector('img') ? e.querySelector('img').src : null //img url
-                                finalDataObject.url = e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ? e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href : e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
-                                finalDataObject.newPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
-                                finalDataObject.oldPrice = e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ? e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ? e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
+                                finalDataObject.product =e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ?e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').innerText :e.querySelector('.a-size-medium.a-color-base.a-text-normal') != null ?e.querySelector('.a-size-medium.a-color-base.a-text-normal').innerText : null;
+                                finalDataObject.img_url =e.querySelector('img') ?e.querySelector('img').src : null //img url
+                                finalDataObject.url =e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style') != null ?e.querySelector('.a-section.a-spacing-none.a-spacing-top-small.s-title-instructions-style').querySelector('a').href :e.querySelector('.a-size-medium.a-color-base.a-text-normal').parentNode.href; //url
+                                finalDataObject.newPrice =e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen') != null ?e.querySelector('.a-section .a-spacing-none > div > div > a > span > span.a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') :e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null; //new price
+                                finalDataObject.oldPrice =e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen') != null ?e.querySelector('.a-section .a-spacing-none > div > div > a > .a-price.a-text-price > .a-offscreen').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') :e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span') != null ?e.querySelector('.a-size-base.a-link-normal.s-link-style.a-text-normal').querySelector('.a-price.a-text-price > span').innerText.trim().replace(',', '').replace(/[&\/\\#,+()$~%'":*?<>{}]/g, '') : null : null; //old price
                                 finalDataObject.discount = getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) < getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice)) ? getDiscountValue(parseFloat(finalDataObject.oldPrice), parseFloat(finalDataObject.newPrice)) : getDiscountValue(parseFloat(finalDataObject.newPrice), parseFloat(finalDataObject.oldPrice));
-                                finalDataObject.prime = e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
+                                finalDataObject.prime =e.querySelector('.a-icon.a-icon-prime.a-icon-medium') != null ? true : false;
         
                                 if (finalDataObject.oldPrice != null) {
                                     finalDataOutput.push(finalDataObject);
+                                }else{
+                                    finalDataOutput.push(false);
                                 }
                             }
                             return Promise.all(finalDataOutput).then(
@@ -562,7 +564,7 @@ class Scraper {
                         success = true;
                         resolve(finalDataObject);
                     }else{
-                        retry++;
+                        getDataRetry++;
                         continue;
                     }
                 } catch (error) {
@@ -576,10 +578,10 @@ class Scraper {
                     }
                   
                     err = error;
-                    retry++;
+                    getDataRetry++;
                 }
             }
-            if(retry >= 5){
+            if(getDataRetry >= 5){
                 reject(err);
             }
             })
@@ -613,9 +615,10 @@ class Scraper {
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
-            
+                            tempArr = tempArr.filter(Boolean);
+                            lastArr = lastArr.filter(Boolean);
                             if (lastArr.length > 0 && tempArr != false) {
-                                log(Log.bg.green,'bucle temparr not empty')
+                                log(Log.bg.green,'Amazon_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
                                 
                                 if (lastArr[0] != tempArr[0]) {
@@ -653,7 +656,33 @@ class Scraper {
                                     }
                                     
             
-
+            
+                                }else if(tempArr[0] == false){
+                                    var tempArrForComparation = tempArr.filter(Boolean);
+                                    var lastArrForComparation =lastArr.filter(Boolean);
+                                    if(tempArrForComparation[0] != lastArrForComparation[0]){
+            
+                                        var clicked = await this.clickNextPagination().then(res =>{
+                                            log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                            return true;
+                                        }).catch(e => { return false;});
+                                        if (clicked === false) {
+                                            log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                            break;
+                                        }
+                                        if (clicked != true) {
+                                            await Promise.all([
+                                                page.reload(),
+                                                page.waitForNavigation()
+                                            ]);
+                    
+                                            continue;
+                                        }else{
+                                            if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                                resolve({results:this.result.results})
+                                            }
+                                        }
+                                    }
                                 }
             
             
@@ -715,7 +744,7 @@ class Scraper {
             
                             await this.comprobateActualPageF();
                         }
-                        log(Log.bg.green,'Data extracted:');
+                        log(Log.bg.green,'Amazon_:Data extracted:');
                         log(Log.fg.green, this.result);
                         resolve({results:this.result.results})
                 } catch (error) {
@@ -723,7 +752,7 @@ class Scraper {
                 }
               
                })
-
+            
                return extData;
               
             }

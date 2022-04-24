@@ -36,6 +36,7 @@
     "puppeteer-extra-plugin-stealth": "^2.9.0",
     "puppeteer-page-proxy": "^1.2.8",
     "puppeteer-proxy": "^2.1.2",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "zyte-smartproxy-puppeteer": "^1.0.10"
   }
 }

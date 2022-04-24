@@ -1,15 +1,7 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const request = require('request');
-const cheerio = require('cheerio'); 
-const axios = require('axios');
-const { response } = require('express');
-const randomUA = require('modern-random-ua');
-const proxyChain = require('proxy-chain');
-let ip_addresses = [];
-let port_numbers = [];
-let country = [];
-var get_proxy_try_counter =  0
+import puppeteer from 'zyte-smartproxy-puppeteer';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import useProxy from 'puppeteer-page-proxy';
+import randomUA from 'modern-random-ua';
 
 
 var browser;
@@ -24,23 +16,45 @@ async function startBrowser(){
             '--disable-infobars',
             '--window-position=0,0',
             '--ignore-certifcate-errors',
-            '--proxy-server=http://188.165.59.127:3128',
-            '--ignore-certifcate-errors-spki-list'
+            '--ignore-certifcate-errors-spki-list',
+            '--disable-web-security',
+            '--lang=en-US,en;q=0.9',
+            '--window-size=1920,1080',
         ];
        console.log("Opening the browser......");
-       puppeteer.use(StealthPlugin());
+    //   puppeteer.use(StealthPlugin());
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,
+            spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: randomUA.generate(),
-            args: argumentsForBrowser
+            args: argumentsForBrowser,
+            devtools:true
         });
     var page =await browser.newPage();
     await page.setDefaultNavigationTimeout(0);
     await page.setDefaultTimeout(0);
+    await page.setViewport({
+        width: 1124 + Math.floor(Math.random() * 100),
+        height: 768 + Math.floor(Math.random() * 100),
+    })
+    await page.setRequestInterception(true);
+    var requestCounter = 0;
+    var requestCounterNotPassed = 0;
+    page.on('request', (request) => {
+        console.log(`request type = ${request.resourceType()}`);
+        if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'ping' || request.resourceType() === 'image'  ){
+            console.log(`request number not passed: ${requestCounterNotPassed++}`);
+            request.abort();
+     } else {
+        console.log(`request number : ${requestCounter++}`);
+            request.continue();
+        }
+    });
     page.goto('https://www.liverpool.com.mx/tienda/Bocinas/N-MyN5EGLkRkJnbWQM0oybC2hMjTpowD02XYug5X8PnmSQU8hLqiO%2FS81%2BLpQJgrYE');
+
     return browser;
 
     } catch (err) {

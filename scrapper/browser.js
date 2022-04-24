@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-import { generate } from 'modern-random-ua';
+import random_ua from 'modern-random-ua';
 
 
 
@@ -25,7 +25,7 @@ async function startBrowser(){
             headless: false,
             ignoreHTTPSErrors: true,
             slowMo: 0,
-            userAgent: generate(),
+            userAgent: random_ua.generate(),
             args: argumentsForBrowser
         });
     return browser;

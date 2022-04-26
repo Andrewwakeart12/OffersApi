@@ -132,42 +132,6 @@ class Scraper {
                 var page = this.page;
                 while (!success && retry < 15) {
                     try {
-
-                        await page.setRequestInterception(true);
-
-                        if(this.selectedProxy === 0){
-                            console.log('this.Proxy.getRandomProxy() in scraper');
-                          var finalProxy = await this.Proxy.getRandomProxy();
-                              this.selectedProxy = finalProxy;
-                              console.log(this.selectedProxy);
-              
-                              page.once('request', async (request)=>{
-                                await proxyRequest({
-                                    page,
-                                    proxyUrl:this.selectedProxy.proxy,
-                                    request
-                                })
-                            })
-                          }else{
-                          console.log('this.Proxy.getRandomProxy() in scraper (change) ');
-                          var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
-                            if(finalProxy != false && finalProxy != undefined){
-                                this.selectedProxy = finalProxy;
-                                console.log(this.selectedProxy);
-                                page.once('request', async (request)=>{
-                                    await proxyRequest({
-                                    page,
-                                    request,
-                                        proxyUrl:this.selectedProxy.proxy,
-                                    request
-                                })
-                                })
-                            }else{
-                                this.selectedProxy = 0;
-                            }  
-                          }
-
-
                         
                         log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);

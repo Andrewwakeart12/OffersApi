@@ -65,12 +65,12 @@ class CronDataExtractor {
       const results = await withBrowser(async (browser) => {
 
         return bluebird.map(controllers,async (controller)=>{
-  
+
          var localUrls =urls[controller.controller]
                 return bluebird.map(localUrls, async (url) => {
   
                   console.log(url);
-                  const result = await withPage(browser)(async (page) => {
+                const result = await withPage(browser)(async (page) => {
                     var protocolName = 'Scraper';
                     var imp =  `./scrapper/${controller.controller}/` + controller.controller + protocolName + '.js';
                     var GeneralScraperItem = await import(imp)
@@ -86,8 +86,9 @@ class CronDataExtractor {
                   });
                   return result;
                 },{concurrency: 3});
-            });
-        })
+
+        });
+      })
       return results;
     } catch (error) {
       console.error(error);

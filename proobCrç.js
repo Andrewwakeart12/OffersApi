@@ -1,8 +1,8 @@
 import puppeteer from 'zyte-smartproxy-puppeteer';
+//import puppeteer from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import useProxy from 'puppeteer-page-proxy';
 import randomUA from 'modern-random-ua';
-
 
 var browser;
 
@@ -26,7 +26,7 @@ async function startBrowser(){
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,
-            spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
+          spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: randomUA.generate(),
@@ -40,12 +40,13 @@ async function startBrowser(){
         width: 1124 + Math.floor(Math.random() * 100),
         height: 768 + Math.floor(Math.random() * 100),
     })
+   // await page.emulate(iPhone);
     await page.setRequestInterception(true);
     var requestCounter = 0;
     var requestCounterNotPassed = 0;
     page.on('request', (request) => {
         console.log(`request type = ${request.resourceType()}`);
-        if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'ping' || request.resourceType() === 'image'  ){
+        if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'image'  ){
             console.log(`request number not passed: ${requestCounterNotPassed++}`);
             request.abort();
      } else {

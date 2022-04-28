@@ -99,7 +99,7 @@ class CronDataExtractor {
                     var Scrape = new Scraper(page,Proxy);    
  
                      var res = await Scrape.scraper(url.url);
-                     var resObj ={results:res, controller_id: controller.id,category:url.category, url_id:url.url_id};
+                     var resObj ={dataArr:res, controller_id: controller.id,category:url.category, url_id:url.url_id};
 
                     /*
                       this.SaveDataFromPage(url.url_id,contoller.id);
@@ -107,7 +107,7 @@ class CronDataExtractor {
                       await notify.getElementsToNotify();
                       await notify.sendNotification();
                     */
-
+                    await this.updateDb(resObj);
                      return resObj;
                   });
                   return result;

@@ -59,3 +59,38 @@
     }
   ]
 ]
+
+[
+  [
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'videosjuegos',
+      url_id: 6
+    },
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'Bocinas',
+      url_id: 7
+    },
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'Smarthwatches',
+      url_id: 9
+    },
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'Celulares y accesorios',
+      url_id: 10
+    },
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'Juegos y juguetes',
+      url_id: 11
+    }
+  ]
+]

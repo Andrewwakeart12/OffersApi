@@ -1,0 +1,61 @@
+[
+    {
+    results:
+            {
+                results:[
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...}
+                        ],
+                        [
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...}
+                        ],
+                        [
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...}
+                        ],
+                        [
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...},
+                            {...}
+                        ],
+            },
+    controller_id:x,
+    category:x,
+    url_id:x
+    }
+]
+
+[
+  [
+    {
+      results: [Array],
+      controller_id: 1,
+      category: 'audio y sonido',
+      url_id: 5
+    }
+  ],
+  [
+    {
+      results: [Array],
+      controller_id: 2,
+      category: 'electronicos',
+      url_id: 53
+    }
+  ]
+]

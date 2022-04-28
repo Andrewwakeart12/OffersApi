@@ -3,6 +3,16 @@ import othersBrowser from "./scrapper/othersBrowser.js";
 import liverpoolBrowser from "./scrapper/liverpoolBrowser.js";
 import bluebird from "bluebird";
 import ProxyManager from './ProxyManager.js';
+
+const getArrayAsChunks = (array, chunkSize) => {
+  let result = [];
+  let data = array.slice(0);
+  while (data[0]) {
+    result.push(data.splice(0, chunkSize));
+  }
+  return result;
+};
+
 class CronDataExtractor {
   /*return obj of links by controller
         {
@@ -37,6 +47,9 @@ class CronDataExtractor {
       }
     }
     return linksArr;
+  }
+  async SaveDataFromPage(url_id,controller_id){
+
   }
   async runJobsInParallel(Proxy) {
     const withBrowser = async (fn) => {
@@ -84,10 +97,17 @@ class CronDataExtractor {
                     console.log(GeneralScraperItem);
                     var { Scraper} = GeneralScraperItem;
                     var Scrape = new Scraper(page,Proxy);    
-  
+ 
                      var res = await Scrape.scraper(url.url);
-                     var resObj ={results:res, controller_id: controller.id,category:url.category, url_id:url.id};
-                   
+                     var resObj ={results:res, controller_id: controller.id,category:url.category, url_id:url.url_id};
+
+                    /*
+                      this.SaveDataFromPage(url.url_id,contoller.id);
+                      var notify = new Notifiyer(controller.id,url.category);
+                      await notify.getElementsToNotify();
+                      await notify.sendNotification();
+                    */
+
                      return resObj;
                   });
                   return result;
@@ -101,8 +121,73 @@ class CronDataExtractor {
     }
 
   }
-  updateDb(constructor_id,url_id,category){
+ async updateDb(categoryData){
 
+    if(categoryData.error != undefined){
+      console.log(categoryData)
+      return categoryData.error;
+    }
+    console.log(categoryData);
+
+    console.log('categoryData : ');
+
+       await categoryData.map(async toChunk =>{
+          console.log(toChunk.dataArr.length);
+          chunkedArr = await getArrayAsChunks(toChunk.dataArr, 100);
+          await chunkedArr.map(async oneChunkElement =>{
+            oneChunkElement.map(async product =>{
+              try{
+                product.controller_id = toChunk.controller_id;
+                product.url_id = toChunk.url_id;
+                product.category = toChunk.category;
+               
+              }catch(e){
+                console.log(e);
+              }
+            })
+            var sql = "INSERT INTO scraped_data (product,discount,newPrice,oldPrice,url,prime,img_url,controller_id,url_id,category) VALUES ?";
+            var records= oneChunkElement.map(e=>{return Object.values(e)})
+            query(sql, [records], function(err, result) {
+              console.log(err);
+              console.log(result);
+          });
+          })
+        })
+        await query(`
+        DELETE t1 FROM scraped_data t1
+			INNER JOIN scraped_data t2 
+			WHERE t1.id > t2.id AND t1.product = t2.product
+        `);
+        //DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00
+        await query(`DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00`);
+        await query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);
+        var reviewedProduct =await query(`
+        SELECT DISTINCT *
+        FROM scraped_reviewed
+        WHERE product IN (SELECT product FROM scraped_data);
+        `);
+        var productsInDb =await query(`
+        SELECT DISTINCT * 
+        FROM scraped_data
+        WHERE product IN (SELECT product FROM scraped_reviewed);
+        `);
+        for(let productReviewed of reviewedProduct){
+          for(let productInDb of productsInDb)
+          {
+          if(productReviewed.product === productInDb.product){  
+          if(productReviewed.interested_in)
+          {
+            if(productReviewed.discount === productInDb.discount || productReviewed.discount * -1 > productInDb.discount * -1  ){
+              await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+            }
+          }else if(productReviewed.excluded){
+            await query('DELETE FROM scraped_data WHERE id=? ', productInDb.id)
+          }
+        }
+        }
+        }
+console.log('finished')
+ 
   }
 }
 
@@ -113,7 +198,7 @@ async function proob() {
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);
-  console.log(links[0][0]);
+  console.log(links);
 }
 proob();
 export default CronDataExtractor;

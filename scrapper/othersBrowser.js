@@ -19,7 +19,6 @@ async function startBrowser(){
             '--ignore-certifcate-errors-spki-list'
         ];
        console.log("Opening the browser......");
-       puppeteer.use(StealthPlugin());
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,

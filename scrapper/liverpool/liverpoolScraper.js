@@ -112,7 +112,8 @@ class Scraper {
             } else {
               maxClicks = 1;
             }
-            return maxClicks;
+            //return maxClicks;
+            return 1;
           });
         })
         .catch(async (e) => {
@@ -164,7 +165,6 @@ class Scraper {
                 while (!success && retry < 15) {
                     try {
 
-                      await page.setRequestInterception(true);
 /*
                         if(this.selectedProxy === 0){
                             console.log('this.Proxy.getRandomProxy() in scraper');
@@ -314,8 +314,7 @@ class Scraper {
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
-                            extractedData = extractedData.filter(Boolean);
+                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res.results.filter(Boolean)}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
@@ -332,7 +331,6 @@ class Scraper {
                         console.log('Message : '.red);
                         console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
-                        await useProxy(page, null);
                         if (e.message != undefined) {
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {
@@ -562,17 +560,17 @@ class Scraper {
                   };
 
                   finalDataObject.product =
-                    querySelector(".card-title").innerText;
-                  finalDataObject.img_url = querySelector("img")
-                    ? querySelector("img").src
+                    document.querySelector(".card-title").innerText;
+                  finalDataObject.img_url = document.querySelector("img")
+                    ? document.querySelector("img").src
                     : null; //img url
                   finalDataObject.url =
                     document.querySelector(".m-product__card a").href;
-                  finalDataObject.newPrice = querySelector(".a-card-price")
+                  finalDataObject.newPrice = document.querySelector(".a-card-price")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
-                  finalDataObject.oldPrice = querySelector(".a-card-discount")
+                  finalDataObject.oldPrice = document.querySelector(".a-card-discount")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
@@ -594,7 +592,7 @@ class Scraper {
                           parseFloat(finalDataObject.oldPrice)
                         );
                   finalDataObject.prime =
-                    querySelector(".a-icon.a-icon-prime.a-icon-medium") !=
+                    document.querySelector(".a-icon.a-icon-prime.a-icon-medium") !=
                     null
                       ? true
                       : false;

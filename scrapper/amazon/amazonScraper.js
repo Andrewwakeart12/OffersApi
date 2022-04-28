@@ -97,7 +97,8 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks >= 100 ? 100 : maxClicks  ;
+                        //return maxClicks >= 100 ? 100 : maxClicks  ;
+                        return 1  ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -248,8 +249,7 @@ class Scraper {
         
         
         
-                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
-                            extractedData = extractedData.filter(Boolean);
+                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res.results.filter(Boolean)}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
                             if(extractedData.results != false){
                                     this.reloadTime = 0;
                                     this.resolveTimeOut = 0;
@@ -266,7 +266,6 @@ class Scraper {
                         console.log('Message : '.red);
                         console.log(e.message != undefined ? e.message.red : e.red);
                         console.log('-----------------');
-                        await useProxy(page, null);
                         if (e.message != undefined) {
                             if (e.message.split(' ')[0] === "net::ERR_TIMED_OUT" || e.message.split(' ')[1] === "net::ERR_TIMED_OUT") {
                                 if (restartFunction < 10) {

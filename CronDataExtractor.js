@@ -1,5 +1,6 @@
 import pool from "./database.js";
-import browserObject from "./scrapper/browser.js";
+import othersBrowser from "./scrapper/othersBrowser.js";
+import liverpoolBrowser from "./scrapper/liverpoolBrowser.js";
 import bluebird from "bluebird";
 import ProxyManager from './ProxyManager.js';
 class CronDataExtractor {
@@ -39,11 +40,14 @@ class CronDataExtractor {
   }
   async runJobsInParallel(Proxy) {
     const withBrowser = async (fn) => {
-      const browser = await browserObject.startBrowser(Proxy);
+      var otherBrowse= await othersBrowser.startBrowser(Proxy);
+      var liverpoolBrowse= await othersBrowser.startBrowser(Proxy);
+      const browser = {liverpool:{browser:liverpoolBrowse, identifiyer:'liverpool'},others:{browser:otherBrowse,identifiyer:'other'}};
       try {
         return await fn(browser);
       } finally {
-        await browser.close();
+        await otherBrowse.close();
+        await liverpoolBrowse.close();
       }
     };
     const withPage = (browser) => async (fn) => {
@@ -67,10 +71,12 @@ class CronDataExtractor {
         return bluebird.map(controllers,async (controller)=>{
 
          var localUrls =urls[controller.controller]
+         console.log("browser[controller.controller == 'liverpool' ? liverpool : 'others' ].identifiyer");
+         console.log(browser[controller.controller == 'liverpool' ? 'liverpool' : 'others' ].identifiyer);
                 return bluebird.map(localUrls, async (url) => {
   
                   console.log(url);
-                const result = await withPage(browser)(async (page) => {
+                const result = await withPage(browser[controller.controller == 'liverpool' ? 'liverpool' : 'others' ].browser)(async (page) => {
                     var protocolName = 'Scraper';
                     var imp =  `./scrapper/${controller.controller}/` + controller.controller + protocolName + '.js';
                     var GeneralScraperItem = await import(imp)
@@ -95,6 +101,9 @@ class CronDataExtractor {
     }
 
   }
+  updateDb(constructor_id,url_id,category){
+
+  }
 }
 
 async function proob() {
@@ -104,7 +113,7 @@ async function proob() {
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);
-  console.log(links);
+  console.log(links[0][0]);
 }
 proob();
 export default CronDataExtractor;

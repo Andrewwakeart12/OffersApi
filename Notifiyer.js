@@ -1,5 +1,10 @@
 import pool from './database.js';
 import axios  from 'axios';
+import Log from './toolkit/colorsLog.js';
+const log = (color, text) => {
+
+    console.log(`${color}%s${Log.reset}`, text);
+    };
 class Notifiyer{
     //the device id to notify - @String
     to_notify;

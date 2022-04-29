@@ -1,4 +1,4 @@
-import puppeteer from 'zyte-smartproxy-puppeteer';
+import puppeteer from 'puppeteer';
 //import puppeteer from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import useProxy from 'puppeteer-page-proxy';
@@ -26,7 +26,6 @@ async function startBrowser(){
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,
-          spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: randomUA.generate(),
@@ -34,14 +33,14 @@ async function startBrowser(){
             devtools:true
         });
     var page =await browser.newPage();
+  /*
     await page.setDefaultNavigationTimeout(0);
     await page.setDefaultTimeout(0);
     await page.setViewport({
         width: 1124 + Math.floor(Math.random() * 100),
         height: 768 + Math.floor(Math.random() * 100),
     })
-   // await page.emulate(iPhone);
-    await page.setRequestInterception(true);
+   // await page.emulate(iPhone);          &
     var requestCounter = 0;
     var requestCounterNotPassed = 0;
     page.on('request', (request) => {
@@ -54,8 +53,11 @@ async function startBrowser(){
             request.continue();
         }
     });
-    page.goto('https://www.liverpool.com.mx/tienda/Bocinas/N-MyN5EGLkRkJnbWQM0oybC2hMjTpowD02XYug5X8PnmSQU8hLqiO%2FS81%2BLpQJgrYE');
-
+    */
+    page.goto('file:///home/obe/Descargas/P%C3%A1gina%20no%20disponible%20-%20Liverpool.html',{waituntil:'networkidle0'});
+    page.waitForSelector('.a-errorPage-title',{timeout:10000}).then(()=>{
+        console.log('a');
+    })
     return browser;
 
     } catch (err) {

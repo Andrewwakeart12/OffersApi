@@ -6,7 +6,6 @@ import colors from 'colors';
 import useProxy from 'puppeteer-page-proxy';
 import { proxyRequest } from "puppeteer-proxy";
 colors.enable();
-
 import Log from '../../toolkit/colorsLog.js';
 const log = (color, text) => {
 
@@ -872,3 +871,4 @@ class Scraper {
 
 
 export {DERR,Scraper};
+ 

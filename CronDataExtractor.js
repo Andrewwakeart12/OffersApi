@@ -3,6 +3,7 @@ import othersBrowser from "./scrapper/othersBrowser.js";
 import liverpoolBrowser from "./scrapper/liverpoolBrowser.js";
 import bluebird from "bluebird";
 import ProxyManager from './ProxyManager.js';
+import Notifiyer from "./Notifiyer.js";
 
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
@@ -103,8 +104,8 @@ class CronDataExtractor {
 
                     
                       await this.updateDb(resObj);
-                      var notify = new Notifiyer(controller.id,url.category,controller.discount_starts_at);
-                      await notify.getElementsToNotify();
+                      var notify = new Notifiyer(controller.id,url.url+_id,url.category,controller.discount_starts_at);
+                      await notify.getElementsToNotifyOf();
                       await notify.sendNotification();
                     
                      return resObj;

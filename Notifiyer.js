@@ -1,6 +1,11 @@
 import pool from './database.js';
 import axios  from 'axios';
 import Log from './toolkit/colorsLog.js';
+const capitalize = (word) => {
+    return word
+      .toLowerCase()
+      .replace(/\w/, (firstLetter) => firstLetter.toUpperCase());
+  };
 const log = (color, text) => {
 
     console.log(`${color}%s${Log.reset}`, text);
@@ -19,11 +24,12 @@ class Notifiyer{
     //#reference discount - @Integer
     discount_starts_at;
 
-    constructor(controller_id,url_id,category,discount_starts_at){
+    constructor(controller_identity,controller_id,url_id,category,discount_starts_at){
         this.controller_id = controller_id;
         this.url_id = url_id;
         this.category= category;
         this.discount_starts_at = discount_starts_at;
+        this.controller_identity = controller_identity;
     }
     getToNotify(controller_id){
         //gets to_notify from db from local machine
@@ -51,7 +57,7 @@ class Notifiyer{
                 appId: 2194,
                 subID: jwt[0].jwtoken,
                 appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
-                title: product.product,
+                title: `${capitalize(this.controller_identity)}- ${product.product}`,
                 message: `descuento:${product.discount}, precio: ${product.newPrice} , categoria: ${this.category}`,
                 pushData: { goeToProductsPage: false, url: product.url }
               });
@@ -69,10 +75,12 @@ class Notifiyer{
 
     }
 }
+/*
 async function e(){
-    var notif = new Notifiyer(1,5,'audio y sonido',10);
+    var notif = new Notifiyer('amazon',1,5,'audio y sonido',10);
 var not = await notif.sendNotification();
 console.log(not);
 }
 e()
+*/
 export default Notifiyer;

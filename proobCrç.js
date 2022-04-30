@@ -55,9 +55,7 @@ async function startBrowser(){
     });
     */
     page.goto('file:///home/obe/Descargas/P%C3%A1gina%20no%20disponible%20-%20Liverpool.html',{waituntil:'networkidle0'});
-    page.waitForSelector('.a-errorPage-title',{timeout:10000}).then(()=>{
-        console.log('a');
-    })
+
     return browser;
 
     } catch (err) {

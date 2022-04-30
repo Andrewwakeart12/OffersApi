@@ -49,13 +49,10 @@ class CronDataExtractor {
     }
     return linksArr;
   }
-  async SaveDataFromPage(url_id,controller_id){
-
-  }
   async runJobsInParallel(Proxy) {
     const withBrowser = async (fn) => {
       var otherBrowse= await othersBrowser.startBrowser(Proxy);
-      var liverpoolBrowse= await othersBrowser.startBrowser(Proxy);
+      var liverpoolBrowse= await liverpoolBrowser.startBrowser(Proxy);
       const browser = {liverpool:{browser:liverpoolBrowse, identifiyer:'liverpool'},others:{browser:otherBrowse,identifiyer:'other'}};
       try {
         return await fn(browser);
@@ -87,7 +84,7 @@ class CronDataExtractor {
          var localUrls =urls[controller.controller]
          console.log("browser[controller.controller == 'liverpool' ? liverpool : 'others' ].identifiyer");
          console.log(browser[controller.controller == 'liverpool' ? 'liverpool' : 'others' ].identifiyer);
-                return bluebird.map(localUrls, async (url) => {
+                return await bluebird.map(localUrls, async (url) => {
   
                   console.log(url);
                 const result = await withPage(browser[controller.controller == 'liverpool' ? 'liverpool' : 'others' ].browser)(async (page) => {
@@ -104,7 +101,7 @@ class CronDataExtractor {
 
                     
                       await this.updateDb(resObj);
-                      var notify = new Notifiyer(controller.id,url.url+_id,url.category,controller.discount_starts_at);
+                      var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
                       await notify.getElementsToNotifyOf();
                       await notify.sendNotification();
                     
@@ -158,7 +155,7 @@ class CronDataExtractor {
         DELETE t1 FROM scraped_data t1
 			INNER JOIN scraped_data t2 
 			WHERE t1.id > t2.id AND t1.product = t2.product
-        `);
+        `); 
         //DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00
         await pool.query(`DELETE FROM scraped_data WHERE  CAST(oldPrice AS DECIMAL(10,2)) < 900.00`);
         await pool.query(`DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`);

@@ -1,77 +1,76 @@
 //https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
 import e from "express";
 
-import colors from 'colors';
+import colors from "colors";
 
-import useProxy from 'puppeteer-page-proxy';
+import useProxy from "puppeteer-page-proxy";
 import { proxyRequest } from "puppeteer-proxy";
 colors.enable();
 
-import Log from '../../toolkit/colorsLog.js';
+import Log from "../../toolkit/colorsLog.js";
 const log = (color, text) => {
-
-    console.log(`${color}%s${Log.reset}`, text);
-    };
+  console.log(`${color}%s${Log.reset}`, text);
+};
 class Catcha {
-    obj;
+  obj;
 
-    constructor(obj) {
-        this.obj = obj;
-    }
+  constructor(obj) {
+    this.obj = obj;
+  }
 }
 class CAPF {
-    message;
+  message;
 
-    constructor(message) {
-        this.message = message;
-    }
+  constructor(message) {
+    this.message = message;
+  }
 }
 class DERR {
-    message;
+  message;
 
-    constructor(message) {
-        this.message = message;
-    }
+  constructor(message) {
+    this.message = message;
+  }
 }
 class Scraper {
-    //1.initial propertys:
-    url;
-    browser;
-    paginationValue;
-    constructor (page,Proxy){
-        this.page = page;
-        this.Proxy = Proxy;
-    }
-    Proxy;
-    selectedProxy = 0;
-    //2.browser related propertys:
-    page;
-    browserObject;
-        //2.1 pagination property:   
-        maxClicks = null;
-        //2.2 pagination value:
-        comprobateActualPage = { actualPage: 0 };
-        //2.3 extracted data final arr:
-        result = { results: [] };
-        //2.4 pagination clicked times property:
-        clickedTimes = 0;
-        
-    //3.queueable propertys for promises:
-    reloadTime = [];
-    extractDataLoopPromises = [];
-        //3.1resolvers:
-        resolveTimeOut = [];
+  //1.initial propertys:
+  url;
+  browser;
+  paginationValue;
+  constructor(page, Proxy) {
+    this.page = page;
+    this.Proxy = Proxy;
+  }
+  Proxy;
+  selectedProxy = 0;
+  //2.browser related propertys:
+  page;
+  browserObject;
+  //2.1 pagination property:
+  maxClicks = null;
+  //2.2 pagination value:
+  comprobateActualPage = { actualPage: 0 };
+  //2.3 extracted data final arr:
+  result = { results: [] };
+  //2.4 pagination clicked times property:
+  clickedTimes = 0;
 
-    //4.state propertys:
-    catcha = false;
+  //3.queueable propertys for promises:
+  reloadTime = [];
+  extractDataLoopPromises = [];
+  //3.1resolvers:
+  resolveTimeOut = [];
 
-    //5.error counting propertys : 
-        //5.1 reset browser counter:
-        resetBrowsersInstanceError = 0;
-        //5.2 timeOuts executed counter
-        timeOuts = 0;
-        //5.3 prevent unnesesary page resets: 
-        resetDueToNotChargedPage = false;
+  //4.state propertys:
+  catcha = false;
+
+  //5.error counting propertys :
+  //5.1 reset browser counter:
+  resetBrowsersInstanceError = 0;
+  //5.2 timeOuts executed counter
+  timeOuts = 0;
+  //5.3 prevent unnesesary page resets:
+  resetDueToNotChargedPage = false;
 
   //2.2 gets the initial values:
   //2.2.1 gets the max number of paginations:
@@ -154,141 +153,143 @@ class Scraper {
       console.log(error);
     }
   }
-        //2.3 start scraping:
-        async scraper(initialUrl) {
-                this.url = initialUrl;
-                var success = false;
-                var retry = 0;
-                var restartFunction;
-                var  dataProxy;
-                var page = this.page;
-                    try {
+  //2.3 start scraping:
+  async scraper(initialUrl) {
+    this.url = initialUrl;
+    var success = false;
+    var retry = 0;
+    var restartFunction;
+    var dataProxy;
+    var page = this.page;
+    try {
+      log(
+        Log.fg.white + Log.bg.green,
+        "_Scraper.scraper(): page its setted, proceed navigation"
+      );
+      console.log(
+        `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
+      );
+      page.setRequestInterception(true);
+      var requestCounter = 0;
+      var requestCounterNotPassed = 0;
+      page.on("request", (request) => {
+        console.log(`request type = ${request.resourceType()}`);
+        if (
+          request.resourceType() === "stylesheet" ||
+          request.resourceType() === "font" ||
+          request.resourceType() === "ping" ||
+          request.resourceType() === "image"
+        ) {
+          console.log(
+            `request number not passed: ${requestCounterNotPassed++}`
+          );
+          request.abort();
+        } else {
+          console.log(`request number : ${requestCounter++}`);
+          request.continue();
+        }
+      });
+      var prom = await Promise.all([
+        page.goto(this.url),
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+      ])
+        .then((res) => {
+          return true;
+        })
+        .catch((e) => {
+          log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
+          if (e.message.split(" ")[0] === "net::ERR_PROXY_CONNECTION_FAILED") {
+            return { proxy_not_connect: true };
+          }
+          console.log(e.message.red);
+          return false;
+        });
+      log(Log.bg.yellow + Log.fg.white, prom);
 
-/*
-                        if(this.selectedProxy === 0){
-                            console.log('this.Proxy.getRandomProxy() in scraper');
-                          var finalProxy = await this.Proxy.getRandomProxy();
-                              this.selectedProxy = finalProxy;
-                              console.log(this.selectedProxy);
-              
-                              page.once('request', async (request)=>{
-                                await proxyRequest({
-                                    page,
-                                    proxyUrl:this.selectedProxy.proxy,
-                                    request
-                                })
-                            })
-                          }else{
-                          console.log('this.Proxy.getRandomProxy() in scraper (change) ');
-                          var finalProxy = await this.Proxy.changeProxy(this.selectedProxy.id);
-                            if(finalProxy != false && finalProxy != undefined){
-                                this.selectedProxy = finalProxy;
-                                console.log(this.selectedProxy);
-                                page.once('request', async (request)=>{
-                                    await proxyRequest({
-                                    page,
-                                    request,
-                                        proxyUrl:this.selectedProxy.proxy,
-                                    request
-                                })
-                                })
-                            }else{
-                                this.selectedProxy = 0;
-                            }  
-                          }
+      var pageErrorIndicator = await page
+        .waitForSelector(".a-errorPage-title", { timeout: 5000 })
+        .then(() => {
+          return {
+            error: "Critical error, the page has no items or has been removed",
+          };
+        })
+        .catch(() => {
+          return false;
+        });
 
-                      */  
-                        log(Log.fg.white + Log.bg.green,"_Scraper.scraper(): page its setted, proceed navigation");
-                        console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
-                        page.setRequestInterception(true);
-                        page.on('request', (request) => {
-                            if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'image'   ){
-                                request.abort();
-                         } else {
-                                request.continue();
-                            }
-                        });
-                            var prom = await Promise.all([
-                                page.goto(this.url),
-                                page.waitForNavigation( {waitUntil:'networkidle0'} )]).then((res)=>{
-                               
-                                return true;
-                            }).catch((e) => {
-                                log(Log.fg.white + Log.bg.red, "_Scraper: Error in page.goto() : ");
-                                if(e.message.split(' ')[0] === "net::ERR_PROXY_CONNECTION_FAILED"){
-                                    return {proxy_not_connect :true};
-                                }
-                                console.log(e.message.red)
-                                return false;
-                            });
-                            log(Log.bg.yellow + Log.fg.white,prom)
-                                if(prom.proxy_not_connect != undefined)
-                                {
-                                    if(prom.proxy_not_connect === true){
-                                        throw new DERR('Proxy Not Connected');
-                                    }
-                                }
+      if (pageErrorIndicator != false) {
+        throw new CAPF(pageErrorIndicator.error);
+      }
 
-                                var pageErrorIndicator = page.waitForSelector('.a-errorPage-title',{timeout:10000}).then(()=>{
-                                  return {error:'Critical error, the page has no items or has been removed'};
-                              }).catch(()=>{
-                                  return false;
-                              });
-                              
-                              if(pageErrorIndicator != false){
-                                throw new CAPF(pageErrorIndicator.error);
-                              }
-
-                        log(Log.bg.cyan + Log.fg.white, 'After error page comprobation');
-                        if(this.maxClicks === false){
-                            this.maxClicks = null;
-                        }
-                        if (this.comprobateActualPage.actualPage === 0 && this.maxClicks === null || this.comprobateActualPage.actualPage === undefined && this.maxClicks === null) {
-                            var getPaginationSuccess = false;
-                            var getPagintaionFails = 0;
-                            while(!getPaginationSuccess && getPagintaionFails < 5 ){
-                            var pag = await this.getMaxclicks();
-                            if(pag != true ){
-                                if(this.catcha === true){
-                                    throw new DERR('!catcha')
-                                }
-                                await Promise.all([page.reload(),
-                                        page.waitForNavigation( { timeout: 16000 } )]);
-                                    this.maxClicks = null;
-                                    getPagintaionFails++;
-                                }else{
-                                    getPaginationSuccess = true;
-                                }
-                            }
-
-                            if(this.catcha === true){
-                                throw new Catcha('!catcha')
-                            }
-                        }
-                        if(this.maxClicks === null && getPaginationSuccess != true && getPagintaionFails >= 5){
-                            throw new DERR('pagination load fails');
-                        }
-                        console.log('pagination value'.green)
-                        console.log(`${this.paginationValue}`.green);
-                        console.log('maxClicks: '.green)
-                        console.log(`${this.maxClicks}`.green)
-        
-        
-        
-                            var extractedData=await this.extractDataLoop().then(res=>{log(Log.bg.green + Log.fg.white,res); if(res.results != false){return res.results.filter(Boolean)}}).catch(e=>{console.log(`error from promise ${e.message}`.red);throw e});
-                            if(extractedData.results != false){
-                                    this.reloadTime = 0;
-                                    this.resolveTimeOut = 0;
-                                success = true;
-                                return extractedData;
-                            }else{
-                              return this.result;
-                            }
-
-                    }   catch (e) {
-                      console.log(e.message);
-                                       }
+      log(Log.bg.cyan + Log.fg.white, "After error page comprobation");
+      if (this.maxClicks === false) {
+        this.maxClicks = null;
+      }
+      if (
+        (this.comprobateActualPage.actualPage === 0 &&
+          this.maxClicks === null) ||
+        (this.comprobateActualPage.actualPage === undefined &&
+          this.maxClicks === null)
+      ) {
+        var getPaginationSuccess = false;
+        var getPagintaionFails = 0;
+        while (!getPaginationSuccess && getPagintaionFails < 5) {
+          var pag = await this.getMaxclicks();
+          if (pag != true) {
+            if (this.catcha === true) {
+              throw new DERR("!catcha");
             }
+            await Promise.all([
+              page.reload(),
+              page.waitForNavigation({ timeout: 16000 }),
+            ]);
+            this.maxClicks = null;
+            getPagintaionFails++;
+          } else {
+            getPaginationSuccess = true;
+          }
+        }
+
+        if (this.catcha === true) {
+          throw new Catcha("!catcha");
+        }
+      }
+      if (
+        this.maxClicks === null &&
+        getPaginationSuccess != true &&
+        getPagintaionFails >= 5
+      ) {
+        throw new DERR("pagination load fails");
+      }
+      console.log("pagination value".green);
+      console.log(`${this.paginationValue}`.green);
+      console.log("maxClicks: ".green);
+      console.log(`${this.maxClicks}`.green);
+
+      var extractedData = await this.extractDataLoop()
+        .then((res) => {
+          log(Log.bg.green + Log.fg.white, res);
+          if (res.results != false) {
+            return res.results.filter(Boolean);
+          }
+        })
+        .catch((e) => {
+          console.log(`error from promise ${e.message}`.red);
+          throw e;
+        });
+      if (extractedData.results != false) {
+        this.reloadTime = 0;
+        this.resolveTimeOut = 0;
+        success = true;
+        return extractedData;
+      } else {
+        return this.result;
+      }
+    } catch (e) {
+      console.log("e.message");
+      console.log(e.message);
+    }
+  }
 
   //2.5 get data from page
   async getData() {
@@ -353,11 +354,13 @@ class Scraper {
                     : null; //img url
                   finalDataObject.url =
                     document.querySelector(".m-product__card a").href;
-                  finalDataObject.newPrice = document.querySelector(".a-card-price")
+                  finalDataObject.newPrice = document
+                    .querySelector(".a-card-price")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
-                  finalDataObject.oldPrice = document.querySelector(".a-card-discount")
+                  finalDataObject.oldPrice = document
+                    .querySelector(".a-card-discount")
                     .innerText.trim()
                     .replace(",", "")
                     .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
@@ -379,8 +382,9 @@ class Scraper {
                           parseFloat(finalDataObject.oldPrice)
                         );
                   finalDataObject.prime =
-                    document.querySelector(".a-icon.a-icon-prime.a-icon-medium") !=
-                    null
+                    document.querySelector(
+                      ".a-icon.a-icon-prime.a-icon-medium"
+                    ) != null
                       ? true
                       : false;
 
@@ -417,7 +421,6 @@ class Scraper {
             resolve(finalDataObject);
           } else {
             retry++;
-            
           }
         } catch (error) {
           log(Log.fg.white + Log.bg.red, "error in while");
@@ -532,8 +535,6 @@ class Scraper {
                 }
                 if (clicked != true) {
                   await Promise.all([page.reload(), page.waitForNavigation()]);
-
-                  
                 } else {
                   if (this.comprobateActualPage.actualPage >= this.maxClicks) {
                     resolve({ results: this.result.results });
@@ -590,8 +591,6 @@ class Scraper {
               }
               if (clicked != true) {
                 await Promise.all([page.reload(), page.waitForNavigation()]);
-
-                
               } else {
                 if (this.comprobateActualPage.actualPage >= this.maxClicks) {
                   resolve({ results: this.result.results });
@@ -775,25 +774,22 @@ class Scraper {
       this.paginationValue = this.comprobateActualPage.actualPage;
       this.url = this.url;
     }
-    this.url=await page.url(); 
+    this.url = await page.url();
 
     log(
       Log.fg.white + Log.bg.green,
       `actual page :${this.comprobateActualPage.actualPage}`
     );
   }
-        //2.10 if theres an error apply the browserReset() method
-    
-    //3 tool kit:
-        //3.1 wait x time before continue:
-        async delay(time) {
-            return new Promise(function (resolve) {
-                setTimeout(resolve, time)
-            });
-        }
+  //2.10 if theres an error apply the browserReset() method
 
+  //3 tool kit:
+  //3.1 wait x time before continue:
+  async delay(time) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, time);
+    });
+  }
 }
 
-
-
-export {DERR,Scraper};
+export { DERR, Scraper };

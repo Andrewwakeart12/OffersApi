@@ -130,6 +130,14 @@ class Scraper {
                 var restartFunction;
                 var  dataProxy;
                 var page = this.page;
+                page.setRequestInterception(true);
+                page.on('request', (request) => {
+                    if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'image' || request.resourceType() === 'script' || request.resourceType() === 'xhr' ){
+                        request.abort();
+                 } else {
+                        request.continue();
+                    }
+                });
                 while (!success && retry < 15) {
                     try {
                         
@@ -139,14 +147,7 @@ class Scraper {
                         var navigationSuccess = false;
                         var navigationFails = 0;
                         while(!navigationSuccess && navigationFails <= 5 ){
-                            page.setRequestInterception(true);
-                            page.on('request', (request) => {
-                                if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'image' || request.resourceType() === 'script' || request.resourceType() === 'xhr' ){
-                                    request.abort();
-                             } else {
-                                    request.continue();
-                                }
-                            });
+
                             var prom = await Promise.all([
                                 page.goto(this.url),
                                 page.waitForNavigation( { timeout: 35000 } )]).then((res)=>{

@@ -102,8 +102,10 @@ class CronDataExtractor {
                     
                       await this.updateDb(resObj);
                       var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
-                      await notify.getElementsToNotifyOf();
-                      await notify.sendNotification();
+                      await Promise.all([
+                          notify.getElementsToNotifyOf(),
+                            notify.sendNotification()
+                        ]);
                     
                      return resObj;
                   });
@@ -192,8 +194,7 @@ console.log('finished')
 
 async function proob() {
 
-  const Proxy = new ProxyManager();
-  await Proxy.init();
+  const Proxy = 1;
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);

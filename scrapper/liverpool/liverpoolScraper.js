@@ -202,7 +202,7 @@ class Scraper {
                         console.log(`_Scraper.scraper().page.goto(): Navigating to ${this.url}...`);
                         page.setRequestInterception(true);
                         page.on('request', (request) => {
-                            if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font'   ){
+                            if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'font' || request.resourceType() === 'image'   ){
                                 request.abort();
                          } else {
                                 request.continue();

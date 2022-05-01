@@ -1,13 +1,17 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import random_ua from 'modern-random-ua';
-
+import ProxyManager from '../ProxyManager.js';
 
 
 var browser;
 
 async function startBrowser(){
     try {
+        var Proxy = new ProxyManager();
+        Proxy.init();
+        var prox = await Proxy.getRandomProxy();
+
         var argumentsForBrowser= [
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
@@ -16,7 +20,8 @@ async function startBrowser(){
             '--disable-infobars',
             '--window-position=0,0',
             '--ignore-certifcate-errors',
-            '--ignore-certifcate-errors-spki-list'
+            '--ignore-certifcate-errors-spki-list',
+            `--proxy-server=${prox.proxy}`
         ];
        console.log("Opening the browser......");
         browser = await puppeteer.launch({

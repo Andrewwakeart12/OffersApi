@@ -111,8 +111,7 @@ class Scraper {
             } else {
               maxClicks = 1;
             }
-            //return maxClicks;
-            return 1;
+            return maxClicks;
           });
         })
         .catch(async (e) => {
@@ -177,8 +176,7 @@ class Scraper {
         if (
           request.resourceType() === "stylesheet" ||
           request.resourceType() === "font" ||
-          request.resourceType() === "ping" ||
-          request.resourceType() === "image"
+          request.resourceType() === "ping" 
         ) {
           console.log(
             `request number not passed: ${requestCounterNotPassed++}`
@@ -233,7 +231,7 @@ class Scraper {
       ) {
         var getPaginationSuccess = false;
         var getPagintaionFails = 0;
-        while (!getPaginationSuccess && getPagintaionFails < 5) {
+        while (!getPaginationSuccess && getPagintaionFails < 2) {
           var pag = await this.getMaxclicks();
           if (pag != true) {
             if (this.catcha === true) {
@@ -241,7 +239,7 @@ class Scraper {
             }
             await Promise.all([
               page.reload(),
-              page.waitForNavigation({ timeout: 16000 }),
+              page.waitForNavigation({ waitUntil: "networkidle0"  }),
             ]);
             this.maxClicks = null;
             getPagintaionFails++;
@@ -494,7 +492,7 @@ class Scraper {
 
             if (lastArr.length > 0 && tempArr != false) {
               log(Log.bg.green, "Liverpool_:bucle temparr not empty");
-              log(bg.cyan, tempArr[0]);
+              log(Log.bg.cyan, tempArr[0]);
 
               if (lastArr[0] != tempArr[0]) {
                 lastArr = tempArr;
@@ -637,20 +635,16 @@ class Scraper {
                             var paginationGroup = document.querySelectorAll('.page-item > a.page-link')
                             var paginationToClick = paginationGroup[paginationGroup.length - 2];
                             */
-        var referenceForSelector = this.maxClicks + 3;
         await page
           .waitForSelector(".page-item > a.page-link", { timeout: 16000 })
           .then(async () => {
             if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
               await Promise.all([
                 page.click(
-                  `ul.pagination:nth-child(1) > .page-item:nth-child(${referenceForSelector})`
-                ),
-                ,
-                page.waitForNavigation().catch((e) => {
-                  throw e;
-                }),
+                  `.col-6.pr-2.pl-1 > .a-btn__pagination`
+                )
               ]);
+              await this.delay(5000)
               page
                 .waitForSelector("#captchacharacters", { timeout: 3000 })
                 .then(() => {

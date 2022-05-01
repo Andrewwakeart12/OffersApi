@@ -1,13 +1,17 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
 //import puppeteer from 'puppeteer';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import useProxy from 'puppeteer-page-proxy';
 import randomUA from 'modern-random-ua';
-
+import ProxyManager from './ProxyManager.js';
 var browser;
 
 async function startBrowser(){
     try {
+        var Proxy = new ProxyManager();
+        Proxy.init();
+        var prox = await Proxy.getRandomProxy();
+        
         var argumentsForBrowser= [
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
@@ -20,6 +24,7 @@ async function startBrowser(){
             '--disable-web-security',
             '--lang=en-US,en;q=0.9',
             '--window-size=1920,1080',
+            `--proxy-server=${prox.proxy}`
         ];
        console.log("Opening the browser......");
     //   puppeteer.use(StealthPlugin());
@@ -43,7 +48,11 @@ async function startBrowser(){
    // await page.emulate(iPhone);          &
     var requestCounter = 0;
     var requestCounterNotPassed = 0;
+
     page.setRequestInterception(true)
+
+    console.log(prox.proxy);
+
     page.on('request', (request) => {
         console.log(`request type = ${request.resourceType()}`);
         if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'script' || request.resourceType() === 'font' || request.resourceType() === 'image'  ){
@@ -56,7 +65,7 @@ async function startBrowser(){
     });
 //    page.goto('file:///home/obe/Descargas/P%C3%A1gina%20no%20disponible%20-%20Liverpool.html',{waituntil:'networkidle0'});
 //https://www.liverpool.com.mx/tienda/Computadoras/N-MyN5EGLkRkJnbWQM0oybCwDb51HPoq41uykVTx%2F8p7q4Lv5kmJ%2FB7n9SHDZAiZOr/page-4
-    page.goto('https://www.liverpool.com.mx/tienda/Computadoras/N-MyN5EGLkRkJnbWQM0oybCwDb51HPoq41uykVTx%2F8p7q4Lv5kmJ%2FB7n9SHDZAiZOr',{waituntil:'networkidle0'});
+    page.goto('https://api.ipify.org',{waituntil:'networkidle0'});
     return browser;
 
     } catch (err) {

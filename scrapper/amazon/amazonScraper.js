@@ -561,7 +561,7 @@ class Scraper {
               var  extData= new Promise(async (resolve,reject)=>{
                 try {
                     var lastArr = [];
-                    for (let i = 0; parseInt(this.comprobateActualPage.actualPage) < this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks; i++) 
+                    for (let i = 0; parseInt(this.comprobateActualPage.actualPage) <= this.maxClicks && clickedTimes <= this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks; i++) 
                     {
             
                         log(Log.fg.white + Log.bg.green,'bucle start')

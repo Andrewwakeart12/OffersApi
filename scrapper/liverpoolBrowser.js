@@ -1,6 +1,6 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'zyte-smartproxy-puppeteer';
 import random_ua from 'modern-random-ua';
-
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 
 var browser;
@@ -20,10 +20,10 @@ async function startBrowser(){
        console.log("Opening the browser......");
         browser = await puppeteer.launch({
             pipe: true,
-            headless: false,
+            headless: true,
             ignoreHTTPSErrors: true,
             slowMo: 0,
-          //  spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
+            spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             userAgent: random_ua.generate(),
             args: argumentsForBrowser
         });

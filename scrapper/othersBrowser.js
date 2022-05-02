@@ -11,6 +11,7 @@ async function startBrowser(){
         var Proxy = new ProxyManager();
         Proxy.init();
         var prox = await Proxy.getRandomProxy();
+        puppeteer.use(StealthPlugin())
 
         var argumentsForBrowser= [
             '--disable-setuid-sandbox',
@@ -26,7 +27,7 @@ async function startBrowser(){
        console.log("Opening the browser......");
         browser = await puppeteer.launch({
             pipe: true,
-            headless: false,
+            headless: true,
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: random_ua.generate(),

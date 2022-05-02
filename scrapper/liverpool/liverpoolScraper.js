@@ -80,9 +80,9 @@ class Scraper {
       var page = await this.page;
 
       var uniqueErrorNameForImage = `Liverpool_Scraper.getMaxClicks()_saved${new Date().getTime()}.jpg`;
-      page
+      await page
         .screenshot({
-          path: `/opt/lampp/htdocs/screenshots/${uniqueErrorNameForImage}`,
+          path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,
         })
         .catch((e) => {});
       log(
@@ -168,6 +168,9 @@ class Scraper {
       console.log(
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
+      await page.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+      );
       page.setRequestInterception(true);
       var requestCounter = 0;
       var requestCounterNotPassed = 0;
@@ -176,7 +179,7 @@ class Scraper {
         if (
           request.resourceType() === "stylesheet" ||
           request.resourceType() === "font" ||
-          request.resourceType() === "ping" 
+          request.resourceType() === "ping"
         ) {
           console.log(
             `request number not passed: ${requestCounterNotPassed++}`
@@ -187,9 +190,10 @@ class Scraper {
           request.continue();
         }
       });
-      var prom = await Promise.all([
-        page.goto(this.url),
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
+      page.goto(this.url);
+      var prom = await Promise.race([
+        page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+        page.waitForNavigation({ waitUntil: "load" }),
       ])
         .then((res) => {
           return true;
@@ -239,7 +243,7 @@ class Scraper {
             }
             await Promise.all([
               page.reload(),
-              page.waitForNavigation({ waitUntil: "networkidle0"  }),
+              page.waitForNavigation({ waitUntil: "networkidle0" }),
             ]);
             this.maxClicks = null;
             getPagintaionFails++;
@@ -276,7 +280,6 @@ class Scraper {
           throw e;
         });
       if (extractedData.results != false) {
-
         success = true;
         return extractedData;
       } else {
@@ -285,8 +288,14 @@ class Scraper {
     } catch (e) {
       console.log("e.message");
       console.log(e.message);
-      if(e.message === 'Critical error, the page has no items or has been removed'){
-        return {pageFailsDueToNotResultsOrErrorPage : true, erroInformation: e.message}
+      if (
+        e.message ===
+        "Critical error, the page has no items or has been removed"
+      ) {
+        return {
+          pageFailsDueToNotResultsOrErrorPage: true,
+          erroInformation: e.message,
+        };
       }
     }
   }
@@ -456,7 +465,7 @@ class Scraper {
         var lastArr = [];
         for (
           let i = 0;
-          parseInt(this.comprobateActualPage.actualPage) < this.maxClicks ||
+          parseInt(this.comprobateActualPage.actualPage) <= this.maxClicks && this.clickedTimes <= this.maxClicks||
           (this.maxClicks === 1 && this.clickedTimes != this.maxClicks);
           i++
         ) {
@@ -642,11 +651,9 @@ class Scraper {
           .then(async () => {
             if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
               await Promise.all([
-                page.click(
-                  `.col-6.pr-2.pl-1 > .a-btn__pagination`
-                )
+                page.click(`.col-6.pr-2.pl-1 > .a-btn__pagination`),
               ]);
-              await this.delay(5000)
+              await this.delay(5000);
               page
                 .waitForSelector("#captchacharacters", { timeout: 3000 })
                 .then(() => {
@@ -693,7 +700,7 @@ class Scraper {
           });
       }
       if (res === true) {
-        page.waitForSelector('.a-btn__pagination.disabled').then(()=>{
+        page.waitForSelector(".a-btn__pagination.disabled").then(() => {
           res = false;
         });
         resolve(res);

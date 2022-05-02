@@ -106,9 +106,7 @@ class CronDataExtractor {
                     if(resObj.dataArr.pageFailsDueToNotResultsOrErrorPage === undefined){
                       await this.updateDb(resObj);
                       var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
-                      await Promise.all([
-                            notify.sendNotification()
-                        ]);
+                      await notify.sendNotifications()
                     
                      return resObj;
                     }

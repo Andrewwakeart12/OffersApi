@@ -80,10 +80,11 @@ class Notifiyer {
     console.log('SendCostumNotification');
     console.log(response.data);
   }
-  async sendNotification() {
+  async sendNotifications() {
     return new Promise(async (resolve, reject) => {
       try {
         //sends notification based on local data #category , #controller_identity , #to_notify , #controller_id
+        console.log('starting notification phase');
         const ProdsArr = await this.getElementsToNotifyOf();
         var controller_jwt = await pool.query(
           "SELECT user_id FROM scraper_controller WHERE id = ? ",

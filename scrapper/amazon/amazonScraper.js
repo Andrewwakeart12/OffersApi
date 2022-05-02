@@ -582,8 +582,8 @@ class Scraper {
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
-                            tempArr = tempArr.filter(Boolean);
-                            lastArr = lastArr.filter(Boolean);
+                            tempArr = tempArr;
+                            lastArr = lastArr;
                             if (lastArr.length > 0 && tempArr != false) {
                                 log(Log.bg.green,'Amazon_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
@@ -625,8 +625,8 @@ class Scraper {
             
 
                                 }else if(tempArr[0] == false){
-                                    var tempArrForComparation = tempArr.filter(Boolean);
-                                    var lastArrForComparation =lastArr.filter(Boolean);
+                                    var tempArrForComparation = tempArr;
+                                    var lastArrForComparation =lastArr;
                                     if(tempArrForComparation[0] != lastArrForComparation[0]){
 
                                         var clicked = await this.clickNextPagination().then(res =>{

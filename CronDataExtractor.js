@@ -4,6 +4,7 @@ import liverpoolBrowser from "./scrapper/liverpoolBrowser.js";
 import bluebird from "bluebird";
 import ProxyManager from './ProxyManager.js';
 import Notifiyer from "./Notifiyer.js";
+import cron from 'node-cron';
 
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
@@ -204,7 +205,7 @@ resolve(true)
   }
 }
 
-async function proob() {
+async function CronJobInitializer() {
 
   const Proxy = 1;
 
@@ -218,5 +219,12 @@ async function proob() {
     }
   }
 }
-proob();
+CronJobInitializer();
+
+const task = cron.schedule('0 0 */6 * * *', async () =>{
+  CronJobInitializer();
+});
+
+task.start()
+
 export default CronDataExtractor;

@@ -13,7 +13,11 @@ const getArrayAsChunks = (array, chunkSize) => {
   }
   return result;
 };
-
+const capitalize = (word) => {
+  return word
+    .toLowerCase()
+    .replace(/\w/, (firstLetter) => firstLetter.toUpperCase());
+};
 class CronDataExtractor {
   /*return obj of links by controller
         {
@@ -99,15 +103,18 @@ class CronDataExtractor {
                      var res = await Scrape.scraper(url.url);
                      var resObj ={dataArr:res, controller_id: controller.id,category:url.category, url_id:url.url_id};
 
-                    
+                    if(resObj.dataArr.pageFailsDueToNotResultsOrErrorPage === undefined){
                       await this.updateDb(resObj);
                       var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
                       await Promise.all([
-                          notify.getElementsToNotifyOf(),
                             notify.sendNotification()
                         ]);
                     
                      return resObj;
+                    }
+                    else{
+                      return {data:false,url_id:url.url_id, category:url.category,errorMessage: resObj.dataArr.erroInformation,controller : controller.controller, controller_id:controller.id};
+                    }
                   });
                   return result;
                 },{concurrency: 3});
@@ -121,7 +128,8 @@ class CronDataExtractor {
 
   }
  async updateDb(categoryData){
-
+return new Promise(async (resolve,reject)=>{
+  try {
     if(categoryData.error != undefined){
       console.log(categoryData)
       return categoryData.error;
@@ -188,6 +196,12 @@ class CronDataExtractor {
         }
         }
 console.log('finished')
+resolve(true)
+  } catch (error) {
+    reject(false);
+  }
+})
+    
  
   }
 }
@@ -198,7 +212,13 @@ async function proob() {
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);
-  console.log(links);
+  for( let link of links){
+    console.log('link');
+    if(link[0].data === false){
+
+      await Notifiyer.sendCostumNotification(link[0].controller_id,`${capitalize(link[0].controller)}: Error al extraer datos`,`(Error en la categoria : ${capitalize(link[0].category)} )\nel sistema ha arrojado el error : \n${link[0].errorMessage}`)
+    }
+  }
 }
 proob();
 export default CronDataExtractor;

@@ -276,8 +276,7 @@ class Scraper {
           throw e;
         });
       if (extractedData.results != false) {
-        this.reloadTime = 0;
-        this.resolveTimeOut = 0;
+
         success = true;
         return extractedData;
       } else {
@@ -286,6 +285,9 @@ class Scraper {
     } catch (e) {
       console.log("e.message");
       console.log(e.message);
+      if(e.message === 'Critical error, the page has no items or has been removed'){
+        return {pageFailsDueToNotResultsOrErrorPage : true, erroInformation: e.message}
+      }
     }
   }
 
@@ -691,6 +693,9 @@ class Scraper {
           });
       }
       if (res === true) {
+        page.waitForSelector('.a-btn__pagination.disabled').then(()=>{
+          res = false;
+        });
         resolve(res);
       } else {
         reject({ message: "error" });

@@ -345,7 +345,7 @@ class Scraper {
                 var finalDataOutput = [];
                 var amazonProducts =
                   document.querySelectorAll(".m-product__card");
-
+                let image_counter = 0;
                 for (e of amazonProducts) {
                   var finalDataObject = {
                     product: "",
@@ -358,9 +358,7 @@ class Scraper {
 
                   finalDataObject.product =
                     document.querySelector(".card-title").innerText;
-                  finalDataObject.img_url = document.querySelector("img")
-                    ? document.querySelector("img").src
-                    : null; //img url
+                  finalDataObject.img_url = document.querySelector(`#img_${image_counter}_`) != null ? document.querySelector(`#img_${image_counter}_`).src : null
                   finalDataObject.url =
                     document.querySelector(".m-product__card a").href;
                   finalDataObject.newPrice = document

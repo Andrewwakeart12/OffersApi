@@ -336,6 +336,7 @@ class Scraper {
               return page.evaluate(() => {
                 self = this;
 
+             
                 function getDiscountValue(oldPrice, newPrice) {
                   //x = v1 - v2 | x/v1 * 100
                   let difference = newPrice - oldPrice;
@@ -345,7 +346,6 @@ class Scraper {
                 var finalDataOutput = [];
                 var amazonProducts =
                   document.querySelectorAll(".m-product__card");
-                let image_counter = 0;
                 for (e of amazonProducts) {
                   var finalDataObject = {
                     product: "",
@@ -355,41 +355,50 @@ class Scraper {
                     url: "",
                     prime: false,
                   };
+                  function getPriceByDOMElement(DOMElement){
+                    var FirstPartOfText = DOMElement
 
+                    var SecondPartOfText=FirstPartOfText.querySelector('sup').innerText;
+                  var FirstPartOfTextChild = FirstPartOfText.firstChild;
+                  var finalTextsForOldPrice = [];
+                  while(FirstPartOfTextChild){
+                    if(FirstPartOfTextChild.nodeType == 3){
+                      finalTextsForOldPrice.push(FirstPartOfTextChild.data.replace(/[&\/\\#+()$~%'":*?<>{}]/g, ""));
+                    }
+                    FirstPartOfTextChild = FirstPartOfTextChild.nextSibling
+                  }
+                  var FinalOutputOfPrice = finalTextsForOldPrice.join("")
+                  
+                  return FinalOutputOfPrice + `.${SecondPartOfText}`
+                  }
                   finalDataObject.product =
-                    document.querySelector(".card-title").innerText;
-                  finalDataObject.img_url = document.querySelector(`#img_${image_counter}_`) != null ? document.querySelector(`#img_${image_counter}_`).src : null
+                    e.querySelector(".card-title").innerText;
+                  finalDataObject.img_url = e.querySelector(`img`) != null ? e.querySelector(`img`).src : null
                   finalDataObject.url =
-                    document.querySelector(".m-product__card a").href;
-                  finalDataObject.newPrice = document
-                    .querySelector(".a-card-price")
-                    .innerText.trim()
-                    .replace(",", "")
-                    .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
-                  finalDataObject.oldPrice = document
-                    .querySelector(".a-card-discount")
-                    .innerText.trim()
-                    .replace(",", "")
-                    .replace(/[&\/\\#,+()$~%'":*?<>{}]/g, "");
+                    e.querySelector(".m-product__card a").href;
+                  finalDataObject.newPrice = getPriceByDOMElement(e
+                    .querySelector(".a-card-price"))
+                  finalDataObject.oldPrice = getPriceByDOMElement(e
+                    .querySelector(".a-card-discount"))
                   finalDataObject.discount =
                     getDiscountValue(
-                      parseFloat(finalDataObject.oldPrice),
-                      parseFloat(finalDataObject.newPrice)
+                      parseFloat(finalDataObject.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+                      parseFloat(finalDataObject.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
                     ) <
                     getDiscountValue(
-                      parseFloat(finalDataObject.newPrice),
-                      parseFloat(finalDataObject.oldPrice)
+                      parseFloat(finalDataObject.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+                      parseFloat(finalDataObject.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
                     )
                       ? getDiscountValue(
-                          parseFloat(finalDataObject.oldPrice),
-                          parseFloat(finalDataObject.newPrice)
+                          parseFloat(finalDataObject.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+                          parseFloat(finalDataObject.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
                         )
                       : getDiscountValue(
-                          parseFloat(finalDataObject.newPrice),
-                          parseFloat(finalDataObject.oldPrice)
+                          parseFloat(finalDataObject.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+                          parseFloat(finalDataObject.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
                         );
                   finalDataObject.prime =
-                    document.querySelector(
+                    e.querySelector(
                       ".a-icon.a-icon-prime.a-icon-medium"
                     ) != null
                       ? true

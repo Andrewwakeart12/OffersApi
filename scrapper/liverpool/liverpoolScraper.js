@@ -111,7 +111,8 @@ class Scraper {
             } else {
               maxClicks = 1;
             }
-            return maxClicks;
+            //return maxClicks;
+            return 1;
           });
         })
         .catch(async (e) => {

@@ -114,3 +114,17 @@ ALTER TABLE scraper_controller
     ADD image_dark TEXT
         
     ALTER TABLE scraper_controller CHANGE COLUMN discount_trigger discount_starts_at
+
+CREATE TABLE scraper_watcher_list_items(
+    id INT(11) NOT NULL,
+    url_id INT(11),
+    FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
+    category TEXT,
+    old_arr_data TEXT,
+    last_modifiyed DATETIME DEFAULT NOW()
+);
+ALTER TABLE scraper_watcher_list_items
+    ADD PRIMARY KEY (id) ;
+
+ALTER TABLE scraper_watcher_list_items
+    MODIFY id INT(11) NOT NULL AUTO_INCREMENT;

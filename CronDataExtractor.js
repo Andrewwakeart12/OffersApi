@@ -152,13 +152,16 @@ return new Promise(async (resolve,reject)=>{
                 product.category = toChunk.category;
                
               }catch(e){
+                console.log('e');
                 console.log(e);
               }
             })
             var sql = "INSERT INTO scraped_data (product,discount,newPrice,oldPrice,url,prime,img_url,controller_id,url_id,category) VALUES ?";
             var records= oneChunkElement.map(e=>{return Object.values(e)})
             await pool.query(sql, [records], function(err, result) {
+              console.log('err');
               console.log(err);
+              console.log("result");
               console.log(result);
           });
           })

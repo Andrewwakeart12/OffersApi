@@ -364,7 +364,7 @@ class Scraper {
                   var finalTextsForOldPrice = [];
                   while(FirstPartOfTextChild){
                     if(FirstPartOfTextChild.nodeType == 3){
-                      finalTextsForOldPrice.push(FirstPartOfTextChild.data.replace(/[&\/\\#+()$~%'":*?<>{}]/g, ""));
+                      finalTextsForOldPrice.push(FirstPartOfTextChild.data.replace(/[&\/\\#+()$,~%'":*?<>{}]/g, ""));
                     }
                     FirstPartOfTextChild = FirstPartOfTextChild.nextSibling
                   }

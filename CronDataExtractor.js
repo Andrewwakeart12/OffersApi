@@ -93,11 +93,13 @@ class CronDataExtractor {
   
                   console.log(url);
                 const result = await withPage(browser[controller.controller == 'liverpool' ? 'liverpool' : 'others' ].browser)(async (page) => {
-                    var protocolName = 'Scraper';
+                   
+                  var protocolName = 'Scraper';
                     var imp =  `./scrapper/${controller.controller}/` + controller.controller + protocolName + '.js';
                     var GeneralScraperItem = await import(imp)
                     console.log('GeneralScraperItem');
                     console.log(GeneralScraperItem);
+                  
                     var { Scraper} = GeneralScraperItem;
                     var Scrape = new Scraper(page,Proxy);    
  
@@ -106,8 +108,8 @@ class CronDataExtractor {
 
                     if(resObj.dataArr.pageFailsDueToNotResultsOrErrorPage === undefined){
                       await this.updateDb(resObj);
-                      var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
-                      await notify.sendNotifications()
+                    //  var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
+                      //await notify.sendNotifications()
                     
                      return resObj;
                     }
@@ -153,7 +155,7 @@ return new Promise(async (resolve,reject)=>{
             })
             var sql = "INSERT INTO scraped_data (product,discount,newPrice,oldPrice,url,prime,img_url,controller_id,url_id,category) VALUES ?";
             var records= oneChunkElement.map(e=>{return Object.values(e)})
-            pool.query(sql, [records], function(err, result) {
+            await pool.query(sql, [records], function(err, result) {
               console.log(err);
               console.log(result);
           });
@@ -211,6 +213,7 @@ async function CronJobInitializer() {
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);
+  /*
   for( let link of links){
     console.log('link');
     if(link[0].data === false){
@@ -218,6 +221,7 @@ async function CronJobInitializer() {
       await Notifiyer.sendCostumNotification(link[0].controller_id,`${capitalize(link[0].controller)}: Error al extraer datos`,`(Error en la categoria : ${capitalize(link[0].category)} )\nel sistema ha arrojado el error : \n${link[0].errorMessage}`)
     }
   }
+  */
 }
 CronJobInitializer();
 

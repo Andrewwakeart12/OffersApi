@@ -110,8 +110,8 @@ class CronDataExtractor {
                       console.log('resObj')
                       console.log(resObj)
                       await this.updateDb(resObj);
-                    //  var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
-                      //await notify.sendNotifications()
+                     var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
+                      await notify.sendNotifications()
                     
                      return resObj;
                     }
@@ -218,7 +218,7 @@ async function CronJobInitializer() {
 
   var cron = new CronDataExtractor();
   var links = await cron.runJobsInParallel(Proxy);
-  /*
+  
   for( let link of links){
     console.log('link');
     if(link[0].data === false){
@@ -226,7 +226,7 @@ async function CronJobInitializer() {
       await Notifiyer.sendCostumNotification(link[0].controller_id,`${capitalize(link[0].controller)}: Error al extraer datos`,`(Error en la categoria : ${capitalize(link[0].category)} )\nel sistema ha arrojado el error : \n${link[0].errorMessage}`)
     }
   }
-  */
+  
 }
 CronJobInitializer();
 

@@ -1,7 +1,11 @@
 import pool from "./database.js";
 
 class WatcherOfProducts{
+    lastArray; // Array
     //integer
+    constructor(){
+        console.log('WatcherOfProducts its constructed')
+    }
      direfenceBettwenArraysOfProducs(oldArrayOfProducts, newArrayOfProducts){
 
         var differencesCounter = 0;
@@ -27,3 +31,4 @@ class WatcherOfProducts{
 
       }
 }
+export default WatcherOfProducts;

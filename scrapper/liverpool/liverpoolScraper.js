@@ -8,6 +8,7 @@ import { proxyRequest } from "puppeteer-proxy";
 colors.enable();
 
 import Log from "../../toolkit/colorsLog.js";
+import WatcherOfProducts from "../../WatcherOfProducts.js";
 const log = (color, text) => {
   console.log(`${color}%s${Log.reset}`, text);
 };
@@ -111,8 +112,7 @@ class Scraper {
             } else {
               maxClicks = 1;
             }
-            //return maxClicks;
-            return 1;
+            return maxClicks;
           });
         })
         .catch(async (e) => {

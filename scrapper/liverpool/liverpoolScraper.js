@@ -2,6 +2,7 @@
 import e from "express";
 
 import colors from "colors";
+import random_ua from 'modern-random-ua';
 
 import useProxy from "puppeteer-page-proxy";
 import { proxyRequest } from "puppeteer-proxy";
@@ -170,7 +171,7 @@ class Scraper {
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
       await page.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
+        random_ua.generate()
       );
       page.setRequestInterception(true);
       var requestCounter = 0;
@@ -377,9 +378,9 @@ class Scraper {
                   finalDataObject.img_url = e.querySelector(`img`) != null ? e.querySelector(`img`).src : null
                   finalDataObject.url =
                     e.querySelector(".m-product__card a").href;
-                  finalDataObject.newPrice = getPriceByDOMElement(e
-                    .querySelector(".a-card-price"))
                   finalDataObject.oldPrice = getPriceByDOMElement(e
+                    .querySelector(".a-card-price"))
+                  finalDataObject.newPrice = getPriceByDOMElement(e
                     .querySelector(".a-card-discount"))
                   finalDataObject.discount =
                     getDiscountValue(

@@ -96,7 +96,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks >= 100 ? 100 : maxClicks  ;
+                        return maxClicks >= 100 ? 2 : maxClicks  ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -582,6 +582,7 @@ class Scraper {
             
                             tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
                             console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
+                            
                             tempArr = tempArr;
                             lastArr = lastArr;
                             if (lastArr.length > 0 && tempArr != false) {

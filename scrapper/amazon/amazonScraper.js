@@ -587,8 +587,9 @@ class Scraper {
                             if (lastArr.length > 0 && tempArr != false) {
                                 log(Log.bg.green,'Amazon_:bucle temparr not empty')
                                 log(Log.bg.cyan,tempArr[0]);
-                                
-                                if (lastArr[0] != tempArr[0]) {
+                                tempArr = tempArr.filter(Boolean);
+                                if (JSON.stringify(lastArr) != JSON.stringify(tempArr) || tempArray.length === 0 )  {
+                                    tempArr.push(false);
                                     lastArr = tempArr;
                                     this.result.results = await this.result.results.concat(await tempArr);
                                     await Promise.all([

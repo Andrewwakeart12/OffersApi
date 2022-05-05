@@ -55,15 +55,28 @@ class CronDataExtractor {
     return linksArr;
   }
   async runJobsInParallel(Proxy) {
+    var controllers = await pool.query(
+      "SELECT id,controller,discount_starts_at FROM scraper_controller WHERE user_id=1 && controllerActive=1",
+    );
     const withBrowser = async (fn) => {
       var otherBrowse= await othersBrowser.startBrowser(Proxy);
-      var liverpoolBrowse= await liverpoolBrowser.startBrowser(Proxy);
+      var liverPoolItsOnTheControllers = false;
+      controllers.forEach(controller =>{
+        if(controller.controller == 'liverpool'){
+          liverPoolItsOnTheControllers = true;
+        }
+      })
+      if(liverPoolItsOnTheControllers){
+        var liverpoolBrowse= await liverpoolBrowser.startBrowser(Proxy);
+      }
       const browser = {liverpool:{browser:liverpoolBrowse, identifiyer:'liverpool'},others:{browser:otherBrowse,identifiyer:'other'}};
       try {
         return await fn(browser);
       } finally {
         await otherBrowse.close();
+      if(liverPoolItsOnTheControllers){
         await liverpoolBrowse.close();
+      }
       }
     };
     const withPage = (browser) => async (fn) => {
@@ -78,9 +91,7 @@ class CronDataExtractor {
       }
     };
     try {
-      var controllers = await pool.query(
-        "SELECT id,controller,discount_starts_at FROM scraper_controller WHERE user_id=1 && controllerActive=1",
-      );
+
       const urls = await this.getLinks()
       const results = await withBrowser(async (browser) => {
 

@@ -96,7 +96,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks >= 100 ? 2 : maxClicks  ;
+                        return maxClicks >= 100 ? 100 : maxClicks  ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')

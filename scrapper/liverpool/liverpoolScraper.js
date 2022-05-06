@@ -39,9 +39,11 @@ class Scraper {
   url;
   browser;
   paginationValue;
-  constructor(page, Proxy) {
+  url_id;
+  constructor(page, Proxy,url_id) {
     this.page = page;
     this.Proxy = Proxy;
+    this.url_id= url_id;
   }
   Proxy;
   selectedProxy = 0;
@@ -493,6 +495,7 @@ class Scraper {
           if (this.catcha === true) {
             throw new Catcha({ catcha: true });
           }
+          var ProductObserver = new WatcherOfProducts(this.url_id);
           if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
             console.log("Liverpool: bucle 1 step before comprobations");
 
@@ -561,8 +564,17 @@ class Scraper {
               }
             } else if (tempArr != false) {
               console.log("Liverpool: bucle tempar empty");
-
+              await ProductObserver.getLastArrayExtracted();
+              var diferences = ProductObserver.diffActualDataOfProducts(tempArr);
+              console.log('diferences')
+              if(diferences < 56  ){
+                console.log('Here comes the break!!');
+              }else{
+                console.log('Keep going!!');
+              }
               lastArr = tempArr;
+              
+              ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               this.result.results = await this.result.results.concat(
                 await tempArr

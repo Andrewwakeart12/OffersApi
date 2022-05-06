@@ -112,7 +112,7 @@ class CronDataExtractor {
                     console.log(GeneralScraperItem);
                   
                     var { Scraper} = GeneralScraperItem;
-                    var Scrape = new Scraper(page,Proxy);    
+                    var Scrape = new Scraper(page,Proxy,url.url_id);    
  
                      var res = await Scrape.scraper(url.url);
                      var resObj ={dataArr:res, controller_id: controller.id,category:url.category, url_id:url.url_id};

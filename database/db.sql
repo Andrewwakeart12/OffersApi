@@ -120,7 +120,7 @@ CREATE TABLE scraper_watcher_list_items(
     url_id INT(11),
     FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
     category TEXT,
-    old_arr_data TEXT,
+    old_arr_data JSON,
     last_modifiyed DATETIME DEFAULT NOW()
 );
 ALTER TABLE scraper_watcher_list_items

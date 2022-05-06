@@ -37,9 +37,11 @@ class Scraper {
     url;
     browser;
     paginationValue;
-    constructor (page,Proxy){
+    url_id;
+    constructor (page,Proxy,url_id){
         this.page = page;
         this.Proxy = Proxy;
+        this.url_id= url_id;
     }
     Proxy;
     selectedProxy = 0;

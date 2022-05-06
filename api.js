@@ -227,11 +227,11 @@ app.post('/api/login', async (req, res) => {
 });
 app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
-  data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
+  var data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
   res.send(data);
 });
 app.post('/api/getContollers', guard, async (req, res) => {
-  data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
+  var data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
   res.json(data);
 });
 app.post('/api/config', guard, (req, res) => {
@@ -241,7 +241,7 @@ app.post('/api/config', guard, (req, res) => {
 
 });
 app.get('/api/testResonse', async (req, res) => {
-  data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
+  var data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
   console.log(data[0].product);
   res.json({ products: data })
 
@@ -275,7 +275,7 @@ app.post('/api/config/pagination', (req, res) => {
   // query for fetching data with page number and offset
   const prodsQuery = "select * from scraped_data WHERE discount < " + discount + " limit  " + limit + " OFFSET " + offset
   pool.getConnection(function (err, connection) {
-    connection.pool.query(prodsQuery, function (error, results, fields) {
+    connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;
@@ -441,7 +441,7 @@ app.post('/api/config/getAllOffersForController',guard, async (req, res) => {
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
 
   pool.getConnection(function (err, connection) {
-    connection.pool.query(prodsQuery, function (error, results, fields) {
+    connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;
@@ -485,7 +485,7 @@ app.post('/api/config/getAllOffers/:category', guard, async (req, res) => {
   //SELECT * FROM scraped_data WHERE controller_id=1 AND discount < -20 AND category="Games" ORDER BY discount ASC  limit 10 OFFSET 10;
   const prodsQuery = "SELECT * FROM scraped_data WHERE controller_id=" + controller_id + " AND discount BETWEEN  " + discountEnds + " AND  "+ discount +" AND category='" + category + "' ORDER BY discount ASC  limit  " + limit + " OFFSET " + offset
   pool.getConnection(function (err, connection) {
-    connection.pool.query(prodsQuery, function (error, results, fields) {
+    connection.query(prodsQuery, function (error, results, fields) {
       // When done with the connection, release it.
       connection.release();
       if (error) throw error;

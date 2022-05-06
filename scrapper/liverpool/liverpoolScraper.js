@@ -564,16 +564,19 @@ class Scraper {
               }
             } else if (tempArr != false) {
               console.log("Liverpool: bucle tempar empty");
-              await ProductObserver.getLastArrayExtracted();
+              await ProductObserver.getLastArrayExtracted(this.url_id);
               var diferences = ProductObserver.diffActualDataOfProducts(tempArr);
               console.log('diferences')
-              if(diferences < 56  ){
-                console.log('Here comes the break!!');
-              }else{
-                console.log('Keep going!!');
+              if(diferences <= 56  ){
+                this.result.results = await this.result.results.concat(
+                  await tempArr
+                );
+                ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+                break;
               }
-              lastArr = tempArr;
               
+              lastArr = tempArr;
+
               ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               this.result.results = await this.result.results.concat(

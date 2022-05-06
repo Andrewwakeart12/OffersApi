@@ -18,11 +18,12 @@ class WatcherOfProducts {
           differencesCounter++;
         }
       }
+      return differencesCounter;
     }else{
       return newArrayOfProducts.length;
     }
 
-    return differencesCounter;
+    
   }
   //Void
   async getLastArrayExtracted(url_id) {
@@ -34,8 +35,9 @@ class WatcherOfProducts {
       );
       if (lastArrayExtracted.length != 0) {
         lastArrayExtracted = JSON.parse(
-          lastArrayExtracted[0].oldArrayOfProducts
+          lastArrayExtracted[0].old_arr_data
         );
+
         this.lastArray = lastArrayExtracted;
         return true;
       } else {
@@ -55,9 +57,6 @@ class WatcherOfProducts {
   //Bool
   async updateLocalArrayInDb(url_id, newArray) {
     try {
-      
-    console.log('url_id')
-    console.log(url_id)
     var lastArrayExtracted = await pool.query(
       "SELECT * FROM scraper_watcher_list_items WHERE url_id = ?",
       [url_id]

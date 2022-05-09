@@ -2,11 +2,12 @@ import pool from "./database.js";
 
 class WatcherOfProducts {
   lastArray = []; // Array
+  STANDAR_NUMBER_OF_PRODUCTS = 56
   constructor() {
     console.log("WatcherOfProducts its constructed");
   }
   //Int
-  direfenceBettwenArraysOfProducs(oldArrayOfProducts, newArrayOfProducts) {
+  direfenceBettwenArraysOfProducsV1(oldArrayOfProducts, newArrayOfProducts) {
     var differencesCounter = 0;
     console.log(oldArrayOfProducts);
     if(oldArrayOfProducts.length != 0){
@@ -24,6 +25,16 @@ class WatcherOfProducts {
     }
 
     
+  }
+  direfenceBettwenArraysOfProducs(oldArrayOfProducts,newArrayOfProducts)
+  {
+    var res = [];
+     res = oldArrayOfProducts.filter(el => {
+        return !newArrayOfProducts.find(element => {
+           return element.product === el.product;
+        });
+     });
+     return res.length;
   }
   //Void
   async getLastArrayExtracted(url_id) {

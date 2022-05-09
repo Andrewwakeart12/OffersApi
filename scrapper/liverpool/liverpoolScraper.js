@@ -567,7 +567,8 @@ class Scraper {
               await ProductObserver.getLastArrayExtracted(this.url_id);
               var diferences = ProductObserver.diffActualDataOfProducts(tempArr);
               console.log('diferences')
-              if(diferences <= 56  ){
+              console.log(diferences)
+              if(diferences < 56  ){
                 this.result.results = await this.result.results.concat(
                   await tempArr
                 );
@@ -577,11 +578,12 @@ class Scraper {
               
               lastArr = tempArr;
 
-              ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+              
 
               this.result.results = await this.result.results.concat(
                 await tempArr
               );
+              ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               console.log("Liverpool: before comprobate actual pge error");
 

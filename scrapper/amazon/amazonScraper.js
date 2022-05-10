@@ -47,13 +47,15 @@ class Scraper {
     selectedProxy = 0;
     //2.browser related propertys:
     page;
+    newProducts=false;
+
     browserObject;
         //2.1 pagination property:   
         maxClicks = null;
         //2.2 pagination value:
         comprobateActualPage = { actualPage: 0 };
         //2.3 extracted data final arr:
-        result = { results: [] };
+        result = { results: [],newProducts:false };
         //2.4 pagination clicked times property:
         clickedTimes = 0;
         

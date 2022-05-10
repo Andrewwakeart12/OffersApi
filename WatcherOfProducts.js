@@ -21,20 +21,38 @@ class WatcherOfProducts {
       }
       return differencesCounter;
     }else{
-      return newArrayOfProducts.length;
+      return 56;
     }
 
     
   }
   direfenceBettwenArraysOfProducs(oldArrayOfProducts,newArrayOfProducts)
   {
+    if(oldArrayOfProducts.length != 0){
     var res = [];
      res = oldArrayOfProducts.filter(el => {
         return !newArrayOfProducts.find(element => {
            return element.product === el.product;
         });
      });
-     return res.length;
+      return res.length;
+     }else{
+      return 56
+     }
+  }
+  direfenceBettwenArraysOfProducsWhenTheNewArrayItsLonger(oldArrayOfProducts,newArrayOfProducts)
+  {
+    if(oldArrayOfProducts.length != 0){
+    var res = [];
+     res = newArrayOfProducts.filter(el => {
+        return !oldArrayOfProducts.find(element => {
+           return element.product === el.product;
+        });
+     });
+      return res.length;
+     }else{
+      return 56
+     }
   }
   //Void
   async getLastArrayExtracted(url_id) {
@@ -64,6 +82,33 @@ class WatcherOfProducts {
       this.lastArray,
       newArrayToCompare
     );
+  }
+  diffActualDataOfProductsWhenTheNewArrayItsLonger(newArrayToCompare) {
+    return this.direfenceBettwenArraysOfProducsWhenTheNewArrayItsLonger(
+      this.lastArray,
+      newArrayToCompare
+    );
+  }
+  async retryGetOfLastArray(url_id){
+    try {
+      //gets old array of objects of db
+      var lastArrayExtracted = await pool.query(
+        "SELECT old_arr_data FROM scraper_watcher_list_items WHERE url_id = ?",
+        [url_id]
+      );
+      if (lastArrayExtracted.length != 0) {
+        lastArrayExtracted = JSON.parse(
+          lastArrayExtracted[0].old_arr_data
+        );
+
+        this.lastArray = lastArrayExtracted;
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
   //Bool
   async updateLocalArrayInDb(url_id, newArray) {

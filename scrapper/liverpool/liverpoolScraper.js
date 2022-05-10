@@ -55,8 +55,9 @@ class Scraper {
   //2.2 pagination value:
   comprobateActualPage = { actualPage: 0 };
   //2.3 extracted data final arr:
-  result = { results: [] };
+  result = { results: [],newProducts:false };
   //2.4 pagination clicked times property:
+  newProducts=false;
   clickedTimes = 0;
 
   //3.queueable propertys for promises:
@@ -572,6 +573,9 @@ class Scraper {
                 this.result.results = await this.result.results.concat(
                   await tempArr
                 );
+                
+                this.newProducts = diferences;
+
                 ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
                 break;
               }
@@ -644,6 +648,7 @@ class Scraper {
               });
             if (finalArr != false) {
               this.result.results = await this.result.results.concat(finalArr);
+
             }
             break;
           }

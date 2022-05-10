@@ -5,6 +5,7 @@ import bluebird from "bluebird";
 import ProxyManager from './ProxyManager.js';
 import Notifiyer from "./Notifiyer.js";
 import cron from 'node-cron';
+import WatcherOfProducts from "./WatcherOfProducts.js";
 
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
@@ -123,7 +124,15 @@ class CronDataExtractor {
                       await this.updateDb(resObj);
                      var notify = new Notifiyer(controller.controller,controller.id,url.url_id,url.category,controller.discount_starts_at);
                       await notify.sendNotifications()
-                    
+                      if(Scrape.newProducts != false){
+                        await Notifiyer.sendCostumNotification(controller.id,`Categoría ${capitalize(url.category)}`,`${Scrape.newProducts} productos nuevos fueron encontrados \n en esta extracción`)
+                      }else{
+                        console.log('checking the real number of offfers');
+                        var Observer = new WatcherOfProducts();
+                        await Observer.getLastArrayExtracted(url.url_id);
+                        var differences = await Observer.diffActualDataOfProductsWhenTheNewArrayItsLonger(resObj.dataArr);
+                        await Notifiyer.sendCostumNotification(controller.id,`Categoría ${capitalize(url.category)}`,`${differences} productos nuevos fueron encontrados \n en esta extracción`)
+                      }
                      return resObj;
                     }
                     else{

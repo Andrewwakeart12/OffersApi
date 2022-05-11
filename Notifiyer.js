@@ -36,6 +36,18 @@ class Notifiyer {
     this.discount_starts_at = discount_starts_at;
     this.controller_identity = controller_identity;
   }
+  async delay(time) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, time)
+    });
+}
+//3.5 destroys the object and the internal data
+destroy(){
+    this.url = null;
+    this.unsetTime();
+    this.resolveTimeOut = null;
+    this.reloadTime = null;
+}
   getToNotify(controller_id) {
     //gets to_notify from db from local machine
   }
@@ -57,6 +69,8 @@ class Notifiyer {
 
   }
   static async sendCostumNotification(controller_id,personalizedTitle,personalizedMessage){
+    var success = false;
+    var trys = 0;
     var controller_jwt = await pool.query(
       "SELECT user_id FROM scraper_controller WHERE id = ? ",
       [controller_id]
@@ -67,22 +81,38 @@ class Notifiyer {
     console.log('enviando notificacion...');
     console.log(controller_jwt);
     console.log(personalizedTitle);
-    var response = await axios.post(
-      "https://app.nativenotify.com/api/indie/notification",
-      {
-        appId: 2194,
-        subID: jwt[0].jwtoken,
-        appToken: "WtKcqC4zUq1I7AQx3oxk1d",
-        title: personalizedTitle,
-        message: personalizedMessage,
+
+    while(!success && trys < 5){
+
+      try {
+        var response = await axios.post(
+          "https://app.nativenotify.com/api/indie/notification",
+          {
+            appId: 2194,
+            subID: jwt[0].jwtoken,
+            appToken: "WtKcqC4zUq1I7AQx3oxk1d",
+            title: personalizedTitle,
+            message: personalizedMessage,
+          }
+        );
+        console.log('SendCostumNotification');
+        console.log(response.data);
+        success=true;
+        break;
+      } catch (error) {
+        trys++;
+        await this.delay(5000);
+        continue;
       }
-    );
-    console.log('SendCostumNotification');
-    console.log(response.data);
+      
+  
+
+    }
   }
   async sendNotifications() {
     return new Promise(async (resolve, reject) => {
-      try {
+
+      
         //sends notification based on local data #category , #controller_identity , #to_notify , #controller_id
         console.log('starting notification phase');
         const ProdsArr = await this.getElementsToNotifyOf();
@@ -95,6 +125,11 @@ class Notifiyer {
         ]);
         console.log(jwt);
         for (let product of ProdsArr) {
+          var success = false;
+          var trys = 0;
+        while(!success && trys <= 6){
+          try {
+
           var response = await axios.post(
             "https://app.nativenotify.com/api/indie/notification",
             {
@@ -118,12 +153,24 @@ class Notifiyer {
           log(Log.bg.red + Log.fg.white, `Section ${this.category}`);
           log(Log.bg.green + Log.fg.white, `Nofiyed about product`);
           log(Log.fg.green, product.product);
-          resolve(true);
+          success = true;
+          break;
         }
-      } catch (error) {
+      catch (error) {
         console.log(error);
-        reject(error);
+        if(trys == 5){
+        reject(error)
+      }else{
+        trys++;
+        await this.delay(5000);
+        continue;
       }
+      }
+    }
+    resolve(true);
+
+  }
+
     });
   }
 }

@@ -1,5 +1,5 @@
 import puppeteer from 'zyte-smartproxy-puppeteer';
-import puppeteer from 'puppeteer';
+//import puppeteer from 'puppeteer';
 import random_ua from 'modern-random-ua';
 
 

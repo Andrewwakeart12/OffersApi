@@ -566,7 +566,7 @@ class Scraper {
             } else if (tempArr != false) {
               console.log("Liverpool: bucle tempar empty");
               await ProductObserver.getLastArrayExtracted(this.url_id);
-              var diferences = ProductObserver.diffActualDataOfProducts(tempArr);
+              var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
               console.log('diferences')
               console.log(diferences)
               if(diferences < 56  ){

@@ -185,7 +185,7 @@ app.get('/generateExcel', async (req,res) =>{
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
-  userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
+  var userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
 
   console.log(userExist)
   if (userExist.length > 0) {

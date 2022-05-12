@@ -56,7 +56,7 @@ destroy(){
         try {
             //gets array of Products from DB
             var productsArr = await pool.query(
-              "SELECT * FROM scraped_data WHERE url_id = ? AND discount < ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ",
+              "SELECT * FROM scraped_data WHERE url_id = ? AND discount <= ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ",
               [this.url_id, this.discount_starts_at * -1]
             );
             resolve(productsArr);

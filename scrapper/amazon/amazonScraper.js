@@ -100,7 +100,7 @@ class Scraper {
                         } else if (str[2] === 'más') {
                             maxClicks = parseInt(document.querySelectorAll('.s-pagination-item.s-pagination-disabled')[1].innerText);
                         }
-                        return maxClicks >= 100 ? 100 : maxClicks  ;
+                        return maxClicks >= 40 ? 40 : maxClicks  ;
                     });
                 }).catch(async e =>{
                     log(Log.bg.red + Log.fg.white, '_Scraper.getMaxClicks() - error cause pagination was not found')
@@ -314,7 +314,7 @@ class Scraper {
                                     console.log('restarted');
                                     continue;
                                 } else {
-                                    this.unsetTime()
+                                    
                                     this.result.resetState = true;
                                     
                                     retry++;
@@ -325,7 +325,7 @@ class Scraper {
                                     console.log('restarted');
                                     continue;
                                 } else {
-                                    this.unsetTime()
+                                    
                                     this.result.resetState = true;
                                     
                                     retry++;
@@ -339,7 +339,7 @@ class Scraper {
                                     console.log('restarted');
                                     continue;
                                 } else {
-                                    this.unsetTime()
+                                    
                                     this.result.resetState = true;
                                     
                                     retry++;
@@ -363,7 +363,7 @@ class Scraper {
                                     console.log('restarted');
                                     continue;
                                 } else {
-                                    this.unsetTime()
+                                    
                                     this.result.resetState = true;
                                     
                                     retry++;
@@ -730,30 +730,7 @@ class Scraper {
               
             }
         //2.6 desactive timeouts:
-        async unsetTime() {
-            this.resetDueToNotChargedPage = false;
-            if (this.resolveTimeOut.length > 0) {
-                console.log('this.resolveTimeOut');
-                for (let promise of this.reloadTime) {
-                    console.log(promise)
-                    var resolveTime = this.resolveTimeOut[promise.indexArr]
-                    resolveTime.resolvePromise('resolved');
-                    console.log('promise after unsetTime')
-                    console.log(promise)
-                    this.reloadTime.splice(resolveTime.indexArr);
-                    this.resolveTimeOut.splice(resolveTime.indexArr);
-                }
-            }
-    
-            if (this.reloadTime === 1) {
-                this.reloadTime = [];
-            }
-            console.log(this.reloadTime);
-    
-            this.timeOuts = 0;
-            console.log('Timeouts destroyed')
-    
-        }
+
         //2.7 click to next pagination:
         async clickNextPagination() {
             return new Promise(async (resolve,reject)=>{
@@ -873,13 +850,7 @@ class Scraper {
                 setTimeout(resolve, time)
             });
         }
-        //3.5 destroys the object and the internal data
-        destroy(){
-            this.url = null;
-            this.unsetTime();
-            this.resolveTimeOut = null;
-            this.reloadTime = null;
-        }
+
 }
 
 

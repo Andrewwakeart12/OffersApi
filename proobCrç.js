@@ -24,10 +24,11 @@ async function startBrowser(){
             '--disable-web-security',
             '--lang=en-US,en;q=0.9',
             '--window-size=1920,1080',
-            `--proxy-server=${prox.proxy}`
         ];
        console.log("Opening the browser......");
     //   puppeteer.use(StealthPlugin());
+    puppeteer.use(StealthPlugin())
+
         browser = await puppeteer.launch({
             pipe: true,
             headless: false,
@@ -53,19 +54,9 @@ async function startBrowser(){
 
     console.log(prox.proxy);
 
-    page.on('request', (request) => {
-        console.log(`request type = ${request.resourceType()}`);
-        if (  request.resourceType() === 'stylesheet' || request.resourceType() === 'script' || request.resourceType() === 'font' || request.resourceType() === 'image'  ){
-            console.log(`request number not passed: ${requestCounterNotPassed++}`);
-            request.abort();
-     } else {
-        console.log(`request number : ${requestCounter++}`);
-            request.continue();
-        }
-    });
 //    page.goto('file:///home/obe/Descargas/P%C3%A1gina%20no%20disponible%20-%20Liverpool.html',{waituntil:'networkidle0'});
 //https://www.liverpool.com.mx/tienda/Computadoras/N-MyN5EGLkRkJnbWQM0oybCwDb51HPoq41uykVTx%2F8p7q4Lv5kmJ%2FB7n9SHDZAiZOr/page-4
-    page.goto('https://api.ipify.org',{waituntil:'networkidle0'});
+    page.goto('https://www.elektra.mx/categorias-populares',{waituntil:'networkidle0'});
     return browser;
 
     } catch (err) {

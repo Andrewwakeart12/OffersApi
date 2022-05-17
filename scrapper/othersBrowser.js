@@ -16,6 +16,7 @@ async function startBrowser(){
         var argumentsForBrowser= [
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
+            '--no-zygote',
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-infobars',

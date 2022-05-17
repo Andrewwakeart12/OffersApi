@@ -7,6 +7,8 @@ import Notifiyer from "./Notifiyer.js";
 import cron from "node-cron";
 import WatcherOfProducts from "./WatcherOfProducts.js";
 import child_process from 'child_process';
+import ps from 'ps-node-promise-es6';
+import _ from 'lodash'
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
   let data = array.slice(0);
@@ -82,17 +84,15 @@ class CronDataExtractor {
       try {
         return await fn(browser);
       } finally {
-        otherBrowse.on('disconnected', () => {
+        otherBrowse.on('disconnected',  () => {
           var process = otherBrowse._process.pid;
           console.log('sleeping 100ms'); //  sleep to eliminate race condition  
-          setTimeout(function(){
-          console.log(`Browser Disconnected... Process Id: ${process}`);
-          child_process.exec(`kill -9 ${process}`, (error, stdout, stderr) => {
-              if (error) {
-              console.log(`Process Kill Error: ${error}`)
-              }
-              console.log(`Process Kill Success. stdout: ${stdout} stderr:${stderr}`);
-          });
+          setTimeout(async function(){ const psLookup = await ps.lookup({ pid: process });
+          for (let proc of psLookup) {
+            if (_.has(proc, 'pid')) {
+              await ps.kill(proc.pid, 'SIGKILL');
+            }
+          }
       }, 100)
     });
         await otherBrowse.disconnect();
@@ -100,14 +100,13 @@ class CronDataExtractor {
           liverpoolBrowse.on('disconnected', () => {
             var process = liverpoolBrowse._process.pid;
             console.log('sleeping 100ms'); //  sleep to eliminate race condition  
-            setTimeout(function(){
-            console.log(`Browser Disconnected... Process Id: ${process}`);
-            child_process.exec(`kill -9 ${process}`, (error, stdout, stderr) => {
-                if (error) {
-                console.log(`Process Kill Error: ${error}`)
+            setTimeout(async function(){
+              const psLookup = await ps.lookup({ pid: process });
+              for (let proc of psLookup) {
+                if (_.has(proc, 'pid')) {
+                  await ps.kill(proc.pid, 'SIGKILL');
                 }
-                console.log(`Process Kill Success. stdout: ${stdout} stderr:${stderr}`);
-            });
+              }
         }, 100)
       });
           await liverpoolBrowse.disconnect();

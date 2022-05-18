@@ -4,6 +4,7 @@ import liverpoolBrowser from "./scrapper/liverpoolBrowser.js";
 import bluebird from "bluebird";
 import ProxyManager from "./ProxyManager.js";
 import Notifiyer from "./Notifiyer.js";
+import cron from "node-cron";
 import WatcherOfProducts from "./WatcherOfProducts.js";
 import child_process from 'child_process';
 import ps from 'ps-node-promise-es6';
@@ -336,8 +337,13 @@ async function CronJobInitializer() {
     }
   }
 }
-
 CronJobInitializer();
+//pm2 start sendMail.js --cron "*/15 * * * *"
+//const task = cron.schedule("0 0 */6 * * *", async () => {
+ /* CronJobInitializer();
+});
+*/
 
+//task.start();
 
 export default CronDataExtractor;

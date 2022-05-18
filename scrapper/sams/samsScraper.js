@@ -84,39 +84,18 @@ class Scraper {
       log(Log.bg.green + Log.fg.white, "Getting clicks");
       var page = await this.page;
 
-      var uniqueErrorNameForImage = `Sams_Scraper.getMaxClicks()_saved${new Date().getTime()}.jpg`;
-      await page
-        .screenshot({
-          path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,
-        })
-        .catch((e) => {});
-      log(
-        Log.bg.green + Log.fg.white,
-        `Sams_capture saved with the name ${uniqueErrorNameForImage}`
-      );
-
       this.maxClicks = await page
-        .waitForSelector(".col-lg-9.m-column_mainContent", { timeout: 10000 })
+        .waitForSelector(".left.counter", { timeout: 10000 })
         .then((res) => {
           return page.evaluate(async () => {
-            var productsLength =
-              document.querySelectorAll(".m-product__card").length;
-            var maxClicks = 0;
-
-            if (productsLength >= 56) {
-              maxClicks = Math.ceil(
-                parseInt(
-                  document.querySelector(".a-plp-results-title > span")
-                    .innerText
-                ) /
-                  document.querySelectorAll(
-                    ".m-product__listingPlp > .m-product__card"
-                  ).length
-              );
-            } else {
-              maxClicks = 1;
+            var productsValue = document.querySelector('.left.counter').innerText.split(' ')[0];
+            if(productsValue > 100){
+              var maxClicks = Math.ceil(document.querySelector('.left.counter').innerText.split(' ')[0] / 100);
+              return maxClicks
+            }else{
+              return 1;
             }
-            return maxClicks;
+            
           });
         })
         .catch(async (e) => {
@@ -545,11 +524,11 @@ class Scraper {
                       ? this.maxClicks
                       : false,
                 };
-                var clicked = await this.clickNextPagination()
+                var clicked = await this.scrollNextPagination()
                   .then((res) => {
                     log(
                       Log.bg.green + Log.fg.white,
-                      "_Scraper.clickNextPagination() - done"
+                      "_Scraper.scrollNextPagination() - done"
                     );
                     return true;
                   })
@@ -618,11 +597,11 @@ class Scraper {
                     : false,
               };
 
-              var clicked = await this.clickNextPagination()
+              var clicked = await this.scrollNextPagination()
                 .then((res) => {
                   log(
                     Log.bg.green + Log.fg.white,
-                    "_Scraper.clickNextPagination() - done"
+                    "_Scraper.scrollNextPagination() - done"
                   );
                   return true;
                 })
@@ -671,7 +650,7 @@ class Scraper {
     return extData;
   }
   //2.7 click to next pagination:
-  async clickNextPagination() {
+  async scrollNextPagination() {
     return new Promise(async (resolve, reject) => {
       var page = await this.page;
       var res = 0;
@@ -703,7 +682,7 @@ class Scraper {
               res = true;
               log(
                 Log.fg.white + Log.bg.green,
-                "_Scraper.clickNextPagination() - success in clickNextPagination"
+                "_Scraper.scrollNextPagination() - success in clickNextPagination"
               );
               this.delay(Math.ceil(Math.random() * 10) * 1000);
               this.clickedTimes++;
@@ -718,10 +697,10 @@ class Scraper {
           .catch((e) => {
             log(
               Log.fg.white + Log.bg.red,
-              "_Scraper.clickNextPagination() - Error from clickNextPagination"
+              "_Scraper.scrollNextPagination() - Error from clickNextPagination"
             );
             console.log(Log.fg.red, e.message);
-            var uniqueErrorNameForImage = `Sams_Scraper.clickNextPagination()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
+            var uniqueErrorNameForImage = `Sams_Scraper.scrollNextPagination()_ERROR_PAGINATION UNFINDED_${new Date().getTime()}.jpg`;
             page
               .screenshot({
                 path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,

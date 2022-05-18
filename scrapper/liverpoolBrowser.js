@@ -1,5 +1,5 @@
-//import puppeteer from 'zyte-smartproxy-puppeteer';
-import puppeteer from 'puppeteer';
+import puppeteer from 'zyte-smartproxy-puppeteer';
+//import puppeteer from 'puppeteer';
 import random_ua from 'modern-random-ua';
 
 
@@ -21,15 +21,15 @@ async function startBrowser(){
        console.log("Opening the browser......");
         browser = await puppeteer.launch({
             pipe: true,
-            headless: true,
+            headless: false,
             ignoreHTTPSErrors: true,
             slowMo: 0,
-        /*   Headers: {
+          Headers: {
                 'X-Crawlera-Region': 'MX',
                 'X-Crawlera-Profile': 'pass',
                 'X-Crawlera-Cookies': 'disable'
-               },*/
-          // spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
+               },
+           spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             userAgent: random_ua.generate(),
             args: argumentsForBrowser
         });

@@ -147,10 +147,11 @@ class Scraper {
         if (
           request.resourceType() === "stylesheet" ||
           request.resourceType() === "font" ||
-          request.resourceType() === "ping" ||
+          request.resourceType() === "image" ||
           request.resourceType() === "xhr" ||
+          request.resourceType() === "ping" ||
           request.resourceType() === "script"
-          ) {
+        ) {
           console.log(
             `request number not passed: ${requestCounterNotPassed++}`
           );
@@ -381,203 +382,193 @@ class Scraper {
             })
             return prom;
         }
-  //2.5.1 start extract data loop:
-  async extractDataLoop() {
-    var resolveVar = 0;
-    var page = await this.page;
-    var extData = new Promise(async (resolve, reject) => {
-      try {
-        var lastArr = [];
-        for (
-          let i = 0;
-          parseInt(this.comprobateActualPage.actualPage) <= this.maxClicks && this.clickedTimes <= this.maxClicks||
-          (this.maxClicks === 1 && this.clickedTimes != this.maxClicks);
-          i++
-        ) {
-          log(Log.fg.white + Log.bg.green, "bucle start");
-          var tempArr = [];
-          await page
-            .waitForSelector("#captchacharacters", { timeout: 2000 })
-            .then(() => {
-              console.log("Liverpool: catcha ! a");
-              this.catcha = true;
-              console.log(this.catcha);
-            })
-            .catch((e) => {
-              this.catcha = false;
-            });
-          if (this.catcha === true) {
-            throw new Catcha({ catcha: true });
-          }
-          var ProductObserver = new WatcherOfProducts(this.url_id);
-          if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-            console.log("Liverpool: bucle 1 step before comprobations");
+            //2.5.1 start extract data loop:
+            async extractDataLoop(){
+                var resolveVar = 0;
+                var page = await this.page;
+              var  extData= new Promise(async (resolve,reject)=>{
+                try {
+                    var lastArr = [];
+                    for (let i = 0; parseInt(this.comprobateActualPage.actualPage) <= this.maxClicks && this.clickedTimes <= this.maxClicks || this.maxClicks === 1 && this.clickedTimes != this.maxClicks; i++) 
+                    {
+            
+                        log(Log.fg.white + Log.bg.green,'bucle start')
+                        var tempArr = [];
+                        await page.waitForSelector('#captchacharacters', { timeout: 2000 }).then(() => {
+                                console.log('catcha ! a')
+                                this.catcha = true;
+                                console.log(this.catcha);
+            
+                            }).catch(e => {
+                                this.catcha = false;
+                            });
+                        if (this.catcha === true) {
+                            throw new Catcha({ catcha: true });
+                        }
+                        var ProductObserver = new WatcherOfProducts(this.url_id);
 
-            tempArr = await this.getData()
-              .then((res) => {
-                log(Log.fg.green, res[0]);
-                return res;
-              })
-              .catch((e) => {
-                throw e;
-              });
-            console.log(
-              lastArr[0] === tempArr[0]
-                ? "arrays comparations = " + true
-                : "arrays comparations = " + false
-            );
-
-            if (lastArr.length > 0 && tempArr != false) {
-              log(Log.bg.green, "Liverpool_:bucle temparr not empty");
-              log(Log.bg.cyan, tempArr[0]);
-
-              if (lastArr[0] != tempArr[0]) {
-                lastArr = tempArr;
-                this.result.results = await this.result.results.concat(
-                  await tempArr
-                );
-                await Promise.all([this.comprobateActualPageF()]);
-                this.result = {
-                  results: this.result.results,
-                  pagination:
-                    this.comprobateActualPage.actualPage != false
-                      ? this.comprobateActualPage.actualPage
-                      : false,
-                  nextPageUrl:
-                    this.comprobateActualPage.nextPageUrl != false
-                      ? this.comprobateActualPage.nextPageUrl
-                      : false,
-                  error: false,
-                  paginationValue:
-                    this.comprobateActualPage.nextPageUrl != false
-                      ? this.maxClicks
-                      : false,
-                };
-                var clicked = await this.clickNextPagination()
-                  .then((res) => {
-                    log(
-                      Log.bg.green + Log.fg.white,
-                      "_Scraper.clickNextPagination() - done"
-                    );
-                    return true;
-                  })
-                  .catch((e) => {
-                    return false;
-                  });
-                if (clicked === false) {
-                  log(Log.fg.white + Log.bg.red, "Pagination not clicked");
-                  break;
-                }
-                if (clicked != true) {
-                  await Promise.all([page.reload(), page.waitForNavigation()]);
-                } else {
-                  if (this.comprobateActualPage.actualPage >= this.maxClicks) {
-                    resolve({ results: this.result.results });
-                  }
-                }
-              }
-            } else if (tempArr != false) {
-              console.log("Liverpool: bucle tempar empty");
-              await ProductObserver.getLastArrayExtracted(this.url_id);
-              var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
-              console.log('diferences')
-              console.log(diferences)
-              if(diferences < 24  ){
-                this.result.results = await this.result.results.concat(
-                  await tempArr
-                );
+                        if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
+                            console.log('bucle 1 step before comprobations')
+            
+                            tempArr = await this.getData().then(res=>{log(Log.fg.green, res[0]);return res}).catch(e=>{throw e});
+                            console.log( lastArr[0] === tempArr[0] ?  'arrays comparations = ' + true : 'arrays comparations = ' + false)
+                            
+                            tempArr = tempArr;
+                            lastArr = lastArr;
+                            if (lastArr.length > 0 && tempArr != false) {
+                                log(Log.bg.green,'Amazon_:bucle temparr not empty')
+                                log(Log.bg.cyan,tempArr[0]);
+                                tempArr = tempArr.filter(Boolean);
+                                if (JSON.stringify(lastArr) != JSON.stringify(tempArr) || tempArray.length === 0 )  {
+                                    tempArr.push(false);
+                                    lastArr = tempArr;
+                                    this.result.results = await this.result.results.concat(await tempArr);
+                                    await Promise.all([
+                                        this.comprobateActualPageF()
+                                    ])
+                                    this.result = {
+                                        results: this.result.results,
+                                        pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
+                                        nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
+                                        error: false,
+                                        paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
+                                    };
+                                    var clicked = await this.clickNextPagination().then(res =>{
+                                        log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                        return true;
+                                    }).catch(e => { return false;});
+                                    if (clicked === false) {
+                                        log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                        break;
+                                    }
+                                    if (clicked != true) {
+                                        await Promise.all([
+                                            page.reload(),
+                                            page.waitForNavigation()
+                                        ]);
                 
-                this.newProducts = diferences;
+                                        continue;
+                                    }else{
+                                        if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                            resolve({results:this.result.results})
+                                        }
+                                    }
+                                    
+            
 
-                await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
-                break;
-              }
-              
-              lastArr = tempArr;
+                                }else if(tempArr[0] == false){
+                                    var tempArrForComparation = tempArr;
+                                    var lastArrForComparation =lastArr;
+                                    if(tempArrForComparation[0] != lastArrForComparation[0]){
 
-              
-
-              this.result.results = await this.result.results.concat(
-                await tempArr
-              );
-              await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
-
-              console.log("Liverpool: before comprobate actual pge error");
-
-              if (this.maxClicks === 1) {
-                break;
-              }
-              await Promise.all([this.comprobateActualPageF()]);
-
-              this.result = {
-                results: this.result.results,
-                pagination:
-                  this.comprobateActualPage.actualPage != false
-                    ? this.comprobateActualPage.actualPage
-                    : false,
-                nextPageUrl:
-                  this.comprobateActualPage.nextPageUrl != false
-                    ? this.comprobateActualPage.nextPageUrl
-                    : false,
-                error: false,
-                paginationValue:
-                  this.comprobateActualPage.nextPageUrl != false
-                    ? this.maxClicks
-                    : false,
-              };
-
-              var clicked = await this.clickNextPagination()
-                .then((res) => {
-                  log(
-                    Log.bg.green + Log.fg.white,
-                    "_Scraper.clickNextPagination() - done"
-                  );
-                  return true;
-                })
-                .catch((e) => {
-                  return false;
-                });
-              if (clicked === false) {
-                log(Log.fg.white + Log.bg.red, "Pagination not clicked");
-                break;
-              }
-              if (clicked != true) {
-                await Promise.all([page.reload(), page.waitForNavigation()]);
-              } else {
-                if (this.comprobateActualPage.actualPage >= this.maxClicks) {
-                  resolve({ results: this.result.results });
+                                        var clicked = await this.clickNextPagination().then(res =>{
+                                            log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                            return true;
+                                        }).catch(e => { return false;});
+                                        if (clicked === false) {
+                                            log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                            break;
+                                        }
+                                        if (clicked != true) {
+                                            await Promise.all([
+                                                page.reload(),
+                                                page.waitForNavigation()
+                                            ]);
+                    
+                                            continue;
+                                        }else{
+                                            if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                                resolve({results:this.result.results})
+                                            }
+                                        }
+                                    }
+                                }
+            
+            
+                            } else if(tempArr != false){
+                                console.log('bucle tempar empty')
+                                console.log("Liverpool: bucle tempar empty");
+                                await ProductObserver.getLastArrayExtracted(this.url_id);
+                                var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
+                                console.log('diferences')
+                                console.log(diferences)
+                                if(diferences < 56  ){
+                                  this.result.results = await this.result.results.concat(
+                                    await tempArr
+                                  );
+                                  
+                                  this.newProducts = diferences;
+                  
+                                  await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+                                  break;
+                                }
+            
+                                lastArr = tempArr;
+            
+                                this.result.results = await this.result.results.concat(await tempArr);
+            
+                                console.log('before comprobate actual pge error')
+            
+                                if (this.maxClicks === 1) {
+                                    break;
+                                }
+                                await Promise.all([this.comprobateActualPageF()])
+            
+                                this.result = {
+                                    results: this.result.results,
+                                    pagination: this.comprobateActualPage.actualPage != false ? this.comprobateActualPage.actualPage : false,
+                                    nextPageUrl: this.comprobateActualPage.nextPageUrl != false ? this.comprobateActualPage.nextPageUrl : false,
+                                    error: false,
+                                    paginationValue: this.comprobateActualPage.nextPageUrl != false ? this.maxClicks : false
+                                };
+                                
+                                var clicked = await this.clickNextPagination().then(res =>{
+                                    log(Log.bg.green + Log.fg.white , '_Scraper.clickNextPagination() - done');
+                                    return true;
+                                }).catch(e => { return false;});
+                                if (clicked === false) {
+                                    log(Log.fg.white + Log.bg.red, 'Pagination not clicked');
+                                    break;
+                                }
+                                if (clicked != true) {
+                                    await Promise.all([
+                                        page.reload(),
+                                        page.waitForNavigation()
+                                    ]);
+            
+                                    continue;
+                                }else{
+                                        if(this.comprobateActualPage.actualPage >= this.maxClicks){
+                                            resolve({results:this.result.results})
+                                        }
+                                    }
+                            }
+            
+            
+            
+                        } else {
+                            console.log('break final assign')
+                            var finalArr = await this.getData().then(res=>{log(Log.fg.green, res);return res}).catch(e=>{throw e});
+                            if(finalArr != false){
+                                this.result.results = await this.result.results.concat(finalArr);
+                            }
+                            break;
+                        }
+            
+                            await this.comprobateActualPageF();
+                        }
+                        log(Log.bg.green,'Amazon_:Data extracted:');
+                        log(Log.fg.green, this.result);
+                        resolve({results:this.result.results})
+                } catch (error) {
+                    reject(error);
                 }
-              }
+              
+               })
+
+               return extData;
+              
             }
-          } else {
-            console.log("Liverpool: break final assign");
-            var finalArr = await this.getData()
-              .then((res) => {
-                log(Log.fg.green, res);
-                return res;
-              })
-              .catch((e) => {
-                throw e;
-              });
-            if (finalArr != false) {
-              this.result.results = await this.result.results.concat(finalArr);
-
-            }
-            break;
-          }
-
-          await this.comprobateActualPageF();
-        }
-        log(Log.bg.green, "Liverpool_:Data extracted:");
-        log(Log.fg.green, this.result);
-        resolve({ results: this.result.results });
-      } catch (error) {
-        reject(error);
-      }
-    });
-
-    return extData;
-  }
         //2.6 desactive timeouts:
 
         //2.7 click to next pagination:

@@ -67,25 +67,18 @@ class CronDataExtractor {
       "SELECT id,controller,discount_starts_at FROM scraper_controller WHERE user_id=1 && controllerActive=1"
     );
     const withBrowser = async (fn) => {
-      var otherBrowse = await othersBrowser.startBrowser(Proxy);
       var liverPoolItsOnTheControllers = false;
       controllers.forEach((controller) => {
         if (controller.controller == "liverpool") {
           liverPoolItsOnTheControllers = true;
         }
       });
-      if (liverPoolItsOnTheControllers) {
-        var liverpoolBrowse = await liverpoolBrowser.startBrowser(Proxy);
-      }
-      const browser = {
-        liverpool: { browser: liverpoolBrowse, identifiyer: "liverpool" },
-        others: { browser: otherBrowse, identifiyer: "other" },
-      };
+      const browser = await liverpoolBrowser.startBrowser(Proxy)
       try {
         return await fn(browser);
       } finally {
-        otherBrowse.on('disconnected',  () => {
-          var process = otherBrowse._process.pid;
+        browser.on('disconnected',  () => {
+          var process = browser._process.pid;
           console.log('sleeping 100ms'); //  sleep to eliminate race condition  
           setTimeout(async function(){ const psLookup = await ps.lookup({ pid: process });
           for (let proc of psLookup) {
@@ -95,22 +88,7 @@ class CronDataExtractor {
           }
       }, 100)
     });
-        await otherBrowse.disconnect();
-        if (liverPoolItsOnTheControllers) {
-          liverpoolBrowse.on('disconnected', () => {
-            var process = liverpoolBrowse._process.pid;
-            console.log('sleeping 100ms'); //  sleep to eliminate race condition  
-            setTimeout(async function(){
-              const psLookup = await ps.lookup({ pid: process });
-              for (let proc of psLookup) {
-                if (_.has(proc, 'pid')) {
-                  await ps.kill(proc.pid, 'SIGKILL');
-                }
-              }
-        }, 100)
-      });
-          await liverpoolBrowse.disconnect();
-        }
+        await browser.disconnect();
       }
     };
     const withPage = (browser) => async (fn) => {
@@ -129,22 +107,12 @@ class CronDataExtractor {
       const results = await withBrowser(async (browser) => {
         return bluebird.map(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
-          console.log(
-            "browser[controller.controller == 'liverpool' ? liverpool : 'others' ].identifiyer"
-          );
-          console.log(
-            browser[
-              controller.controller == "liverpool" ? "liverpool" : "others"
-            ].identifiyer
-          );
           return await bluebird.map(
             localUrls,
             async (url) => {
               console.log(url);
               const result = await withPage(
-                browser[
-                  controller.controller == "liverpool" ? "liverpool" : "others"
-                ].browser
+                browser
               )(async (page) => {
                 var protocolName = "Scraper";
                 var imp =

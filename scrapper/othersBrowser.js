@@ -28,7 +28,7 @@ async function startBrowser(){
        console.log("Opening the browser......");
         browser = await puppeteer.launch({
             pipe: true,
-            headless: true,
+            headless: false,
             ignoreHTTPSErrors: true,
             slowMo: 0,
             userAgent: random_ua.generate(),

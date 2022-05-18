@@ -576,7 +576,7 @@ class Scraper {
                 
                 this.newProducts = diferences;
 
-                ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+                await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
                 break;
               }
               
@@ -587,7 +587,7 @@ class Scraper {
               this.result.results = await this.result.results.concat(
                 await tempArr
               );
-              ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+              await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               console.log("Liverpool: before comprobate actual pge error");
 

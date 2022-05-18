@@ -129,7 +129,8 @@ class WatcherOfProducts {
       url_id:url_id
     }
     if (lastArrayExtracted.length != 0) {
-      await pool.query('UPDATE scraper_watcher_list_items set ? WHERE url_id = ?', [finalWatchItemObject,url_id]);
+      console.log('trying to update data');
+      await pool.query('UPDATE scraper_watcher_list_items set old_arr_data=?, last_modifiyed=NOW() WHERE url_id = ?', [newArrayString,url_id]);
     }else{
       await pool.query('INSERT INTO scraper_watcher_list_items set ?', [finalWatchItemObject]);
     }

@@ -10,13 +10,16 @@ async function startBrowser(){
         var argumentsForBrowser= [
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--no-zygote',
             '--no-sandbox',
+            '--no-zygote',
             '--disable-setuid-sandbox',
             '--disable-infobars',
             '--window-position=0,0',
+            '--start-maximized',
             '--ignore-certifcate-errors',
-            '--ignore-certifcate-errors-spki-list'
+            '--ignore-certifcate-errors-spki-list',
+            '--enable-javascript',
+            '--headlesss'
         ];
        console.log("Opening the browser......");
         browser = await puppeteer.launch({

@@ -153,25 +153,7 @@ class Scraper {
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
 
-      page.setRequestInterception(true);
-      var requestCounter = 0;
-      var requestCounterNotPassed = 0;
-      page.on("request", (request) => {
-        console.log(`request type = ${request.resourceType()}`);
-        if (
-          request.resourceType() === "stylesheet" ||
-          request.resourceType() === "font" ||
-          request.resourceType() === "ping"
-        ) { 
-          console.log(
-            `request number not passed: ${requestCounterNotPassed++}`
-          );
-          request.abort();
-        } else {
-          console.log(`request number : ${requestCounter++}`);
-          request.continue();
-        }
-      });
+
 
       page.goto(this.url);
       

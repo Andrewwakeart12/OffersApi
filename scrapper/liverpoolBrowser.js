@@ -30,7 +30,8 @@ async function startBrowser(){
            Headers: {
                 'X-Crawlera-Region': 'MX',
                 'X-Crawlera-Profile': 'pass',
-                'X-Crawlera-Cookies': 'disable'
+                'X-Crawlera-Cookies': 'disable',
+                'X-Crawlera-No-Bancheck': 'disable'
                },
          spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             

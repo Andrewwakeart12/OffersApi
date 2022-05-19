@@ -184,7 +184,7 @@ class CronDataExtractor {
               });
               return result;
             },
-            { concurrency: 3 }
+            { concurrency:1 }
           );
         });
       });

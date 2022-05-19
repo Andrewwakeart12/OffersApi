@@ -280,6 +280,8 @@ class Scraper {
           console.log(`error from promise ${e.message}`.red);
           throw e;
         });
+        await this.delay(Math.round(Math.random(1) * 100 * 100))
+        
       if (extractedData.results != false) {
         success = true;
         return extractedData;
@@ -583,7 +585,7 @@ class Scraper {
               this.result.results = await this.result.results.concat(
                 await tempArr
               );
-              
+
               await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               console.log("Liverpool: before comprobate actual pge error");
@@ -626,7 +628,8 @@ class Scraper {
                 break;
               }
               if (clicked != true) {
-                await Promise.all([page.reload(), page.waitForNavigation()]);
+                log(Log.fg.white + Log.bg.red, "Pagination not clicked");
+                break;
               } else {
                 if (this.comprobateActualPage.actualPage >= this.maxClicks) {
                   resolve({ results: this.result.results });

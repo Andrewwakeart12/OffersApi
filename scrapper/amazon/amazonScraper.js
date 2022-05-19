@@ -136,9 +136,7 @@ class Scraper {
       console.log(
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
-      await page.setUserAgent(
-        random_ua.generate()
-      );
+
       page.setRequestInterception(true);
       var requestCounter = 0;
       var requestCounterNotPassed = 0;
@@ -250,6 +248,8 @@ class Scraper {
           console.log(`error from promise ${e.message}`.red);
           throw e;
         });
+        await this.delay(Math.round(Math.random(1) * 100 * 100))
+
       if (extractedData.results != false) {
         success = true;
         return extractedData;

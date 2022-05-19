@@ -18,8 +18,6 @@ async function startBrowser(){
             '--start-maximized',
             '--ignore-certifcate-errors',
             '--ignore-certifcate-errors-spki-list',
-            '--enable-javascript',
-            '--no-auto-sessions'
         ];
        console.log("Opening the browser......");
         browser = await puppeteer.launch({

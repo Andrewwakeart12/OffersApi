@@ -172,6 +172,7 @@ class Scraper {
           request.continue();
         }
       });
+      page.setUserAgent(random_ua());
       page.goto(this.url);
       
       var prom = await Promise.race([

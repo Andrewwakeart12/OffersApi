@@ -162,7 +162,7 @@ class Scraper {
           request.resourceType() === "stylesheet" ||
           request.resourceType() === "font" ||
           request.resourceType() === "ping"
-        ) {
+        ) { 
           console.log(
             `request number not passed: ${requestCounterNotPassed++}`
           );
@@ -172,7 +172,7 @@ class Scraper {
           request.continue();
         }
       });
-      page.setUserAgent(random_ua.generate());
+
       page.goto(this.url);
       
       var prom = await Promise.race([

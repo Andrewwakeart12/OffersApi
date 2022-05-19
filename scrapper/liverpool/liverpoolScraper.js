@@ -583,6 +583,7 @@ class Scraper {
               this.result.results = await this.result.results.concat(
                 await tempArr
               );
+              
               await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
 
               console.log("Liverpool: before comprobate actual pge error");

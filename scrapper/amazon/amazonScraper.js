@@ -506,7 +506,9 @@ class Scraper {
                                 lastArr = tempArr;
             
                                 this.result.results = await this.result.results.concat(await tempArr);
-            
+                               
+                                await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+
                                 console.log('before comprobate actual pge error')
             
                                 if (this.maxClicks === 1) {

@@ -487,7 +487,7 @@ class Scraper {
             
                             } else if(tempArr != false){
                                 console.log('bucle tempar empty')
-                                console.log("Liverpool: bucle tempar empty");
+                                console.log("Amazon: bucle tempar empty");
                                 await ProductObserver.getLastArrayExtracted(this.url_id);
                                 var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
                                 console.log('diferences')

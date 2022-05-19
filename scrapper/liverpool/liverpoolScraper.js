@@ -173,9 +173,7 @@ class Scraper {
       console.log(
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
-      await page.setUserAgent(
-        random_ua.generate()
-      );
+
       page.setRequestInterception(true);
       var requestCounter = 0;
       var requestCounterNotPassed = 0;
@@ -240,16 +238,13 @@ class Scraper {
       ) {
         var getPaginationSuccess = false;
         var getPagintaionFails = 0;
-        while (!getPaginationSuccess && getPagintaionFails < 2) {
-          var pag = await this.getMaxclicks();
+        while (!getPaginationSuccess && getPagintaionFails < 3) {
+            await this.delay(Math.round(Math.random(1) * 100 * 100));
+            var pag = await this.getMaxclicks();
           if (pag != true) {
             if (this.catcha === true) {
               throw new DERR("!catcha");
             }
-            await Promise.all([
-              page.reload(),
-              page.waitForNavigation({ waitUntil: "networkidle0" }),
-            ]);
             this.maxClicks = null;
             getPagintaionFails++;
           } else {

@@ -152,9 +152,7 @@ class Scraper {
       console.log(
         `_Scraper.scraper().page.goto(): Navigating to ${this.url}...`
       );
-      await page.setUserAgent(
-        random_ua.generate()
-      );
+
       page.setRequestInterception(true);
       var requestCounter = 0;
       var requestCounterNotPassed = 0;
@@ -175,6 +173,7 @@ class Scraper {
         }
       });
       page.goto(this.url);
+      
       var prom = await Promise.race([
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
         page.waitForNavigation({ waitUntil: "load" }),
@@ -211,6 +210,8 @@ class Scraper {
       if (this.maxClicks === false) {
         this.maxClicks = null;
       }
+      await this.delay(Math.round(Math.random(1) * 100 * 100))
+      
       if (
         (this.comprobateActualPage.actualPage === 0 &&
           this.maxClicks === null) ||
@@ -219,16 +220,14 @@ class Scraper {
       ) {
         var getPaginationSuccess = false;
         var getPagintaionFails = 0;
-        while (!getPaginationSuccess && getPagintaionFails < 2) {
+        while (!getPaginationSuccess && getPagintaionFails < 3) {
+          await this.delay(Math.round(Math.random(1) * 100 * 100));
+
           var pag = await this.getMaxclicks();
           if (pag != true) {
             if (this.catcha === true) {
               throw new DERR("!catcha");
             }
-            await Promise.all([
-              page.reload(),
-              page.waitForNavigation({ waitUntil: "networkidle0" }),
-            ]);
             this.maxClicks = null;
             getPagintaionFails++;
           } else {
@@ -315,7 +314,7 @@ class Scraper {
           });
 
           var finalDataObject = await page
-            .waitForSelector(".productMainContaienr", { timeout: 5000 })
+            .waitForSelector("#productMainContaienr", { timeout: 5000 })
             .then(async () => {
               return page.evaluate(() => {
                 self = this;
@@ -461,7 +460,7 @@ class Scraper {
         var lastArr = [];
         for (
           let i = 0;
-          parseInt(this.comprobateActualPage.actualPage) <= this.maxClicks && this.clickedTimes <= this.maxClicks||
+          this.clickedTimes <= this.maxClicks||
           (this.maxClicks === 1 && this.clickedTimes != this.maxClicks);
           i++
         ) {
@@ -507,7 +506,7 @@ class Scraper {
                 this.result.results = await this.result.results.concat(
                   await tempArr
                 );
-                await Promise.all([this.comprobateActualPageF()]);
+                
                 this.result = {
                   results: this.result.results,
                   pagination:
@@ -540,7 +539,8 @@ class Scraper {
                   break;
                 }
                 if (clicked != true) {
-                  await Promise.all([page.reload(), page.waitForNavigation()]);
+                  log(Log.fg.white + Log.bg.red, "Pagination not clicked");
+                  break;
                 } else {
                   if (this.comprobateActualPage.actualPage >= this.maxClicks) {
                     resolve({ results: this.result.results });
@@ -578,7 +578,7 @@ class Scraper {
               if (this.maxClicks === 1) {
                 break;
               }
-              await Promise.all([this.comprobateActualPageF()]);
+              
 
               this.result = {
                 results: this.result.results,
@@ -613,7 +613,8 @@ class Scraper {
                 break;
               }
               if (clicked != true) {
-                await Promise.all([page.reload(), page.waitForNavigation()]);
+                log(Log.fg.white + Log.bg.red, "Pagination not clicked");
+                break;
               } else {
                 if (this.comprobateActualPage.actualPage >= this.maxClicks) {
                   resolve({ results: this.result.results });
@@ -637,7 +638,7 @@ class Scraper {
             break;
           }
 
-          await this.comprobateActualPageF();
+          
         }
         log(Log.bg.green, "Sams_:Data extracted:");
         log(Log.fg.green, this.result);
@@ -662,30 +663,39 @@ class Scraper {
                             var paginationToClick = paginationGroup[paginationGroup.length - 2];
                             */
         await page
-          .waitForSelector(".page-item > a.page-link", { timeout: 16000 })
+          .waitForSelector("#productMainContaienr", { timeout: 16000 })
           .then(async () => {
-            if (this.comprobateActualPage.actualPage <= this.maxClicks - 1) {
-              await Promise.all([
-                page.click(`.col-6.pr-2.pl-1 > .a-btn__pagination`),
-              ]);
-              await this.delay(5000);
-              page
-                .waitForSelector("#captchacharacters", { timeout: 3000 })
-                .then(() => {
-                  console.log("Sams: catcha ! a");
-                  this.catcha = true;
-                  console.log(this.catcha);
-                })
-                .catch((e) => {
-                  this.catcha = false;
+            if (this.clickedTimes <= this.maxClicks - 1) {
+              await page.evaluate(async () => {
+                await new Promise((resolve, reject) => {
+                    var totalHeight = 0;
+                    var distance = 100;
+                    var timer = setInterval(() => {
+                        var scrollHeight = document.body.scrollHeight;
+                        window.scrollBy(0, distance);
+                        totalHeight += distance;
+        
+                        if(totalHeight >= scrollHeight){
+                            clearInterval(timer);
+                            resolve();
+                        }
+                    }, 100);
                 });
-              res = true;
+            });
+              await this.delay(5000);
+              await page.waitForSelector('.itemBox-container-wrp.grid-itemBox-wrp.newAtc-itemBox-container-wrp', {timeout: 16000}).then(()=>{
+                res = true;
+                this.clickedTimes++;
+              }).catch(()=>{
+                res = false
+              });
+              
               log(
                 Log.fg.white + Log.bg.green,
                 "_Scraper.scrollNextPagination() - success in clickNextPagination"
               );
               this.delay(Math.ceil(Math.random() * 10) * 1000);
-              this.clickedTimes++;
+              
               console.log("Sams: clicked!");
             } else {
               res = false;
@@ -725,83 +735,7 @@ class Scraper {
     });
   }
   //2.8 verify actual pagination:
-  async comprobateActualPageF() {
-    var page = await this.page;
-    await page
-      .waitForSelector("#captchacharacters", { timeout: 2000 })
-      .then(() => {
-        console.log("Sams: catcha ! asa");
-        this.catcha = true;
-        console.log(this.catcha);
-      })
-      .catch((e) => {});
-    /*
-            var lastItemElement = document.querySelectorAll('.page-item > a.page-link')
-                    lastItemElement[lastItemElement.length - 2].click()
-            */
-    log(
-      Log.bg.green + Log.fg.white,
-      "_Scraper.comprobateActualPageF() - Started: "
-    );
-    this.comprobateActualPage = await page
-      .waitForSelector(".col-lg-9.m-column_mainContent", { timeout: 10000 })
-      .then(() => {
-        return page.evaluate(async () => {
-          var paginationGroup = document.querySelectorAll(
-            ".page-item > a.page-link"
-          );
-          if (paginationGroup) {
-            var paginationSelectedValue = await parseInt(
-              document.querySelector(".page-item.active").innerText
-            );
-            var pagination = {
-              actualPage: paginationSelectedValue,
-              nextPageUrl: undefined,
-            };
-          } else {
-            var pagination = {
-              actualPage: 0,
-              nextPageUrl: false,
-            };
-          }
 
-          return pagination;
-        });
-      })
-      .catch((e) => {
-        log(
-          Log.bg.red + Log.fg.white,
-          "Sams_Scraper.comprobateActualPageF() - Error: "
-        );
-        log(Log.fg.red, e.message);
-        var uniqueErrorNameForImage = `Sams_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${new Date().getTime()}.jpg`;
-        page
-          .screenshot({
-            path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,
-          })
-          .catch((e) => {});
-        log(
-          Log.bg.green + Log.fg.white,
-          `Sams_capture saved with the name ${uniqueErrorNameForImage}`
-        );
-        var pagination = {
-          actualPage: 0,
-          nextPageUrl: false,
-        };
-        return pagination;
-      });
-    if (this.comprobateActualPage.nextPageUrl != false) {
-      this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
-      this.paginationValue = this.comprobateActualPage.actualPage;
-      this.url = this.url;
-    }
-    this.url = await page.url();
-
-    log(
-      Log.fg.white + Log.bg.green,
-      `actual page :${this.comprobateActualPage.actualPage}`
-    );
-  }
   //2.10 if theres an error apply the browserReset() method
 
   //3 tool kit:

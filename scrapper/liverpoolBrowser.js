@@ -23,8 +23,10 @@ async function startBrowser(){
         ];
        console.log("Opening the browser......");
         browser = await puppeteer.launch({
+            pipe: true,
             headless: true,
             ignoreHTTPSErrors: true,
+            slowMo: 0,
            Headers: {
                 'X-Crawlera-Region': 'MX',
                 'X-Crawlera-Profile': 'pass',
@@ -33,7 +35,7 @@ async function startBrowser(){
                },
          spm_apikey:'2c4cf206e51c4d598b90bf8885626dc8',
             
-            
+            args: argumentsForBrowser
         });
     return browser;
 

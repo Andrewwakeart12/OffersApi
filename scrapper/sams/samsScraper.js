@@ -176,9 +176,9 @@ class Scraper {
       page.goto(this.url);
       
       var prom = await Promise.race([
-        page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-        page.waitForNavigation({ waitUntil: "load" }),
-      ])
+         page.waitForNavigation(),
+         page.setDefaultTimeout(18000)
+    ])
         .then((res) => {
           return true;
         })

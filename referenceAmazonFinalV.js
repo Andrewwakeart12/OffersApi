@@ -96,3 +96,18 @@ for (var querySelector of $(".s-result-item > .sg-col-inner")) {
   console.log(product);
   ;
 }
+
+
+//get pagination be like:
+var str = $('.a-section.a-spacing-small.a-spacing-top-small > span').eq(0).text().split(" ")
+            var resultsPerPage = parseInt(str[0].split('-').pop());
+            var totalResults = str.map((e) => {
+                return parseInt(e.replace(',', ''))
+            }).filter(Boolean).pop()
+            var maxClicks = 0;
+            if (str[2] != 'más') {
+                maxClicks = await Math.ceil(totalResults / resultsPerPage);
+            } else if (str[2] === 'más') {
+                maxClicks = parseInt($('.s-pagination-item.s-pagination-disabled').eq(1).text());
+            }
+            console.log(maxClicks)  ;

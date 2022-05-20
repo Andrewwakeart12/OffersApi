@@ -111,3 +111,7 @@ var str = $('.a-section.a-spacing-small.a-spacing-top-small > span').eq(0).text(
                 maxClicks = parseInt($('.s-pagination-item.s-pagination-disabled').eq(1).text());
             }
             console.log(maxClicks)  ;
+
+            //s-pagination-item s-pagination-next s-pagination-button s-pagination-separator
+            var nextPaginationLink = `https://www.amazon.com.mx${$('.s-pagination-item.s-pagination-next.s-pagination-button.s-pagination-separator').attr('href')}`
+            console.log(nextPaginationLink)

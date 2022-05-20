@@ -4,8 +4,11 @@ import child_process from 'child_process';
 import { json } from 'express';
 import cheerio from "cheerio";
 
-function runCmd(cmd)
+function runCmd(url)
 {
+  //https://www.amazon.com.mx/s?rh=n%3A9482640011&fs=true&ref=lp_9482640011_sar
+var cmd = `curl -s -S  --user 0e58bdb3cb5d4b588300885622c23459: --header 'Content-Type: application/json' --data '{"url": "${url}", "browserHtml": true}'  https://api.zyte.com/v1/extract`;  
+  
   var resp = child_process.execSync(cmd);
   var result = resp.toString('UTF8');
   result =  JSON.parse(result);

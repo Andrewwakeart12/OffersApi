@@ -66,54 +66,15 @@ class CronDataExtractor {
     var controllers = await pool.query(
       "SELECT id,controller,discount_starts_at FROM scraper_controller WHERE user_id=1 && controllerActive=1"
     );
-    const withBrowser = async (fn) => {
-      var liverPoolItsOnTheControllers = false;
-      controllers.forEach((controller) => {
-        if (controller.controller == "liverpool") {
-          liverPoolItsOnTheControllers = true;
-        }
-      });
-      const browser = await liverpoolBrowser.startBrowser(Proxy)
-      try {
-        return await fn(browser);
-      } finally {
-        browser.on('disconnected',  () => {
-          var process = browser._process.pid;
-          console.log('sleeping 100ms'); //  sleep to eliminate race condition  
-          setTimeout(async function(){ const psLookup = await ps.lookup({ pid: process });
-          for (let proc of psLookup) {
-            if (_.has(proc, 'pid')) {
-              await ps.kill(proc.pid, 'SIGKILL');
-            }
-          }
-      }, 100)
-    });
-        await browser.disconnect();
-      }
-    };
-    const withPage = (browser) => async (fn) => {
-      const page = await browser.newPage();
-
-      try {
-        await page.setDefaultNavigationTimeout(0);
-        await page.setDefaultTimeout(0);
-        return await fn(page);
-      } finally {
-        await page.close();
-      }
-    };
     try {
       const urls = await this.getLinks();
-      const results = await withBrowser(async (browser) => {
         return bluebird.map(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
           return await bluebird.map(
             localUrls,
             async (url) => {
               console.log(url);
-              const result = await withPage(
-                browser
-              )(async (page) => {
+
                 var protocolName = "Scraper";
                 var imp =
                   `./scrapper/${controller.controller}/` +
@@ -125,7 +86,7 @@ class CronDataExtractor {
                 console.log(GeneralScraperItem);
 
                 var { Scraper } = GeneralScraperItem;
-                var Scrape = new Scraper(page, Proxy, url.url_id);
+                var Scrape = new Scraper(url.url_id);
 
                 var res = await Scrape.scraper(url.url);
                 var resObj = {
@@ -186,8 +147,6 @@ class CronDataExtractor {
             },
             { concurrency:3 }
           );
-        });
-      });
       return results;
     } catch (error) {
       console.error(error);

@@ -118,7 +118,12 @@ class Scraper {
     this.nextPageUrl = this.getNextPagination();
     console.log("this.nextPageUrl");
     console.log(this.nextPageUrl);
+    this.paginationSelectedValue = this.getPaginationValue();
+    console.log(this.paginationSelectedValue);
     console.log(await this.getData());
+  }
+  getPaginationValue(){
+    return parseInt(this.$(".s-pagination-selected").text())
   }
   getNextPagination() {
     //s-pagination-item s-pagination-next s-pagination-button s-pagination-separator

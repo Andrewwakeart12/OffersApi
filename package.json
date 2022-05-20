@@ -29,6 +29,7 @@
     "modern-random-ua": "^1.0.3",
     "mysql": "^2.18.1",
     "node-cron": "^3.0.0",
+    "node-libcurl": "^2.3.4",
     "nodemon": "^2.0.15",
     "pdf-creator-node": "^2.3.4",
     "phantomjs-prebuilt": "^2.1.14",

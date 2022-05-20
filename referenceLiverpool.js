@@ -66,6 +66,7 @@ maxClicks = Math.ceil(
 } else {
 maxClicks = 1;
 }
+$('.page-item.active').text()
 console.log(maxClicks);
 
 //link structure https://www.liverpool.com.mx/tienda/Nintendo/N-MyN5EGLkRkJnbWQM0oybC6oOUK876ftr4S1vpt6rlqU%3D/page-3

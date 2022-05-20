@@ -1,4 +1,4 @@
-import  cheerio from "cheerio";
+import cheerio from "cheerio";
 
 //curl --user 0e58bdb3cb5d4b588300885622c23459: --header 'Content-Type: application/json' --data '{"url": "https://example.com/foo/bar", "browserHtml": true}'  https://api.zyte.com/v1/extract
 //esquema para sams
@@ -7,46 +7,67 @@ const $ = cheerio.load(`
 `);
 let counter = 1;
 function getDiscountValue(oldPrice, newPrice) {
-    //x = v1 - v2 | x/v1 * 100
-    let difference = newPrice - oldPrice;
-    let result = Math.round((difference / oldPrice) * 100);
-    return result;
-  }
+  //x = v1 - v2 | x/v1 * 100
+  let difference = newPrice - oldPrice;
+  let result = Math.round((difference / oldPrice) * 100);
+  return result;
+}
 
-for(var querySelector of $('.itemBox-container-wrp.grid-itemBox-wrp.newAtc-itemBox-container-wrp')){
-    querySelector = cheerio.load(querySelector);
-    var product = {};
-    product.product=querySelector('.item-name').text()
-    product.url = `http://sams.com.mx/${querySelector('.item-name').attr('href')}`;
-    product.img_url = querySelector('.item-image').children('img').eq(0).attr('data-src')
-    product.newPrice = querySelector('.item-newprice').text().replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
-    product.oldPrice = querySelector('.item-oldprice').text().replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
-    
-    if(product.oldPrice != ''){
-        product.discount =
-        getDiscountValue(
-          parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
-          parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
-        ) <
-        getDiscountValue(
-          parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
-          parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
-        )
-          ? getDiscountValue(
-              parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
-              parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
+for (var querySelector of $(
+  ".itemBox-container-wrp.grid-itemBox-wrp.newAtc-itemBox-container-wrp"
+)) {
+  querySelector = cheerio.load(querySelector);
+  var product = {};
+  product.product = querySelector(".item-name").text();
+  product.url = `http://sams.com.mx/${querySelector(".item-name").attr(
+    "href"
+  )}`;
+  product.img_url = querySelector(".item-image")
+    .children("img")
+    .eq(0)
+    .attr("data-src");
+  product.newPrice = querySelector(".item-newprice")
+    .text()
+    .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
+  product.oldPrice = querySelector(".item-oldprice")
+    .text()
+    .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
+
+  if (product.oldPrice != "") {
+    product.discount =
+      getDiscountValue(
+        parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+        parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
+      ) <
+      getDiscountValue(
+        parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
+        parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
+      )
+        ? getDiscountValue(
+            parseFloat(
+              product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")
+            ),
+            parseFloat(
+              product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")
             )
-          : getDiscountValue(
-              parseFloat(product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")),
-              parseFloat(product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, ""))
-            );
-    }
-    product.newPrice=product.newPrice.slice(0, -2) +"."+product.newPrice.slice(-2);
+          )
+        : getDiscountValue(
+            parseFloat(
+              product.newPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")
+            ),
+            parseFloat(
+              product.oldPrice.replace(/[&\/\\#+()$~%',":*?<>{}]/g, "")
+            )
+          );
+  }
+  product.newPrice =
+    product.newPrice.slice(0, -2) + "." + product.newPrice.slice(-2);
 
-    if(product.oldPrice != ''){
+  if (product.oldPrice != "") {
+    product.oldPrice =
+      product.oldPrice.slice(0, -2) + "." + product.oldPrice.slice(-2);
+    product.prime = false;
 
-        product.oldPrice=product.oldPrice.slice(0, -2) +"."+product.oldPrice.slice(-2);
-    product.prime=false;
-       
-        console.log(product)}
+    console.log(product);
+  }
 }

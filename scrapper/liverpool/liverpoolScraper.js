@@ -129,7 +129,7 @@ class Scraper {
       var ProductObserver = new WatcherOfProducts(this.url_id);
       tempArr = await this.getData();
       if (lastArr.length > 0 && tempArr != false) {
-        log(Log.bg.green, "Amazon_:bucle temparr not empty");
+        log(Log.bg.green, "Liverpool_:bucle temparr not empty");
         log(Log.bg.cyan, tempArr[0]);
 
         tempArr = tempArr.filter(Boolean);

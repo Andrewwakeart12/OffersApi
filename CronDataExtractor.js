@@ -174,11 +174,11 @@ class CronDataExtractor {
                 product.category = toChunk.category;
               } catch (e) {
                 console.log("e");
-                console.log(e);
+                console.log(product.discount);
               }
             });
             var sql =
-              "INSERT INTO scraped_data (product,discount,newPrice,oldPrice,url,prime,img_url,controller_id,url_id,category) VALUES ?";
+              "INSERT INTO scraped_data (product,img_url,url,newPrice,oldPrice,discount,prime,controller_id,url_id,category) VALUES ?";
             var records = oneChunkElement.map((e) => {
               return Object.values(e);
             });

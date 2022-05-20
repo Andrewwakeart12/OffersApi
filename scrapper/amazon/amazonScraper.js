@@ -120,8 +120,66 @@ class Scraper {
     console.log(this.nextPageUrl);
     this.paginationSelectedValue = this.getPaginationValue();
     console.log(this.paginationSelectedValue);
-    console.log(await this.getData());
+    var lastArr = [];
+    
+    while(this.paginationSelectedValue <= 2)
+    {
+      var tempArr = [];
+      var ProductObserver = new WatcherOfProducts(this.url_id);
+      tempArr = await this.getData();
+      if (lastArr.length > 0 && tempArr != false) 
+      {
+        log(Log.bg.green,'Amazon_:bucle temparr not empty')
+        log(Log.bg.cyan,tempArr[0]);
+
+        tempArr = tempArr.filter(Boolean);
+
+        if (JSON.stringify(lastArr) != JSON.stringify(tempArr) || tempArray.length === 0 )  
+        {
+          tempArr.push(false);
+
+          lastArr = tempArr;
+
+          this.result.results = await this.result.results.concat(await tempArr);
+        }
+      }
+       else if(tempArr != false){
+        await ProductObserver.getLastArrayExtracted(this.url_id);
+        var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
+        console.log('diferences')
+        console.log(diferences)
+        if(diferences < 56  ){
+          this.result.results = await this.result.results.concat(
+            await tempArr
+          );
+          
+          this.newProducts = diferences;
+
+          await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+          break;
+      }
+
+    }
+    var successInsideWhile = false;
+    var retryInsideWhile = 0;
+    await this.delay(Math.round(Math.random(1) * 100 * 100) );
+    while (!successInsideWhile && retryInsideWhile < 3) {
+      try {
+        this.$ = cheerio.load(await this.getDataByUrlTest(this.nextPageUrl));
+        this.nextPageUrl = this.getNextPagination();
+        console.log("this.nextPageUrl");
+        console.log(this.nextPageUrl);
+        this.paginationSelectedValue = this.getPaginationValue();
+        successInsideWhile = true;
+      } catch (e) {
+        retry++;
+      }
+    }
   }
+
+  
+  return this.result.results.filter(Boolean)
+}
   getPaginationValue(){
     return parseInt(this.$(".s-pagination-selected").text())
   }
@@ -263,91 +321,12 @@ class Scraper {
       product.oldPrice =
         product.oldPrice.slice(0, -2) + "." + product.oldPrice.slice(-2);
       finalDataOutput.push(product);
+      }else{
+        finalDataOutput.push(false);
       }
     }
     return finalDataOutput;
   }
-  //2.6 desactive timeouts:
-
-  //2.8 verify actual pagination:
-  async comprobateActualPageF() {
-    var page = await this.page;
-    await page
-      .waitForSelector("#captchacharacters", { timeout: 2000 })
-      .then(() => {
-        console.log("catcha ! asa");
-        this.catcha = true;
-        console.log(this.catcha);
-      })
-      .catch((e) => {});
-
-    log(
-      Log.bg.green + Log.fg.white,
-      "_Scraper.comprobateActualPageF() - Started: "
-    );
-    this.comprobateActualPage = await page
-      .waitForSelector(".s-pagination-selected", { timeout: 10000 })
-      .then(() => {
-        return page.evaluate(async () => {
-          if (document.querySelector(".s-pagination-selected") != null) {
-            var paginationSelectedValue = await parseInt(
-              document.querySelector(".s-pagination-selected").innerText
-            );
-            var pagination = {
-              actualPage: paginationSelectedValue,
-              nextPageUrl: document
-                .querySelector(".s-pagination-selected")
-                .parentNode.querySelector(".s-pagination-next")
-                ? document
-                    .querySelector(".s-pagination-selected")
-                    .parentNode.querySelector(".s-pagination-next").href
-                : false,
-            };
-          } else {
-            var pagination = {
-              actualPage: 0,
-              nextPageUrl: false,
-            };
-          }
-
-          return pagination;
-        });
-      })
-      .catch((e) => {
-        log(
-          Log.bg.red + Log.fg.white,
-          "_Scraper.comprobateActualPageF() - Error: "
-        );
-        log(Log.fg.red, e.message);
-        var uniqueErrorNameForImage = `Amazon_Scraper.comprobateActualPageF()_ERROR_PAGINATION_NOT_UPDATED_${new Date().getTime()}.jpg`;
-        page
-          .screenshot({
-            path: `/opt/lampp/htdocs/screenshots/errors/${uniqueErrorNameForImage}`,
-          })
-          .catch((e) => {});
-        log(
-          Log.bg.green + Log.fg.white,
-          `capture saved with the name ${uniqueErrorNameForImage}`
-        );
-        var pagination = {
-          actualPage: 0,
-          nextPageUrl: false,
-        };
-        return pagination;
-      });
-    if (this.comprobateActualPage.nextPageUrl != false) {
-      this.result.nextPageUrl = this.comprobateActualPage.nextPageUrl;
-      this.paginationValue = this.comprobateActualPage.actualPage;
-      this.url = this.comprobateActualPage.nextPageUrl;
-    }
-    log(
-      Log.fg.white + Log.bg.green,
-      `actual page :${this.comprobateActualPage.actualPage}`
-    );
-  }
-  //2.10 if theres an error apply the browserReset() method
-
-  //3 tool kit:
   //3.1 wait x time before continue:
   async delay(time) {
     return new Promise(function (resolve) {

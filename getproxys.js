@@ -1,5 +1,5 @@
-const request = require('request');
-const cheerio = require('cheerio'); 
+import request from 'request';
+import { load } from 'cheerio'; 
 
 let ip_addresses = [];
 let port_numbers = [];
@@ -10,7 +10,7 @@ async function getProxy(){
   return new Promise(async resolve => {
     await request("https://free-proxy-list.net/", (error, response, html) => {
       if (!error && response.statusCode == 200) {
-        const $ = cheerio.load(html);
+        const $ = load(html);
     
         $("td:nth-child(1)").each(function(index, value) {
           ip_addresses[index] = $(this).text();
@@ -41,4 +41,5 @@ async function getProxy(){
     });
 });}
 
-module.exports.getProxy = getProxy;
+const _getProxy = getProxy;
+export { _getProxy as getProxy };

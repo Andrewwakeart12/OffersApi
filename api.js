@@ -1,31 +1,31 @@
-const express = require('express')
+import express, { json, Router } from 'express'
 
-const jwt = require('jsonwebtoken')
-const config = require('./config/config')
-const path = require('path')
+import jwtoken from 'jsonwebtoken'
+import { key } from './config/config.js'
+import path from 'path'
 const app = express()
 const port = 3700
-const pool = require('./database');
-var pdf = require("pdf-creator-node");
-var fs = require("fs");
-const cors = require('cors');
-const ExcelCreator = require('./ExcelGenerator');
-const axios = require('axios')
-var bodyParser = require('body-parser')
-app.use(bodyParser.json())
+import pool from './database.js'
+import { create } from "pdf-creator-node"
+import { readFileSync } from "fs"
+import cors from 'cors'
+import ExcelCreator from './ExcelGenerator.js'
+import axios from 'axios'
+import bodyparser from 'body-parser'
+app.use(bodyparser.json())
 app.use(cors());
 app.use(express.json())
-const Log = require('./toolkit/colorsLog');
+import Log from './toolkit/colorsLog.js'
 const log = (color, text) => {
     console.log(`${color}%s${Log.reset}`, text);
     };
 // 1
-app.set('key', config.key);
+app.set('key', key);
 // 2
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyparser.urlencoded({ extended: true }));
 // 3
-app.use(bodyParser.json());
-const guard = express.Router();
+app.use(bodyparser.json());
+const guard = Router();
 app.get('/s ', async (req, res) => {
   var users = await pool.query('SELECT jwtoken,id FROM users');
   for(let user of users) {
@@ -56,7 +56,7 @@ app.get('/s ', async (req, res) => {
       logged: true,
       check: true
     };
-    const token = await jwt.sign(payload, app.get('key'), {
+    const token = await jwtoken.sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
 
@@ -86,7 +86,7 @@ app.get('/s ', async (req, res) => {
   /*
   for(let product of products){
     console.log(product)
-    var response =await  axios.post("https://app.nativenotify.com/api/indie/notification", {      
+    var response =await  axios.axios.post("https://app.nativenotify.com/api/indie/notification", {      
       appId: 2194,
       subID: 'obe2',
       appToken: 'WtKcqC4zUq1I7AQx3oxk1d',
@@ -103,7 +103,7 @@ app.get('/s ', async (req, res) => {
 guard.use((req, res, next) => {
   const token = req.headers['access-token'];
   if (token != '') {
-    jwt.verify(token, app.get('key'), (err, decoded) => {
+    jwtoken.verify(token, app.get('key'), (err, decoded) => {
       if (err) {
         return res.json({ error: { JWTokenErr: 'Token no valido', LoginInvalid: true } })
       } else {
@@ -123,7 +123,7 @@ app.get('/api/testView', async (req, res) => {
 app.get('/api/getOffersDataToPdf', async (req, res) => {
   var products = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 ORDER BY discount ASC LIMIT 150')
 
-  var html = fs.readFileSync("./views/template.html", "utf8");
+  var html = readFileSync("./views/template.html", "utf8");
 
   var optionsPDF = {
     format: "B2",
@@ -140,8 +140,7 @@ app.get('/api/getOffersDataToPdf', async (req, res) => {
     timeout: '100000',
     type: "",
   };
-  await Promise.all([pdf
-    .create(document, optionsPDF)
+  await Promise.all([create(document, optionsPDF)
     .then((res) => {
       console.log(res);
     })
@@ -186,7 +185,7 @@ app.get('/generateExcel', async (req,res) =>{
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   console.log(req.body)
-  userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
+  var userExist = await pool.query('SELECT id,username,password FROM users WHERE username = ?', [username]);
 
   console.log(userExist)
   if (userExist.length > 0) {
@@ -206,7 +205,7 @@ app.post('/api/login', async (req, res) => {
       check: true
     };
 
-    const token = await jwt.sign(payload, app.get('key'), {
+    const token = await jwtoken.sign(payload, app.get('key'), {
       expiresIn: '24h'
     });
     res.json({
@@ -228,11 +227,11 @@ app.post('/api/login', async (req, res) => {
 });
 app.post('/api/getLinks/:controller_id', guard, async (req, res) => {
   const { controller_id } = req.params;
-  data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
+  var data = await pool.query('SELECT * FROM scraper_urls WHERE controller_id = ? ', controller_id);
   res.send(data);
 });
 app.post('/api/getContollers', guard, async (req, res) => {
-  data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
+  var data = await pool.query('SELECT * FROM scraper_controller WHERE user_id = ? ', req.decoded.user_id);
   res.json(data);
 });
 app.post('/api/config', guard, (req, res) => {
@@ -242,7 +241,7 @@ app.post('/api/config', guard, (req, res) => {
 
 });
 app.get('/api/testResonse', async (req, res) => {
-  data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
+  var data = await pool.query('SELECT * FROM scraped_data WHERE discount < -40 LIMIT 20 ');
   console.log(data[0].product);
   res.json({ products: data })
 
@@ -387,10 +386,10 @@ app.get('/sendNotification', async (req,res)=>{
           logged: true,
           check: true
         };
-        const token = await jwt.sign(payload, app.get('key'), {
+        const token = await jwt.jwtoken.sign(payload, app.get('key'), {
           expiresIn: '24h'
         });
-        var response = await axios.post("https://app.nativenotify.com/api/indie/notification", {
+        var response = await axios.axios.post("https://app.nativenotify.com/api/indie/notification", {
           appId: 2194,
           subID: user.jwtoken,
           appToken: 'WtKcqC4zUq1I7AQx3oxk1d',

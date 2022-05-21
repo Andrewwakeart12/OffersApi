@@ -40,4 +40,4 @@ log(Log.fg.white + Log.bg.red, "My text is red");
 log(Log.bg.cyan, "My background is cyan");
 
 */
-module.exports = Log
+export default Log

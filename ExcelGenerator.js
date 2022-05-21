@@ -1,4 +1,4 @@
-const Excel = require('exceljs');
+import Excel from 'exceljs';
 
 String.prototype.replaceAll = function (search, replacement) {
   var target = this;
@@ -75,4 +75,4 @@ class ExcelCreator {
       return created;
   }
 }
-module.exports = ExcelCreator;
+export default ExcelCreator;

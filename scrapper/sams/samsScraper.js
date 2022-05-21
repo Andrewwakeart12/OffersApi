@@ -169,13 +169,14 @@ class Scraper {
       querySelector = cheerio.load(querySelector);
       var product = {};
       product.product = querySelector(".item-name").text();
+      product.img_url = querySelector(".item-image")
+      .children("img")
+      .eq(0)
+      .attr("data-src");
       product.url = `http://sams.com.mx/${querySelector(".item-name").attr(
         "href"
       )}`;
-      product.img_url = querySelector(".item-image")
-        .children("img")
-        .eq(0)
-        .attr("data-src");
+      
       product.newPrice = querySelector(".item-newprice")
         .text()
         .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");

@@ -97,8 +97,7 @@ class CronDataExtractor {
                 };
 
                 if (
-                  resObj.dataArr.pageFailsDueToNotResultsOrErrorPage ===
-                  undefined
+                  !resObj.dataArr.hasOwnProperty('pageFailsDueToNotResultsOrErrorPage')
                 ) {
                   console.log("resObj");
                   console.log(resObj);

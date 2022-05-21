@@ -142,9 +142,9 @@ class CronDataExtractor {
                     controller_id: controller.id,
                   };
                 }
-              });
+              },{concurrency:2});
             },
-            { concurrency:3 }
+            { concurrency:2 }
           );
     } catch (error) {
       console.error(error);

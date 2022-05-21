@@ -251,10 +251,11 @@ class Scraper {
       product.url = `https://www.liverpool.com.mx${querySelector("a").attr(
         "href"
       )}`;
-      product.oldPrice = querySelector(".a-card-price")
-        .text()
-        .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
       product.newPrice = querySelector(".a-card-discount")
+      .text()
+      .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
+
+      product.oldPrice = querySelector(".a-card-price")
         .text()
         .replace(/[&\/\\#+()$~%',":*?<>{}]/g, "");
 

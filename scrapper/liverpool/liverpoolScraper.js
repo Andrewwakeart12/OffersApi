@@ -186,9 +186,6 @@ class Scraper {
       }
       var successInsideWhile = false;
       var retryInsideWhile = 0;
-      var RNGTIme = Math.round(Math.random(1) * 100 * 100);
-      console.log(RNGTIme);
-      await this.delay(RNGTIme);
 
       while (!successInsideWhile && retryInsideWhile < 3) {
         try {

@@ -143,7 +143,6 @@ class CronDataExtractor {
                   };
                 }
               });
-              return result;
             },
             { concurrency:3 }
           );

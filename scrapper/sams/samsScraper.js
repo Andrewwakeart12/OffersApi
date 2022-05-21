@@ -119,17 +119,9 @@ class Scraper {
         this.result.results = await this.result.results.concat(await tempArr);
         log(
           Log.bg.green + Log.fg.white,
-          "added new products! (in theory) after observator comprobation"
+          " Sams_ added new products! (in theory) after observator comprobation"
         );
 
-      log(
-        Log.bg.green + Log.fg.white,
-        `Pagination value : ${this.paginationSelectedValue}`
-      );
-
-      var RNGTIme = Math.round(Math.random(1) * 100 * 100);
-      console.log(RNGTIme);
-      await this.delay(RNGTIme);
 
     
       } catch (error) {

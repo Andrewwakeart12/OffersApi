@@ -70,7 +70,7 @@ class CronDataExtractor {
       const urls = await this.getLinks();
         return bluebird.map(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
-          return await bluebird.map(
+          return bluebird.map(
             localUrls,
             async (url) => {
               console.log(url);
@@ -146,7 +146,6 @@ class CronDataExtractor {
             },
             { concurrency:3 }
           );
-      return results;
     } catch (error) {
       console.error(error);
     }

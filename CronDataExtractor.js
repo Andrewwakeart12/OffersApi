@@ -75,6 +75,7 @@ class CronDataExtractor {
             async (url) => {
               return await new bluebird.delay(100).then(async function(){
 
+              console.log('url data');
               console.log(url);
 
               var protocolName = "Scraper";

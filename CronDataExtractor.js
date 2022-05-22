@@ -68,7 +68,7 @@ class CronDataExtractor {
     );
     try {
       const urls = await this.getLinks();
-         return bluebird.each(controllers, async (controller) => {
+         return bluebird.map(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
           console.log('localUrls : ');
           console.log(localUrls);

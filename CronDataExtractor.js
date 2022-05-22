@@ -72,11 +72,11 @@ class CronDataExtractor {
           var localUrls = urls[controller.controller];
           console.log('localUrls : ');
           console.log(localUrls);
-          return  bluebird.each(
+          return bluebird.each(
             localUrls,
             async (url) => {
               let that = this
-              return await new bluebird.delay(100).then(async () =>{
+              return new bluebird.delay(100).then(async () =>{
 
               console.log('url data');
               console.log(url);

@@ -124,6 +124,10 @@ destroy(){
           controller_jwt[0].user_id,
         ]);
         console.log(jwt);
+        if(ProdsArr.length === 0){
+          console.log('nothing to notifyOf');
+          resolve(true)
+        }
         for (let product of ProdsArr) {
           var success = false;
           var trys = 0;

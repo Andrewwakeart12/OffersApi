@@ -70,10 +70,13 @@ class CronDataExtractor {
       const urls = await this.getLinks();
          return await bluebird.each(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
+          console.log('localUrls : ');
+          console.log(localUrls);
           return  bluebird.each(
             localUrls,
             async (url) => {
-              return await new bluebird.delay(100).then(async function(){
+              let that = this
+              return await new bluebird.delay(100).then(async () =>{
 
               console.log('url data');
               console.log(url);
@@ -104,7 +107,7 @@ class CronDataExtractor {
               ) {
                 console.log("resObj");
                 console.log(resObj);
-                await this.updateDb(resObj);
+                await that.updateDb(resObj);
                 var notify = new Notifiyer(
                   controller.controller,
                   controller.id,

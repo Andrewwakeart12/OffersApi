@@ -68,80 +68,84 @@ class CronDataExtractor {
     );
     try {
       const urls = await this.getLinks();
-        return await bluebird.map(controllers, async (controller) => {
+         return await bluebird.each(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
-          return await bluebird.map(
+          return  bluebird.each(
             localUrls,
             async (url) => {
+              return await new bluebird.delay(100).then(async function(){
+
               console.log(url);
 
-                var protocolName = "Scraper";
-                var imp =
-                  `./scrapper/${controller.controller}/` +
-                  controller.controller +
-                  protocolName +
-                  ".js";
-                var GeneralScraperItem = await import(imp);
-                console.log("GeneralScraperItem");
-                console.log(GeneralScraperItem);
+              var protocolName = "Scraper";
+              var imp =
+                `./scrapper/${controller.controller}/` +
+                controller.controller +
+                protocolName +
+                ".js";
+              var GeneralScraperItem = await import(imp);
+              console.log("GeneralScraperItem");
+              console.log(GeneralScraperItem);
 
-                var { Scraper } = GeneralScraperItem;
-                var Scrape = new Scraper(url.url_id);
+              var { Scraper } = GeneralScraperItem;
+              var Scrape = new Scraper(url.url_id);
 
-                var res = await Scrape.scraper(url.url);
-                var resObj = {
-                  dataArr: res,
-                  controller_id: controller.id,
-                  category: url.category,
-                  url_id: url.url_id,
-                };
+              var res = await Scrape.scraper(url.url);
+              var resObj = {
+                dataArr: res,
+                controller_id: controller.id,
+                category: url.category,
+                url_id: url.url_id,
+              };
 
-                if (
-                  !resObj.dataArr.hasOwnProperty('pageFailsDueToNotResultsOrErrorPage')
-                ) {
-                  console.log("resObj");
-                  console.log(resObj);
-                  await this.updateDb(resObj);
-                  var notify = new Notifiyer(
-                    controller.controller,
+              if (
+                !resObj.dataArr.hasOwnProperty('pageFailsDueToNotResultsOrErrorPage')
+              ) {
+                console.log("resObj");
+                console.log(resObj);
+                await this.updateDb(resObj);
+                var notify = new Notifiyer(
+                  controller.controller,
+                  controller.id,
+                  url.url_id,
+                  url.category,
+                  controller.discount_starts_at
+                );
+                await notify.sendNotifications();
+                if (Scrape.newProducts != false) {
+                  await Notifiyer.sendCostumNotification(
                     controller.id,
-                    url.url_id,
-                    url.category,
-                    controller.discount_starts_at
+                    `Categoría ${capitalize(url.category)}`,
+                    `${Scrape.newProducts} productos nuevos fueron encontrados \n en esta extracción`
                   );
-                  await notify.sendNotifications();
-                  if (Scrape.newProducts != false) {
-                    await Notifiyer.sendCostumNotification(
-                      controller.id,
-                      `Categoría ${capitalize(url.category)}`,
-                      `${Scrape.newProducts} productos nuevos fueron encontrados \n en esta extracción`
-                    );
-                  } else {
-                    console.log("checking the real number of offfers");
-                    var Observer = new WatcherOfProducts();
-                    await Observer.getLastArrayExtracted(url.url_id);
-                    var differences =
-                      await Observer.diffActualDataOfProductsWhenTheNewArrayItsLonger(
-                        resObj.dataArr
-                      );
-                    await Notifiyer.sendCostumNotification(
-                      controller.id,
-                      `Categoría ${capitalize(url.category)}`,
-                      `${differences} productos nuevos fueron encontrados \n en esta extracción`
-                    );
-                  }
-                  return resObj;
                 } else {
-                  return {
-                    data: false,
-                    url_id: url.url_id,
-                    category: url.category,
-                    errorMessage: resObj.dataArr.erroInformation,
-                    controller: controller.controller,
-                    controller_id: controller.id,
-                  };
+                  console.log("checking the real number of offfers");
+                  var Observer = new WatcherOfProducts();
+                  await Observer.getLastArrayExtracted(url.url_id);
+                  var differences =
+                    await Observer.diffActualDataOfProductsWhenTheNewArrayItsLonger(
+                      resObj.dataArr
+                    );
+                  await Notifiyer.sendCostumNotification(
+                    controller.id,
+                    `Categoría ${capitalize(url.category)}`,
+                    `${differences} productos nuevos fueron encontrados \n en esta extracción`
+                  );
                 }
-              },{concurrency:2});
+                return resObj;
+              } else {
+                return {
+                  data: false,
+                  url_id: url.url_id,
+                  category: url.category,
+                  errorMessage: resObj.dataArr.erroInformation,
+                  controller: controller.controller,
+                  controller_id: controller.id,
+                };
+              }
+            
+              })
+            },{concurrency:2});
             },
             
           );

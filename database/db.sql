@@ -128,3 +128,19 @@ ALTER TABLE scraper_watcher_list_items
 
 ALTER TABLE scraper_watcher_list_items
     MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+
+CREATE TABLE extraction_process_logs(
+    id INT(11) NOT NULL,
+    url_id INT(11),
+    FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
+    category TEXT,
+    status_log TEXT,
+    error BOOLEAN,
+    complete BOOLEAN,
+    execution_date DATETIME DEFAULT NOW()
+);
+ALTER TABLE extraction_process_logs
+    ADD PRIMARY KEY (id) ;
+
+ALTER TABLE extraction_process_logs
+    MODIFY id INT(11) NOT NULL AUTO_INCREMENT;

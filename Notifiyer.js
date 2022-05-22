@@ -36,7 +36,7 @@ class Notifiyer {
     this.discount_starts_at = discount_starts_at;
     this.controller_identity = controller_identity;
   }
-  async delay(time) {
+  static async delay(time) {
     return new Promise(function (resolve) {
         setTimeout(resolve, time)
     });
@@ -101,7 +101,7 @@ destroy(){
         break;
       } catch (error) {
         trys++;
-        await this.delay(5000);
+        await Notifiyer.delay(5000);
         continue;
       }
       
@@ -162,7 +162,7 @@ destroy(){
         reject(error)
       }else{
         trys++;
-        await this.delay(5000);
+        await Notifiyer.delay(5000);
         continue;
       }
       }

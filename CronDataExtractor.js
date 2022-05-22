@@ -68,11 +68,11 @@ class CronDataExtractor {
     );
     try {
       const urls = await this.getLinks();
-         return bluebird.each(controllers, async (controller) => {
+         var res = await bluebird.each(controllers, async (controller) => {
           var localUrls = urls[controller.controller];
           console.log('localUrls : ');
           console.log(localUrls);
-          return bluebird.each(
+          var results =  bluebird.map(
             localUrls,
             async (url) => {
               let that = this
@@ -150,9 +150,12 @@ class CronDataExtractor {
             
               })
             },{concurrency:2});
-            },
+            return results;  
+          },
             
           );
+          return res;
+          
     } catch (error) {
       console.error(error);
     }

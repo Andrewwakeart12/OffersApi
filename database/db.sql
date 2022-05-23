@@ -144,3 +144,24 @@ ALTER TABLE extraction_process_logs
 
 ALTER TABLE extraction_process_logs
     MODIFY id INT(11) NOT NULL AUTO_INCREMENT;
+    
+
+
+    
+    CREATE TABLE cron_data_extractor_logs(
+    id INT(11) NOT NULL,
+    url_id INT(11),
+    FOREIGN KEY (url_id) REFERENCES scraper_urls(id),
+    sub_process_threat TEXT,
+    status_log TEXT,
+    error BOOLEAN,
+    stage_log TEXT,
+    stage_log TEXT,
+    function_reference TEXT,
+    execution_date DATETIME DEFAULT NOW()
+);
+ALTER TABLE cron_data_extractor_logs
+    ADD PRIMARY KEY (id) ;
+
+ALTER TABLE cron_data_extractor_logs
+    MODIFY id INT(11) NOT NULL AUTO_INCREMENT;

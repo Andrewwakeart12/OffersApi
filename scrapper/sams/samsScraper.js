@@ -7,7 +7,7 @@ colors.enable();
 
 import Log from "../../toolkit/colorsLog.js";
 import WatcherOfProducts from "../../WatcherOfProducts.js";
-const log = (color, text) => {
+const log = (color, text) => {Fthis.
   console.log(`${color}%s${Log.reset}`, text);
 };
 class Catcha {
@@ -67,7 +67,7 @@ class Scraper {
         this.LogsManager.complete=false;
         this.LogsManager.error= false;
         await this.LogsManager.saveDataLogs('Scraper.scraper()',false,'Get initial data process start')
-        this.$ = cheerio.load(await this.getData(initialUrl));
+        this.$ = cheerio.load(await this.getDataByUrl(initialUrl));
 
         await this.LogsManager.saveDataLogs('Scraper.scraper()',false,'Get initial data process finished')
         success = true;

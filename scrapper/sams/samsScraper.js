@@ -67,7 +67,7 @@ class Scraper {
         this.LogsManager.complete=false;
         this.LogsManager.error= false;
         await this.LogsManager.saveDataLogs('Scraper.scraper()',false,'Get initial data process start')
-        this.$ = cheerio.load(await this.getDataByUrlTestValue(initialUrl));
+        this.$ = cheerio.load(await this.getData(initialUrl));
 
         await this.LogsManager.saveDataLogs('Scraper.scraper()',false,'Get initial data process finished')
         success = true;

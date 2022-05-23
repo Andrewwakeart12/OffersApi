@@ -119,7 +119,7 @@ class Scraper {
           false,
           "Get initial data process start"
         );
-        this.$ = cheerio.load(await this.getDataByUrlTestValue(initialUrl));
+        this.$ = cheerio.load(await this.getDataByUrl(initialUrl));
 
         await this.LogsManager.saveDataLogs(
           "Scraper.scraper()",
@@ -139,7 +139,7 @@ class Scraper {
         retry++;
       }
     }
-    this.maxClicks = await this.getMaxclicksTestValue();
+    this.maxClicks = await this.getMaxclicks();
     
     this.LogsManager.error=false;
     await this.LogsManager.saveDataLogs(

@@ -26,10 +26,10 @@ class ExtractionProcessLogsManager{
         var url_id= await pool.query('SELECT category, controller_id FROM scraper_urls WHERE id = ?',[this.url_id])
         this.category = capitalize(url_id[0].category);
     }
-   async saveDataLogs(category,functionRef,pagination,log){
-        var LogComposed = `${category}_${functionRef}${pagination !== false ? '| ( Pagination nª ' + pagination +')' : ''} : ${log}`
+   async saveDataLogs(functionRef,pagination,log){
         await this.setStatusLog();
         await this.getCategory();
+        var LogComposed = `${this.category}_${functionRef}${pagination !== false ? '| ( Pagination nª ' + pagination +')' : ''} : ${log}`
       
         var DataLogObj = {
             url_id:this.url_id,
@@ -53,9 +53,5 @@ class ExtractionProcessLogsManager{
     }
 }
 
-var LogsManager = new ExtractionProcessLogsManager(5);
 
-LogsManager.complete=false;
-LogsManager.error=false;
-
-LogsManager.saveDataLogs('Videojuegos','getData()',2,'Extraccion exitosa');
+export default ExtractionProcessLogsManager

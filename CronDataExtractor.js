@@ -9,6 +9,7 @@ import WatcherOfProducts from "./WatcherOfProducts.js";
 import child_process from 'child_process';
 import ps from 'ps-node-promise-es6';
 import _ from 'lodash'
+import CronDataExtractorLogs from "./CronDataExtractorLogs.js";
 const getArrayAsChunks = (array, chunkSize) => {
   let result = [];
   let data = array.slice(0);
@@ -22,6 +23,7 @@ const capitalize = (word) => {
     .toLowerCase()
     .replace(/\w/, (firstLetter) => firstLetter.toUpperCase());
 };
+const CronDataLog = new CronDataExtractorLogs();
 class CronDataExtractor {
   /*return obj of links by controller
         {
@@ -72,6 +74,7 @@ class CronDataExtractor {
           var localUrls = urls[controller.controller];
           console.log('localUrls : ');
           console.log(localUrls);
+
           return bluebird.map(
             localUrls,
             async (url) => {
@@ -90,7 +93,7 @@ class CronDataExtractor {
               var GeneralScraperItem = await import(imp);
               console.log("GeneralScraperItem");
               console.log(GeneralScraperItem);
-
+              await CronDataLog.saveDataLogs('DinamycImport()','Complete',false,'Succesfully import done for : ' + controller.controller,'runJobsInParallel()')
               var { Scraper } = GeneralScraperItem;
               var Scrape = new Scraper(url.url_id);
 
@@ -104,6 +107,12 @@ class CronDataExtractor {
 
 
               console.log("resObj");
+              if(resObj.dataArr.length > 0){
+                await CronDataLog.saveDataLogs('Scraper.scraper()','Complete',false,'Succesfully getting products done for controller ' + controller.controller,'runJobsInParallel()')
+              }else{
+                await CronDataLog.saveDataLogs('Scraper.scraper()','Unclear',false,'No products Extracted, success not granted controller ' + controller.controller,'runJobsInParallel()')
+              }
+
               console.log(resObj);
               await that.updateDb(resObj);
               var notify = new Notifiyer(
@@ -137,7 +146,7 @@ class CronDataExtractor {
               return resObj;
 
             
-            },{concurrency:2});
+            },{concurrency:3});
           },
             
           );
@@ -230,9 +239,12 @@ class CronDataExtractor {
             }
           }
         }
+        await CronDataLog.saveDataLogs('updatedDb()','Complete',false,'Products added to DB for Category : ' + categoryData[0].category ,'updateInDb()')
+
         console.log("finished");
         resolve(true);
       } catch (error) {
+        await CronDataLog.saveDataLogs('updatedDb()','Failed',true,`Error message(failing update in DB) : ${error.message} ` + categoryData[0].category,'updateInDb()')
         reject(false);
       }
     });

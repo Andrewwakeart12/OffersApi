@@ -1,4 +1,5 @@
-//amazon
+//https://www.amazon.com.mx/s?i=electronics&bbn=9687565011&rh=n%3A9687565011%2Cp_n_deal_type%3A23565478011%2Cp_36%3A50000-500000%2Cp_6%3AA1G99GVHAT2WD8%7CAVDBXBAVVSXLQ&dc&fs=true&page=62&qid=1649879571&rnid=9754433011&ref=sr_pg_60
+import e from "express";
 import cheerio from "cheerio";
 import child_process from 'child_process';
 import colors from "colors";

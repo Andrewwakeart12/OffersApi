@@ -3,11 +3,12 @@ import cheerio from "cheerio";
 import child_process from "child_process";
 import colors from "colors";
 import ExtractionProcessLogsManager from './../../ExtractionProcessLogsManager.js';
+
 colors.enable();
 
 import Log from "../../toolkit/colorsLog.js";
 import WatcherOfProducts from "../../WatcherOfProducts.js";
-const log = (color, text) => {Fthis.
+const log = (color, text) => {
   console.log(`${color}%s${Log.reset}`, text);
 };
 class Catcha {
@@ -71,11 +72,13 @@ class Scraper {
 
         await this.LogsManager.saveDataLogs('Scraper.scraper()',false,'Get initial data process finished')
         success = true;
+        break;
+
       } catch (e) {
         console.log(e.message);
         this.LogsManager.complete=false;
         this.LogsManager.error= true;
-        await this.LogsManager.saveDataLogs('Scraper.scraper()',false,e.message)
+        await this.LogsManager.saveDataLogs('Scraper.scraper()',true,e.message)
         retry++;
       }
     }

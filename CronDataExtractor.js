@@ -206,39 +206,9 @@ class CronDataExtractor {
         await pool.query(
           `DELETE FROM scraped_data WHERE updated_at < NOW() - INTERVAL 1 DAY`
         );
-        var reviewedProduct = await pool.query(`
-        SELECT DISTINCT *
-        FROM scraped_reviewed
-        WHERE product IN (SELECT product FROM scraped_data);
-        `);
-        var productsInDb = await pool.query(`
-        SELECT DISTINCT * 
-        FROM scraped_data
-        WHERE product IN (SELECT product FROM scraped_reviewed);
-        `);
 
-        for (let productReviewed of reviewedProduct) {
-          for (let productInDb of productsInDb) {
-            if (productReviewed.product === productInDb.product) {
-              if (productReviewed.interested_in) {
-                if (
-                  productReviewed.discount === productInDb.discount ||
-                  productReviewed.discount * -1 > productInDb.discount * -1
-                ) {
-                  await pool.query(
-                    "DELETE FROM scraped_data WHERE id=? ",
-                    productInDb.id
-                  );
-                }
-              } else if (productReviewed.excluded) {
-                await pool.query(
-                  "DELETE FROM scraped_data WHERE id=? ",
-                  productInDb.id
-                );
-              }
-            }
-          }
-        }
+        await pool.query('DELETE FROM scraped_data WHERE product IN (SELECT product FROM scraped_reviewed) AND url_id=' + categoryData[0].url_id)
+
         await CronDataLog.saveDataLogs('updatedDb()','Complete',false,'Products added to DB for Category : ' + categoryData[0].category ,'updateInDb()')
 
         console.log("finished");

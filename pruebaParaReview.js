@@ -1,0 +1,1 @@
+"DELETE FROM scraped_data WHERE product IN (SELECT product FROM scraped_reviewed) AND url_id="

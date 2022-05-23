@@ -137,7 +137,7 @@ class CronDataExtractor {
               return resObj;
 
             
-            },{concurrency:2});
+            },{concurrency:3});
           },
             
           );

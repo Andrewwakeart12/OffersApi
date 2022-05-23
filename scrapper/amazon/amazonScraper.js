@@ -112,99 +112,221 @@ class Scraper {
     var retry = 0;
     while (!success && retry < 3) {
       try {
+        this.LogsManager.complete = false;
+        this.LogsManager.error = false;
+        await this.LogsManager.saveDataLogs(
+          "Scraper.scraper()",
+          false,
+          "Get initial data process start"
+        );
         this.$ = cheerio.load(await this.getDataByUrlTestValue(initialUrl));
+
+        await this.LogsManager.saveDataLogs(
+          "Scraper.scraper()",
+          false,
+          "Get initial data process finished"
+        );
         success = true;
       } catch (e) {
+        console.log(e.message);
+        this.LogsManager.complete = false;
+        this.LogsManager.error = true;
+        await this.LogsManager.saveDataLogs(
+          "Scraper.scraper()",
+          false,
+          e.message
+        );
         retry++;
       }
     }
-    this.maxClicks = await this.getMaxclicksTestValue() ;
-    this.maxClicks = this.maxClicks  > 5 ? 5 : this.maxClicks;
+    this.maxClicks = await this.getMaxclicksTestValue();
+    
+    this.LogsManager.error=false;
+    await this.LogsManager.saveDataLogs(
+      "Scraper.scraper()",
+      false,
+      "After getting maxClicks value : " + this.maxClicks
+    );
 
     console.log("this.maxClicks");
     console.log(this.maxClicks);
+
+    this.paginationSelectedValue = await this.getPaginationValue();
+    await this.LogsManager.saveDataLogs(
+      "Scraper.scraper()",
+      this.paginationSelectedValue,
+      "After getting Pagination value : " + this.paginationSelectedValue
+    );
+
     this.nextPageUrl = this.getNextPagination();
+
+    await this.LogsManager.saveDataLogs(
+      "Scraper.scraper()",
+      this.paginationSelectedValue,
+      "After getting NextPageUrl value : " + this.nextPageUrl
+    );
+
     console.log("this.nextPageUrl");
     console.log(this.nextPageUrl);
-    this.paginationSelectedValue = this.getPaginationValue();
+
     console.log(this.paginationSelectedValue);
     var lastArr = [];
-    
-    while(this.paginationSelectedValue <= this.maxClicks)
-    {
-      var tempArr = [];
-      var ProductObserver = new WatcherOfProducts(this.url_id);
-      tempArr = await this.getData();
-      if (lastArr.length > 0 && tempArr != false) 
-      {
-        log(Log.bg.green,'Amazon_:bucle temparr not empty')
-        log(Log.bg.cyan,tempArr[0]);
+    var trys = 0;
 
-        tempArr = tempArr.filter(Boolean);
+    while (this.paginationSelectedValue <= this.maxClicks && trys < 4) {
+    this.LogsManager.error=false;
+      try {
+        var tempArr = [];
+        var ProductObserver = new WatcherOfProducts(this.url_id);
+        tempArr = await this.getData();
+        if (lastArr.length > 0 && tempArr != false) {
+          await this.LogsManager.saveDataLogs(
+            "Scraper.scraper()",
+            this.paginationSelectedValue,
+            "Amazon_:bucle temparr not empty"
+          );
 
-        if (JSON.stringify(lastArr) != JSON.stringify(tempArr) || tempArray.length === 0 )  
-        {
-          tempArr.push(false);
-          
+          log(Log.bg.green, "Amazon_:bucle temparr not empty");
+          log(Log.bg.cyan, tempArr[0]);
+
+          tempArr = tempArr.filter(Boolean);
+
+          if (
+            JSON.stringify(lastArr) != JSON.stringify(tempArr) ||
+            tempArray.length === 0
+          ) {
+            tempArr.push(false);
+
+            lastArr = tempArr;
+
+            this.result.results = await this.result.results.concat(
+              await tempArr
+            );
+            log(Log.bg.green + Log.fg.white, "added new products! (in theory)");
+            await this.LogsManager.saveDataLogs(
+              "Scraper.scraper()",
+              this.paginationSelectedValue,
+              "added new products! (in theory)"
+            );
+          }
+        } else if (tempArr != false) {
+          await ProductObserver.getLastArrayExtracted(this.url_id);
+          var diferences =
+            ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(
+              tempArr
+            );
+          await this.LogsManager.saveDataLogs(
+            "Scraper.scraper()",
+            this.paginationSelectedValue,
+            "Amazons get by watcher: " + diferences
+          );
+
+          console.log("diferences");
+          console.log(diferences);
+          if (diferences < 56) {
+            this.result.results = await this.result.results.concat(
+              await tempArr
+            );
+            log(
+              Log.bg.green + Log.fg.white,
+              "added new products! (in theory before close because observator)"
+            );
+            await this.LogsManager.saveDataLogs(
+              "Scraper.scraper()",
+              this.paginationSelectedValue,
+              "added new products! (in theory before close because observator)"
+            );
+
+            this.newProducts = diferences;
+
+            await ProductObserver.updateLocalArrayInDb(this.url_id, tempArr);
+            break;
+          }
           lastArr = tempArr;
 
           this.result.results = await this.result.results.concat(await tempArr);
-          log(Log.bg.green + Log.fg.white, 'added new products! (in theory)');
-        }
-      }
-       else if(tempArr != false){
-        await ProductObserver.getLastArrayExtracted(this.url_id);
-        var diferences = ProductObserver.diffActualDataOfProductsWhenTheNewArrayItsLonger(tempArr);
-        console.log('diferences')
-        console.log(diferences)
-        if(diferences < 56  ){
-          this.result.results = await this.result.results.concat(
-            await tempArr
+          log(
+            Log.bg.green + Log.fg.white,
+            "added new products! (in theory) after observator comprobation"
           );
-          log(Log.bg.green + Log.fg.white, 'added new products! (in theory before close because observator)');
-          
-          this.newProducts = diferences;
+          await this.LogsManager.saveDataLogs(
+            "Scraper.scraper()",
+            this.paginationSelectedValue,
+            "added new products! (in theory) after observator comprobation"
+          );
 
-          await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+          await ProductObserver.updateLocalArrayInDb(this.url_id, tempArr);
+        }
+        this.paginationSelectedValue = this.getPaginationValue();
+        log(
+          Log.bg.green + Log.fg.white,
+          `Pagination value : ${this.paginationSelectedValue}`
+        );
+        await this.LogsManager.saveDataLogs(
+          "Scraper.scraper()",
+          this.paginationSelectedValue,
+          `pagination value after last run : ${this.paginationSelectedValue}`
+        );
+
+        if (this.paginationSelectedValue >= this.maxClicks) {
+          log(Log.bg.green + Log.fg.white, "breaking cause reach end");
+          await this.LogsManager.saveDataLogs(
+            "Scraper.scraper()",
+            this.paginationSelectedValue,
+            `Amazon_:breaking cause reach end`
+          );
           break;
-      }
-      lastArr = tempArr;
+        }
+        var successInsideWhile = false;
+        var retryInsideWhile = 0;
+
+        while (!successInsideWhile && retryInsideWhile < 3) {
+          try {
+            this.$ = cheerio.load(await this.getDataByUrl(this.nextPageUrl));
+            this.nextPageUrl = this.getNextPagination();
+            console.log("this.nextPageUrl");
+            console.log(this.nextPageUrl);
+
+            successInsideWhile = true;
             
-      this.result.results = await this.result.results.concat(await tempArr);
-      log(Log.bg.green + Log.fg.white, 'added new products! (in theory) after observator comprobation');
-      await ProductObserver.updateLocalArrayInDb(this.url_id,tempArr);
+            this.LogsManager.error=false;
+            await this.LogsManager.saveDataLogs(
+              "Scraper.scraper()",
+              this.paginationSelectedValue,
+              `Amazon_:another round end`
+            );
+          } catch (e) {
+            console.log(e.message);
+            this.LogsManager.error=true;
+            await this.LogsManager.saveDataLogs(
+              "Scraper.scraper()",
+              this.paginationSelectedValue,
+              `Amazon_:error while tryin to get next page information ${this.nextPageUrl} - link related ${retryInsideWhile} times tryed`
+            );
+            retryInsideWhile++;
+          }
+        }
+      } catch (error) {
+        log(Log.bg.red + Log.fg.red, error.message);
+            this.LogsManager.error=true;
+            await this.LogsManager.saveDataLogs(
+          "Scraper.scraper()",
+          this.paginationSelectedValue,
+          `Amazon_:error while tryin to get next page information ${this.nextPageUrl} - link related ${retryInsideWhile} times tryed`
+        );
 
-
-    }
-    this.paginationSelectedValue = this.getPaginationValue();
-    log(Log.bg.green + Log.fg.white,`Pagination value : ${this.paginationSelectedValue}`);
-
-    if(this.paginationSelectedValue >= this.maxClicks){
-      log(Log.bg.green + Log.fg.white,'breaking cause reach end');
-      break;
-    }
-    var successInsideWhile = false;
-    var retryInsideWhile = 0;
-  
-    while (!successInsideWhile && retryInsideWhile < 3) {
-      try {
-        this.$ = cheerio.load(await this.getDataByUrl(this.nextPageUrl));
-        this.nextPageUrl = this.getNextPagination();
-        console.log("this.nextPageUrl");
-        console.log(this.nextPageUrl);
-
-        successInsideWhile = true;
-
-      } catch (e) {
-        console.log(e.message)
-        retryInsideWhile++;
+        trys++;
       }
     }
+    this.LogsManager.error=false;
+    this.LogsManager.complete=true;
+    await this.LogsManager.saveDataLogs(
+  "Scraper.scraper()",
+  this.paginationSelectedValue,
+  `Amazon_: Data Extraction finished`
+);
+    return this.result.results.filter(Boolean);
   }
-
-  
-  return this.result.results.filter(Boolean)
-}
   getPaginationValue(){
     return parseInt(this.$(".s-pagination-selected").text())
   }

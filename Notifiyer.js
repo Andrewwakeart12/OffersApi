@@ -55,6 +55,7 @@ destroy(){
       return new Promise(async (resolve,reject)=>{
         try {
             //gets array of Products from DB
+
             var productsArr = await pool.query(
               "SELECT * FROM scraped_data WHERE url_id = ? AND discount <= ? AND  notifyed = 0 ORDER BY discount ASC LIMIT 3 ",
               [this.url_id, this.discount_starts_at * -1]
@@ -112,7 +113,7 @@ destroy(){
   async sendNotifications() {
     return new Promise(async (resolve, reject) => {
 
-      
+
         //sends notification based on local data #category , #controller_identity , #to_notify , #controller_id
         console.log('starting notification phase');
         const ProdsArr = await this.getElementsToNotifyOf();
@@ -123,14 +124,24 @@ destroy(){
         var jwt = await pool.query("SELECT jwtoken FROM users WHERE id =? ", [
           controller_jwt[0].user_id,
         ]);
+        var numberOfProducts = await Notifiyer.getNumberOfProductsInRange(this.url_id,this.discount_starts_at);
+        console.log('numberOfProducts')
+        console.log(numberOfProducts)
+        if(numberOfProducts  === 0){
+          await Notifiyer.sendCostumNotification(this.controller_id,'No hay productos en rango para noficar',`la categoría ${this.category} no tiene mas productos para notificar de momento`)
+          resolve(true);
+          return true;
+        }
         console.log(jwt);
         if(ProdsArr.length === 0){
           console.log('nothing to notifyOf');
           resolve(true)
         }
+        
         for (let product of ProdsArr) {
           var success = false;
           var trys = 0;
+          
         while(!success && trys <= 6){
           try {
 
@@ -177,6 +188,11 @@ destroy(){
 
     });
   }
+ static async getNumberOfProductsInRange(url_id,discount_range_val_one){
+    var products =await pool.query('SELECT * FROM scraped_data WHERE url_id = ? AND discount <= ? AND  notifyed = 0 ORDER BY discount',[url_id,discount_range_val_one])
+    console.log(products.length)
+    return products.length;
+  }
 }
 /*
 async function e(){
@@ -186,4 +202,5 @@ console.log(not);
 }
 e()
 */
+
 export default Notifiyer;

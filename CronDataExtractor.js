@@ -124,11 +124,8 @@ class CronDataExtractor {
               );
               await notify.sendNotifications();
               if (Scrape.newProducts != false) {
-                await Notifiyer.sendCostumNotification(
-                  controller.id,
-                  `Categoría ${capitalize(url.category)}`,
-                  `${Scrape.newProducts} productos nuevos fueron encontrados \n en esta extracción`
-                );
+                await CronDataLog.saveDataLogs('Notifiyer.sendCostumNotification()','Pending',false,  `Categoría ${capitalize(url.category)}`,
+                `${Scrape.newProducts} productos nuevos fueron encontrados \n en esta extracción`)
               } else {
                 console.log("checking the real number of offfers");
                 var Observer = new WatcherOfProducts();
@@ -137,11 +134,7 @@ class CronDataExtractor {
                   await Observer.diffActualDataOfProductsWhenTheNewArrayItsLonger(
                     resObj.dataArr
                   );
-                await Notifiyer.sendCostumNotification(
-                  controller.id,
-                  `Categoría ${capitalize(url.category)}`,
-                  `${differences} productos nuevos fueron encontrados \n en esta extracción`
-                );
+                await CronDataLog.saveDataLogs('Notifiyer.sendCostumNotification()','Pending',false,  `Categoría ${capitalize(url.category)}`)
               }
               return resObj;
 
